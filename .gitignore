@@ -36,5 +36,5 @@ sqlite.db-wal
 # olcrtc repo clone and compiled binary
 /olcrtc
 
-# Drizzle migration snapshots (keep SQL migrations, skip generated meta)
-/drizzle/meta
+# Drizzle migration snapshots
+# Note: Drizzle requires the meta/_journal.json for migrations to run at startup.
