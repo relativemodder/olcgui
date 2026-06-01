@@ -33,6 +33,7 @@ ENV OLCRTC_GIT_DIR=/app/olcrtc
 ENV OLCRTC_BUILD_DIR=/app/olcrtc
 ENV MAGE_CMD=mage
 ENV DATABASE_URL=/app/data/sqlite.db
+ENV BODY_SIZE_LIMIT=Infinity
 
 RUN mkdir -p /app/data/instances
 
