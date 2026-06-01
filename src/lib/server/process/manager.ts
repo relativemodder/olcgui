@@ -21,7 +21,7 @@ export interface ActiveInstance {
 const activeInstances = new Map<number, ActiveInstance>();
 
 const DATA_DIR = env.OLCRTC_DATA_DIR || './data/instances';
-const arch = process.arch === 'arm64' || process.arch === 'aarch64' ? 'arm64' : 'amd64';
+const arch = process.arch === 'arm64' ? 'arm64' : 'amd64';
 const BINARY_PATH =
 	env.OLCRTC_BINARY_PATH || join(process.cwd(), `olcrtc/build/olcrtc-linux-${arch}`);
 
