@@ -171,7 +171,7 @@
 		<div class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md">
 			<div>
 				<span class="block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-					>Перезапуск</span
+					>В процессе перезапуска</span
 				>
 				<span class="mt-1 block text-2xl font-bold text-zinc-400">{restartingCount}</span>
 			</div>
