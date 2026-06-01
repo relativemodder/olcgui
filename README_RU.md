@@ -19,6 +19,7 @@
 ```bash
 mkdir data olcrtc
 podman build -t olcgui . --no-cache && podman rm -f olcgui && podman run -d --name olcgui -p 5173:5173 -v ./data:/app/data:Z -v ./olcrtc:/app/olcrtc:Z olcgui
+podman start olcgui
 ```
 
 Репозиторий `olcrtc` и база данных монтируются как volumes, поэтому данные сохраняются между перезапусками контейнера. Интерфейс доступен по адресу `http://localhost:5173`.
