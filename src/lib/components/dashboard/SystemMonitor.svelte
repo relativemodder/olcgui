@@ -61,14 +61,21 @@
 	<div class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md">
 		<div class="flex w-full flex-col">
 			<div class="flex items-center justify-between">
-				<span class="block text-xs font-semibold tracking-wider text-zinc-400 uppercase">Нагрузка ЦПУ, %</span>
+				<span class="block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
+					>Нагрузка ЦПУ, %</span
+				>
 				<Cpu class="h-4 w-4 text-zinc-500" />
 			</div>
 			<div class="mt-2 flex items-baseline gap-2">
 				<span class="block text-2xl font-bold text-white">{stats.cpuPercent}%</span>
 			</div>
 			<div class="mt-3 h-1.5 w-full overflow-hidden bg-zinc-800">
-				<div class="h-full {stats.cpuPercent >= 90 ? 'bg-red-500' : 'bg-zinc-500'} transition-all duration-500" style="width: {stats.cpuPercent}%"></div>
+				<div
+					class="h-full {stats.cpuPercent >= 90
+						? 'bg-red-500'
+						: 'bg-zinc-500'} transition-all duration-500"
+					style="width: {stats.cpuPercent}%"
+				></div>
 			</div>
 		</div>
 	</div>
@@ -77,7 +84,9 @@
 	<div class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md">
 		<div class="flex w-full flex-col">
 			<div class="flex items-center justify-between">
-				<span class="block text-xs font-semibold tracking-wider text-zinc-400 uppercase">ОЗУ, ГБ</span>
+				<span class="block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
+					>ОЗУ, ГБ</span
+				>
 				<HardDrive class="h-4 w-4 text-zinc-500" />
 			</div>
 			<div class="mt-2 flex items-baseline gap-2">
@@ -85,7 +94,12 @@
 				<span class="text-xs text-zinc-500">/ {formatBytes(stats.memoryTotal, 1)}</span>
 			</div>
 			<div class="mt-3 h-1.5 w-full overflow-hidden bg-zinc-800">
-				<div class="h-full {memPercent >= 90 ? 'bg-red-500' : 'bg-zinc-500'} transition-all duration-500" style="width: {memPercent}%"></div>
+				<div
+					class="h-full {memPercent >= 90
+						? 'bg-red-500'
+						: 'bg-zinc-500'} transition-all duration-500"
+					style="width: {memPercent}%"
+				></div>
 			</div>
 		</div>
 	</div>
@@ -94,14 +108,21 @@
 	<div class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md">
 		<div class="flex w-full flex-col">
 			<div class="flex items-center justify-between">
-				<span class="block text-xs font-semibold tracking-wider text-zinc-400 uppercase">Нагрузка IOWait, %</span>
+				<span class="block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
+					>Нагрузка IOWait, %</span
+				>
 				<Activity class="h-4 w-4 text-zinc-500" />
 			</div>
 			<div class="mt-2 flex items-baseline gap-2">
 				<span class="block text-2xl font-bold text-white">{stats.iowaitPercent}%</span>
 			</div>
 			<div class="mt-3 h-1.5 w-full overflow-hidden bg-zinc-800">
-				<div class="h-full {stats.iowaitPercent >= 90 ? 'bg-red-500' : 'bg-zinc-500'} transition-all duration-500" style="width: {Math.min(100, stats.iowaitPercent)}%"></div>
+				<div
+					class="h-full {stats.iowaitPercent >= 90
+						? 'bg-red-500'
+						: 'bg-zinc-500'} transition-all duration-500"
+					style="width: {Math.min(100, stats.iowaitPercent)}%"
+				></div>
 			</div>
 		</div>
 	</div>

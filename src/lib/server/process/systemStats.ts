@@ -1,5 +1,3 @@
-
-
 const PROC_DIR = process.env.HOST_PROC || '/proc';
 
 interface CpuReading {
@@ -121,8 +119,14 @@ export async function getSystemStats() {
 		if (lastNetworkReading) {
 			const timeDeltaSec = (currentNet.timestamp - lastNetworkReading.timestamp) / 1000;
 			if (timeDeltaSec > 0) {
-				stats.networkRxSec = Math.max(0, (currentNet.rxBytes - lastNetworkReading.rxBytes) / timeDeltaSec);
-				stats.networkTxSec = Math.max(0, (currentNet.txBytes - lastNetworkReading.txBytes) / timeDeltaSec);
+				stats.networkRxSec = Math.max(
+					0,
+					(currentNet.rxBytes - lastNetworkReading.rxBytes) / timeDeltaSec
+				);
+				stats.networkTxSec = Math.max(
+					0,
+					(currentNet.txBytes - lastNetworkReading.txBytes) / timeDeltaSec
+				);
 			}
 		}
 		lastNetworkReading = currentNet;

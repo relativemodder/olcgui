@@ -8,15 +8,15 @@
 	async function handleFileUpload(event: Event) {
 		const input = event.target as HTMLInputElement;
 		if (!input.files || input.files.length === 0) return;
-		
+
 		const file = input.files[0];
 		const formData = new FormData();
 		formData.append('file', file);
-		
+
 		isUploading = true;
 		uploadSuccess = null;
 		uploadMessage = '';
-		
+
 		try {
 			const res = await fetch('/api/builds/upload', {
 				method: 'POST',
@@ -48,17 +48,25 @@
 			<span>Загрузка готовой сборки</span>
 		</h2>
 	</div>
-	
-	<div class="mb-6 flex items-start gap-3 border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm text-yellow-200">
+
+	<div
+		class="mb-6 flex items-start gap-3 border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm text-yellow-200"
+	>
 		<AlertTriangle class="h-5 w-5 shrink-0 text-yellow-500" />
 		<p class="leading-relaxed">
-			<strong class="font-bold">Внимание:</strong> Этот функционал предназначен исключительно для маломощных серверов, у которых не хватает вычислительных мощностей для локальной компиляции исходного кода. Загружайте только бинарные файлы, собранные для вашей целевой архитектуры.
+			<strong class="font-bold">Внимание:</strong> Этот функционал предназначен исключительно для маломощных
+			серверов, у которых не хватает вычислительных мощностей для локальной компиляции исходного кода.
+			Загружайте только бинарные файлы, собранные для вашей целевой архитектуры.
 		</p>
 	</div>
-	
+
 	<div class="flex flex-col gap-4">
 		<div class="flex items-center gap-4">
-			<label class="flex cursor-pointer items-center gap-2 bg-white px-6 py-2.5 text-xs font-semibold text-black shadow-sm hover:bg-zinc-200" class:opacity-50={isUploading} class:cursor-not-allowed={isUploading}>
+			<label
+				class="flex cursor-pointer items-center gap-2 bg-white px-6 py-2.5 text-xs font-semibold text-black shadow-sm hover:bg-zinc-200"
+				class:opacity-50={isUploading}
+				class:cursor-not-allowed={isUploading}
+			>
 				{#if isUploading}
 					<Loader2 class="h-4 w-4 animate-spin" />
 					<span>Загрузка...</span>
@@ -69,7 +77,7 @@
 				<input type="file" class="hidden" onchange={handleFileUpload} disabled={isUploading} />
 			</label>
 		</div>
-		
+
 		{#if uploadSuccess === true}
 			<p class="text-sm font-semibold text-emerald-400">{uploadMessage}</p>
 		{:else if uploadSuccess === false}

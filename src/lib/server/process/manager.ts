@@ -34,7 +34,7 @@ try {
 export async function saveUploadedBinary(buffer: Buffer): Promise<void> {
 	const dir = dirname(BINARY_PATH);
 	mkdirSync(dir, { recursive: true });
-	
+
 	const tempPath = `${BINARY_PATH}.tmp`;
 	writeFileSync(tempPath, buffer);
 	chmodSync(tempPath, 0o755);
@@ -47,12 +47,14 @@ export async function saveUploadedBinary(buffer: Buffer): Promise<void> {
 
 		const stderrText = await new Response(proc.stderr).text();
 		const stdoutText = await new Response(proc.stdout).text();
-		
+
 		await proc.exited;
-		
+
 		const output = stderrText + stdoutText;
 		if (!output.includes('usage: olcrtc <config.yaml>')) {
-			throw new Error('Файл не является корректным исполняемым файлом ядра olcrtc для данной архитектуры.');
+			throw new Error(
+				'Файл не является корректным исполняемым файлом ядра olcrtc для данной архитектуры.'
+			);
 		}
 
 		renameSync(tempPath, BINARY_PATH);
@@ -62,11 +64,14 @@ export async function saveUploadedBinary(buffer: Buffer): Promise<void> {
 		} catch (_e) {
 			// ignore cleanup errors
 		}
-		
+
 		if (err instanceof Error && err.message.includes('Файл не является')) {
 			throw err;
 		}
-		throw new Error('Файл не является корректным исполняемым файлом для данной архитектуры (ошибка выполнения).', { cause: err });
+		throw new Error(
+			'Файл не является корректным исполняемым файлом для данной архитектуры (ошибка выполнения).',
+			{ cause: err }
+		);
 	}
 }
 
