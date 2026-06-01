@@ -23,7 +23,6 @@
 		data.instances.filter((i) => (polledStatuses[i.id]?.status ?? i.status) === 'error').length
 	);
 
-
 	async function pollStatuses() {
 		try {
 			const res = await fetch(`/api/instances?_t=${Date.now()}`);
@@ -138,9 +137,7 @@
 	</div>
 
 	<div class="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-4">
-		<div
-			class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md"
-		>
+		<div class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md">
 			<div>
 				<span class="block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
 					>Всего туннелей</span
@@ -154,9 +151,7 @@
 			</div>
 		</div>
 
-		<div
-			class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md"
-		>
+		<div class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md">
 			<div>
 				<span class="block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
 					>Активно</span
@@ -170,9 +165,7 @@
 			</div>
 		</div>
 
-		<div
-			class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md"
-		>
+		<div class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md">
 			<div>
 				<span class="block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
 					>Перезапуск</span
@@ -186,9 +179,7 @@
 			</div>
 		</div>
 
-		<div
-			class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md"
-		>
+		<div class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md">
 			<div>
 				<span class="block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
 					>Ошибки</span
@@ -228,9 +219,7 @@
 	{:else}
 		<div class="grid grid-cols-1 gap-6">
 			{#each data.instances as inst (inst.id)}
-				<div
-					class="flex flex-col overflow-hidden border border-zinc-800 bg-zinc-900 shadow-md"
-				>
+				<div class="flex flex-col overflow-hidden border border-zinc-800 bg-zinc-900 shadow-md">
 					<TunnelCard
 						{inst}
 						status={polledStatuses[inst.id]?.status ?? inst.status}

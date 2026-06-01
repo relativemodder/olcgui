@@ -1,7 +1,5 @@
-
 declare global {
 	namespace App {
-
 		interface Locals {
 			user: {
 				userId: number;
@@ -10,7 +8,6 @@ declare global {
 			} | null;
 			setupNeeded: boolean;
 		}
-
 	}
 }
 

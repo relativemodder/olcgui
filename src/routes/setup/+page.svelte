@@ -19,7 +19,9 @@
 >
 	<div class="w-full max-w-md border border-zinc-800 bg-zinc-900 p-8 shadow-md">
 		<div class="mb-8 flex flex-col items-center">
-			<div class="mb-4 flex h-16 w-16 items-center justify-center border border-zinc-800 bg-zinc-950">
+			<div
+				class="mb-4 flex h-16 w-16 items-center justify-center border border-zinc-800 bg-zinc-950"
+			>
 				<ShieldCheck class="h-8 w-8 text-zinc-400" />
 			</div>
 			<h1 class="text-2xl font-bold tracking-tight text-white">olcRTC Manager</h1>

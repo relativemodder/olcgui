@@ -19,9 +19,7 @@
 	}
 
 	$effect(() => {
-
 		if (logs.length > 0) {
-
 			setTimeout(scrollToBottom, 30);
 		}
 	});

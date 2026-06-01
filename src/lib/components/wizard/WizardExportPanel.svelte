@@ -83,9 +83,7 @@
 	{#if mode === 'cnc'}
 		<div class="flex flex-col border border-zinc-800 bg-zinc-900 p-6 shadow-md">
 			<div class="mb-4 flex items-center justify-between">
-				<h3
-					class="flex items-center gap-2 text-sm font-bold tracking-wider text-white uppercase"
-				>
+				<h3 class="flex items-center gap-2 text-sm font-bold tracking-wider text-white uppercase">
 					<TerminalIcon class="h-4 w-4 text-zinc-500" />
 					<span>Строка запуска бинарника</span>
 				</h3>

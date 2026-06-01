@@ -25,7 +25,6 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-
 	checkout: async ({ url }) => {
 		const name = url.searchParams.get('name');
 		if (!name) {

@@ -29,7 +29,6 @@ export const actions: Actions = {
 		}
 
 		try {
-
 			const existingUsers = await db.select().from(users).limit(1);
 			if (existingUsers.length > 0) {
 				return fail(400, { error: 'Первоначальная настройка администратора уже выполнена!' });
@@ -45,7 +44,6 @@ export const actions: Actions = {
 					role: 'admin'
 				})
 				.returning();
-
 
 			const sessionToken = createSession(newAdmin.id, newAdmin.username, newAdmin.role);
 			cookies.set('session', sessionToken, {

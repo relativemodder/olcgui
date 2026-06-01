@@ -57,7 +57,10 @@
 					</h2>
 				</a>
 				<span
-					class="border border-zinc-700/50 px-2 py-0.5 text-[9px] font-bold tracking-wider text-white uppercase {inst.mode === 'srv' ? 'bg-zinc-700' : 'bg-zinc-700'}"
+					class="border border-zinc-700/50 px-2 py-0.5 text-[9px] font-bold tracking-wider text-white uppercase {inst.mode ===
+					'srv'
+						? 'bg-zinc-700'
+						: 'bg-zinc-700'}"
 				>
 					{inst.mode === 'srv' ? 'СЕРВЕР' : 'КЛИЕНТ'}
 				</span>

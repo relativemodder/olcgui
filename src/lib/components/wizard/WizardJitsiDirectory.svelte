@@ -27,7 +27,7 @@
 		<button
 			type="button"
 			onclick={() => (showJitsiDirectory = !showJitsiDirectory)}
-			class="cursor-pointer border border-zinc-800 bg-zinc-950 px-2 py-1 text-[9px] font-bold text-zinc-300 uppercase select-none hover:bg-zinc-850"
+			class="hover:bg-zinc-850 cursor-pointer border border-zinc-800 bg-zinc-950 px-2 py-1 text-[9px] font-bold text-zinc-300 uppercase select-none"
 		>
 			{showJitsiDirectory ? 'Скрыть список' : 'Показать список'}
 		</button>

@@ -3,7 +3,14 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { env } from '$env/dynamic/private';
 
-const DEFAULT_REPO_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'olcrtc');
+const DEFAULT_REPO_DIR = join(
+	dirname(fileURLToPath(import.meta.url)),
+	'..',
+	'..',
+	'..',
+	'..',
+	'olcrtc'
+);
 const GIT_DIR = env.OLCRTC_GIT_DIR || DEFAULT_REPO_DIR;
 const GIT_REMOTE_URL = env.OLCRTC_GIT_REMOTE_URL || 'https://github.com/openlibrecommunity/olcrtc';
 
@@ -53,7 +60,9 @@ async function run(cmd: string[], cwd: string): Promise<{ stdout: string; stderr
 
 	const exitCode = await result.exited;
 	if (exitCode !== 0) {
-		throw new Error(`[GitRepo] Command failed (${cmd.join(' ')}). exitCode=${exitCode}. stderr=${stderr.trim()}`);
+		throw new Error(
+			`[GitRepo] Command failed (${cmd.join(' ')}). exitCode=${exitCode}. stderr=${stderr.trim()}`
+		);
 	}
 
 	return { stdout: stdout.trim(), stderr: stderr.trim() };
@@ -78,7 +87,9 @@ export async function ensureOlcrtcRepo(): Promise<void> {
 			if (!existsSync(GIT_DIR) || !isGitRepoDir(GIT_DIR)) {
 				const parentDir = join(GIT_DIR, '..');
 				if (!existsSync(parentDir)) {
-					throw new Error(`[GitRepo] Parent directory does not exist for OLCRTC_GIT_DIR: ${parentDir}`);
+					throw new Error(
+						`[GitRepo] Parent directory does not exist for OLCRTC_GIT_DIR: ${parentDir}`
+					);
 				}
 
 				console.log(`[GitRepo] Cloning olcrtc repo into "${GIT_DIR}" from "${GIT_REMOTE_URL}"...`);
@@ -114,7 +125,10 @@ export async function ensureOlcrtcRepo(): Promise<void> {
 				});
 
 				const revStdout = revParse.stdout ? await readStreamToString(revParse.stdout) : '';
-				revParse.stderr?.getReader().cancel().catch(() => {});
+				revParse.stderr
+					?.getReader()
+					.cancel()
+					.catch(() => {});
 				const revExit = await revParse.exited;
 
 				if (revExit === 0) {

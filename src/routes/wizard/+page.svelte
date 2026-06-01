@@ -12,12 +12,7 @@
 		replaceJitsiServer,
 		type ParsedOlcrtcUri
 	} from '$lib/wizard/utils';
-	import {
-		Sliders,
-		RefreshCw,
-		Info,
-		ShieldAlert
-	} from 'lucide-svelte';
+	import { Sliders, RefreshCw, Info, ShieldAlert } from 'lucide-svelte';
 
 	let { form, data } = $props();
 
@@ -39,8 +34,6 @@
 	let socksUser = $state(initial?.socksUser ?? '');
 	let socksPass = $state(initial?.socksPass ?? '');
 	let debug = $state(initial?.debug ?? false);
-
-
 
 	function handleRegenKey() {
 		cryptoKey = generateCryptoKey();
@@ -265,7 +258,11 @@
 						/>
 
 						{#if provider === 'jitsi'}
-							<WizardJitsiDirectory onSelect={(server) => { roomUrl = replaceJitsiServer(roomUrl, server); }} />
+							<WizardJitsiDirectory
+								onSelect={(server) => {
+									roomUrl = replaceJitsiServer(roomUrl, server);
+								}}
+							/>
 						{/if}
 					</div>
 
@@ -289,7 +286,7 @@
 							<button
 								type="button"
 								onclick={handleRegenKey}
-								class="absolute inset-y-0 right-0 flex cursor-pointer items-center justify-center px-3 text-zinc-400 hover:bg-zinc-850 hover:text-zinc-200"
+								class="hover:bg-zinc-850 absolute inset-y-0 right-0 flex cursor-pointer items-center justify-center px-3 text-zinc-400 hover:text-zinc-200"
 								title="Сгенерировать случайный ключ"
 							>
 								<RefreshCw class="h-4 w-4" />
@@ -385,19 +382,12 @@
 						class="mt-8 flex w-full cursor-pointer items-center justify-center gap-2 bg-white px-4 py-3 text-sm font-semibold text-black shadow-sm hover:bg-zinc-200"
 					>
 						<Sliders class="h-5 w-5" />
-						<span
-							>{data.editInstance ? 'Сохранить изменения' : 'Создать туннель'}</span
-						>
+						<span>{data.editInstance ? 'Сохранить изменения' : 'Создать туннель'}</span>
 					</button>
 				</form>
 			</div>
 		</div>
 
-		<WizardExportPanel
-			{liveShareUrl}
-			{liveYaml}
-			{liveClientRunCommand}
-			{mode}
-		/>
+		<WizardExportPanel {liveShareUrl} {liveYaml} {liveClientRunCommand} {mode} />
 	</div>
 </div>

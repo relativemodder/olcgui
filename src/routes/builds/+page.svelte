@@ -40,7 +40,6 @@
 		}
 	}
 
-
 	async function pollBuild() {
 		try {
 			const res = await fetch('/api/builds');
@@ -79,7 +78,6 @@
 		try {
 			const res = await fetch('/api/repo/pull', { method: 'POST' });
 			if (res.ok) {
-
 				await pollRepoSync();
 				if (repoSyncing && !repoInterval) {
 					repoInterval = setInterval(pollRepoSync, 800);
@@ -91,7 +89,6 @@
 	}
 
 	onMount(async () => {
-
 		await pollRepoSync();
 		if (repoSyncing) repoInterval = setInterval(pollRepoSync, 800);
 	});
@@ -114,11 +111,11 @@
 			<div class="flex flex-col items-center gap-3 p-8">
 				<div class="flex items-center gap-3">
 					<Loader2 class="h-5 w-5 animate-spin text-purple-300" />
-					<span class="text-sm font-bold text-purple-200 uppercase tracking-wider"
+					<span class="text-sm font-bold tracking-wider text-purple-200 uppercase"
 						>Идет подготовка репозитория…</span
 					>
 				</div>
-				<p class="text-xs text-zinc-300/80 text-center">
+				<p class="text-center text-xs text-zinc-300/80">
 					Это может занять несколько минут при первом клонировании.
 				</p>
 			</div>
@@ -163,9 +160,7 @@
 						{/if}
 					</button>
 				</div>
-				<p class="text-xs text-zinc-300/80">
-					Pull выполняется только по кнопке.
-				</p>
+				<p class="text-xs text-zinc-300/80">Pull выполняется только по кнопке.</p>
 			</div>
 			{#if data.currentCommit}
 				<div class="border border-zinc-800 bg-zinc-900 p-6 shadow-md">

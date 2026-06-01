@@ -6,7 +6,6 @@
 
 	let { data, children } = $props();
 
-
 	let currentPath = $derived(page.url.pathname);
 </script>
 
@@ -38,9 +37,7 @@
 					</div>
 				</div>
 
-				<nav
-					class="hidden items-center gap-1 border border-zinc-800 bg-zinc-950 p-1 md:flex"
-				>
+				<nav class="hidden items-center gap-1 border border-zinc-800 bg-zinc-950 p-1 md:flex">
 					<a
 						href="/"
 						class="flex cursor-pointer items-center gap-2 px-4 py-2 text-sm font-medium {currentPath ===
@@ -101,7 +98,7 @@
 		</header>
 
 		<nav
-			class="shadow-2xl shadow-black border-t border-zinc-800 fixed bottom-0 z-40 flex w-full items-center justify-around bg-zinc-900 px-2 py-2 md:hidden"
+			class="fixed bottom-0 z-40 flex w-full items-center justify-around border-t border-zinc-800 bg-zinc-900 px-2 py-2 shadow-2xl shadow-black md:hidden"
 		>
 			<a
 				href="/"
