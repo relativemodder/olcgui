@@ -386,7 +386,7 @@
 					>
 						<Sliders class="h-5 w-5" />
 						<span
-							>{data.editInstance ? 'Сохранить изменения' : 'Сохранить в панель управления'}</span
+							>{data.editInstance ? 'Сохранить изменения' : 'Создать туннель'}</span
 						>
 					</button>
 				</form>
