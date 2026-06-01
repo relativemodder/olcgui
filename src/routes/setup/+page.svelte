@@ -108,7 +108,7 @@
 			<button
 				type="submit"
 				disabled={loading}
-				class="mt-8 flex w-full cursor-pointer items-center justify-center gap-2 bg-purple-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-purple-500"
+				class="mt-8 flex w-full cursor-pointer items-center justify-center gap-2 bg-white px-4 py-3 text-sm font-semibold text-black shadow-sm hover:bg-white/80"
 			>
 				{#if loading}
 					<Loader2 class="h-5 w-5 animate-spin" />
