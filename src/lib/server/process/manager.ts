@@ -77,7 +77,8 @@ export async function startInstance(id: number): Promise<void> {
 	writeFileSync(configPath, yamlContent, 'utf-8');
 
 	if (!existsSync(BINARY_PATH)) {
-		const errMsg = 'Компилятор olcrtc не найден. Пожалуйста, соберите проект во вкладке Сборки.';
+		const errMsg =
+			'Исполняемый файл olcrtc не найден. Скорее всего он не был собран. Пожалуйста, соберите проект во вкладке Сборки.';
 		await db.update(instances).set({ status: 'error' }).where(eq(instances.id, id));
 		await db.insert(dbLogs).values({
 			instanceId: id,
