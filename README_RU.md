@@ -2,6 +2,8 @@
 
 Веб-интерфейс для управления инстансами туннелей [olcrtc](https://github.com/olcrtc).
 
+<img src="/assets/ui1.png">
+
 ## Стек
 
 - SvelteKit 5
