@@ -64,7 +64,7 @@
 					bind:value={username}
 					placeholder="например, admin"
 					disabled={loading}
-					class="w-full border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white placeholder-zinc-700 focus:border-zinc-500 focus:outline-none"
+					class="w-full border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white placeholder-zinc-700 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 					required
 				/>
 			</div>
@@ -83,7 +83,7 @@
 					bind:value={password}
 					placeholder="Не менее 6 символов"
 					disabled={loading}
-					class="w-full border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white placeholder-zinc-700 focus:border-zinc-500 focus:outline-none"
+					class="w-full border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white placeholder-zinc-700 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 					required
 				/>
 			</div>
@@ -102,7 +102,7 @@
 					bind:value={confirmPassword}
 					placeholder="Повторите введенный пароль"
 					disabled={loading}
-					class="w-full border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white placeholder-zinc-700 focus:border-zinc-500 focus:outline-none"
+					class="w-full border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white placeholder-zinc-700 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 					required
 				/>
 			</div>

@@ -85,7 +85,7 @@
 						bind:value={username}
 						placeholder="admin_sec"
 						disabled={loading}
-						class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:outline-none"
+						class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 						required
 					/>
 				</div>
@@ -104,7 +104,7 @@
 						bind:value={password}
 						placeholder="••••••••"
 						disabled={loading}
-						class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-zinc-500 focus:outline-none"
+						class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 						required
 					/>
 				</div>
@@ -123,7 +123,7 @@
 						bind:value={confirmPassword}
 						placeholder="••••••••"
 						disabled={loading}
-						class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-zinc-500 focus:outline-none"
+						class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 						required
 					/>
 				</div>

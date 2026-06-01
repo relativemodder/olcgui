@@ -53,7 +53,7 @@
 			type="text"
 			bind:value={importUrlInput}
 			placeholder="olcrtc://telemost?vp8channel..."
-			class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-xs text-white focus:border-zinc-500 focus:outline-none"
+			class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-xs text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 		/>
 		<button
 			type="button"

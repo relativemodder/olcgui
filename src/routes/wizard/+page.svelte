@@ -162,7 +162,7 @@
 								id="name"
 								name="name"
 								bind:value={name}
-								class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:outline-none"
+								class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 								required
 							/>
 						</div>
@@ -178,7 +178,7 @@
 								id="mode"
 								name="mode"
 								bind:value={mode}
-								class="w-full cursor-pointer border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:outline-none"
+								class="w-full cursor-pointer border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 							>
 								<option value="cnc" class="bg-zinc-950 text-white">Клиент</option>
 								<option value="srv" class="bg-zinc-950 text-white">Сервер</option>
@@ -198,7 +198,7 @@
 								id="provider"
 								name="provider"
 								bind:value={provider}
-								class="w-full cursor-pointer border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:outline-none"
+								class="w-full cursor-pointer border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 							>
 								<option value="jitsi" class="bg-zinc-950 text-white">Инстанс Jitsi Meet</option>
 								<option value="wbstream" class="bg-zinc-950 text-white">WB Stream</option>
@@ -217,7 +217,7 @@
 								id="transport"
 								name="transport"
 								bind:value={transport}
-								class="w-full cursor-pointer border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:outline-none"
+								class="w-full cursor-pointer border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 							>
 								{#if provider === 'jitsi'}
 									<option value="datachannel">datachannel (Рекомендуется)</option>
@@ -253,7 +253,7 @@
 							name="roomUrl"
 							bind:value={roomUrl}
 							placeholder="Вставьте ссылку на конференцию"
-							class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-zinc-500 focus:outline-none"
+							class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 							required
 						/>
 
@@ -280,7 +280,7 @@
 								name="cryptoKey"
 								bind:value={cryptoKey}
 								placeholder="Ключ должен совпадать на клиенте и сервере"
-								class="w-full border border-zinc-800 bg-zinc-950 py-2.5 pr-12 pl-4 font-mono text-[11px] text-white focus:border-zinc-500 focus:outline-none"
+								class="w-full border border-zinc-800 bg-zinc-950 py-2.5 pr-12 pl-4 font-mono text-[11px] text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 								required
 							/>
 							<button
@@ -318,7 +318,7 @@
 										bind:value={socksPort}
 										min="1"
 										max="65535"
-										class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs font-semibold text-white focus:border-zinc-500 focus:outline-none"
+										class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs font-semibold text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 										required
 									/>
 								</div>
@@ -353,7 +353,7 @@
 										name="socksUser"
 										bind:value={socksUser}
 										placeholder="Пользователь прокси"
-										class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white focus:border-zinc-500 focus:outline-none"
+										class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 									/>
 								</div>
 
@@ -370,7 +370,7 @@
 										name="socksPass"
 										bind:value={socksPass}
 										placeholder="Пароль прокси"
-										class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white focus:border-zinc-500 focus:outline-none"
+										class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 									/>
 								</div>
 							</div>

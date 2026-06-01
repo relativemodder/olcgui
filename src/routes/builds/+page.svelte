@@ -107,12 +107,12 @@
 <div class="relative mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
 	{#if repoSyncing}
 		<div
-			class="absolute inset-0 z-50 flex items-center justify-center rounded-xl border border-purple-500/20 bg-black/50 backdrop-blur-md"
+			class="absolute inset-0 z-50 flex items-center justify-center rounded-xl border border-zinc-500/20 bg-black/50 backdrop-blur-md"
 		>
 			<div class="flex flex-col items-center gap-3 p-8">
 				<div class="flex items-center gap-3">
-					<Loader2 class="h-5 w-5 animate-spin text-purple-300" />
-					<span class="text-sm font-bold tracking-wider text-purple-200 uppercase"
+					<Loader2 class="h-5 w-5 animate-spin text-zinc-300" />
+					<span class="text-sm font-bold tracking-wider text-zinc-200 uppercase"
 						>Идет подготовка репозитория…</span
 					>
 				</div>
@@ -266,7 +266,7 @@
 							<span
 								class="mt-0.5 text-[9px] font-bold tracking-widest uppercase {branch.isRemote
 									? 'text-zinc-500'
-									: 'text-violet-400'}"
+									: 'text-zinc-400'}"
 							>
 								{branch.isRemote ? 'remote' : 'local'}
 							</span>

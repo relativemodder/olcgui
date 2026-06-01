@@ -3,6 +3,7 @@
 	import { RefreshCw, Activity, Globe, Wifi, ShieldAlert, Sliders } from 'lucide-svelte';
 	import TunnelCard from '$lib/components/TunnelCard.svelte';
 	import Terminal from '$lib/components/Terminal.svelte';
+	import SystemMonitor from '$lib/components/dashboard/SystemMonitor.svelte';
 
 	let { data } = $props();
 
@@ -135,6 +136,8 @@
 			<span>Создать туннель</span>
 		</a>
 	</div>
+
+	<SystemMonitor />
 
 	<div class="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-4">
 		<div class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md">

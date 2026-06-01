@@ -40,7 +40,7 @@
 					type="text"
 					bind:value={jitsiSearchQuery}
 					placeholder="Поиск хоста (например: arbitr, aston...)"
-					class="w-full border border-zinc-800 bg-black py-1.5 pr-3 pl-7 text-[11px] text-white placeholder-zinc-700 focus:border-zinc-500 focus:outline-none"
+					class="w-full border border-zinc-800 bg-black py-1.5 pr-3 pl-7 text-[11px] text-white placeholder-zinc-700 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 				/>
 				<Search class="absolute top-2 left-2.5 h-3.5 w-3.5 text-zinc-500" />
 			</div>

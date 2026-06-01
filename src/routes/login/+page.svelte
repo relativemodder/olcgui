@@ -70,7 +70,7 @@
 						bind:value={username}
 						placeholder="admin"
 						disabled={loading}
-						class="w-full border border-zinc-800 bg-zinc-950 py-3 pr-4 pl-10 text-sm text-white placeholder-zinc-700 focus:border-zinc-500 focus:outline-none"
+						class="w-full border border-zinc-800 bg-zinc-950 py-3 pr-4 pl-10 text-sm text-white placeholder-zinc-700 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 						required
 					/>
 				</div>
@@ -96,7 +96,7 @@
 						bind:value={password}
 						placeholder="••••••••"
 						disabled={loading}
-						class="w-full border border-zinc-800 bg-zinc-950 py-3 pr-4 pl-10 text-sm text-white placeholder-zinc-700 focus:border-zinc-500 focus:outline-none"
+						class="w-full border border-zinc-800 bg-zinc-950 py-3 pr-4 pl-10 text-sm text-white placeholder-zinc-700 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
 						required
 					/>
 				</div>
