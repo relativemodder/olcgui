@@ -1,0 +1,632 @@
+<script lang="ts">
+	import { enhance } from '$app/forms';
+	import { PROVIDER_CONFIG, JITSI_SERVERS } from '$lib/wizard/constants';
+	import {
+		generateCryptoKey,
+		parseRoomUrl,
+		generateYaml,
+		generateOlcrtcUri,
+		parseOlcrtcUri,
+		resolveImportUrl,
+		replaceJitsiServer
+	} from '$lib/wizard/utils';
+	import {
+		Sliders,
+		Key,
+		RefreshCw,
+		Copy,
+		Check,
+		Info,
+		ShieldAlert,
+		Terminal as TerminalIcon,
+		Search,
+		ArrowDownToLine,
+		Link,
+		BookOpen,
+		AlertCircle
+	} from 'lucide-svelte';
+
+	let { form, data } = $props();
+
+	/* svelte-ignore state_referenced_locally */
+	const initial = $state.snapshot(data.editInstance);
+
+	let name = $state(initial?.name ?? '');
+	let mode = $state<'cnc' | 'srv'>(initial?.mode ?? 'srv');
+	let provider = $state<'jitsi' | 'wbstream' | 'telemost'>(initial?.provider ?? 'jitsi');
+	let roomUrl = $state(initial?.roomUrl ?? '');
+	let cryptoKey = $state(initial?.cryptoKey ?? generateCryptoKey());
+	let transport = $state<'datachannel' | 'vp8channel' | 'seichannel' | 'videochannel'>(
+		(initial?.transport as 'datachannel' | 'vp8channel' | 'seichannel' | 'videochannel') ??
+			'datachannel'
+	);
+	let dns = $state(initial?.dns ?? '8.8.8.8:53');
+	let socksHost = $state(initial?.socksHost ?? '127.0.0.1');
+	let socksPort = $state(initial?.socksPort ?? 8808);
+	let socksUser = $state(initial?.socksUser ?? '');
+	let socksPass = $state(initial?.socksPass ?? '');
+	let debug = $state(initial?.debug ?? false);
+
+	let copiedYaml = $state(false);
+	let copiedCommand = $state(false);
+	let copiedShare = $state(false);
+
+	let importUrlInput = $state('');
+	let importError = $state('');
+	let importSuccess = $state(false);
+
+	let showJitsiDirectory = $state(false);
+	let jitsiSearchQuery = $state('');
+
+	function handleRegenKey() {
+		cryptoKey = generateCryptoKey();
+	}
+
+	/* svelte-ignore state_referenced_locally */
+	let lastProvider = provider;
+
+	$effect(() => {
+		if (provider !== lastProvider) {
+			lastProvider = provider;
+			const config = PROVIDER_CONFIG[provider];
+
+			transport = config.transport as typeof transport;
+			socksPort = config.socksPort;
+
+			const isOtherProvider = Object.keys(PROVIDER_CONFIG)
+				.filter((p) => p !== provider)
+				.some((p) => {
+					const otherUrl = PROVIDER_CONFIG[p as keyof typeof PROVIDER_CONFIG].defaultRoomUrl;
+					try {
+						const hostname = new URL(otherUrl).hostname;
+						return roomUrl.includes(hostname) || (p === 'telemost' && roomUrl.includes('telemost'));
+					} catch {
+						return false;
+					}
+				});
+
+			if (isOtherProvider) {
+				roomUrl = config.defaultRoomUrl;
+			}
+		}
+	});
+
+	let parsedRoomId = $derived(parseRoomUrl(roomUrl, provider));
+
+	let liveYaml = $derived(
+		generateYaml(
+			{
+				provider,
+				roomUrl,
+				cryptoKey,
+				transport,
+				dns,
+				socksHost,
+				socksPort,
+				socksUser,
+				socksPass,
+				debug
+			},
+			mode
+		)
+	);
+
+	let liveClientRunCommand = $derived.by(() => {
+		return `./build/olcrtc-linux-amd64 client.yaml`;
+	});
+
+	let liveShareUrl = $derived(generateOlcrtcUri(provider, transport, roomUrl, cryptoKey, name));
+
+	function handleImportUrl() {
+		importError = '';
+		importSuccess = false;
+		const val = importUrlInput.trim();
+		if (!val) return;
+
+		try {
+			const parsed = parseOlcrtcUri(val);
+
+			provider = parsed.provider;
+			lastProvider = parsed.provider;
+			transport = parsed.transport;
+			cryptoKey = parsed.cryptoKey;
+			name = parsed.name;
+
+			roomUrl = resolveImportUrl(parsed);
+
+			importSuccess = true;
+			importUrlInput = '';
+			setTimeout(() => {
+				importSuccess = false;
+			}, 3000);
+		} catch (e) {
+			importError = e instanceof Error ? e.message : 'Не удалось распознать формат ссылки.';
+		}
+	}
+
+	let filteredJitsiServers = $derived.by(() => {
+		const q = jitsiSearchQuery.trim().toLowerCase();
+		if (!q) return JITSI_SERVERS;
+		return JITSI_SERVERS.filter((s) => s.toLowerCase().includes(q));
+	});
+
+	function selectJitsiServer(server: string) {
+		roomUrl = replaceJitsiServer(roomUrl, server);
+	}
+
+	async function copyToClipboard(text: string, flag: 'yaml' | 'cmd' | 'share') {
+		try {
+			await navigator.clipboard.writeText(text);
+			if (flag === 'yaml') {
+				copiedYaml = true;
+				setTimeout(() => (copiedYaml = false), 2000);
+			} else if (flag === 'cmd') {
+				copiedCommand = true;
+				setTimeout(() => (copiedCommand = false), 2000);
+			} else if (flag === 'share') {
+				copiedShare = true;
+				setTimeout(() => (copiedShare = false), 2000);
+			}
+		} catch {}
+	}
+</script>
+
+<svelte:head>
+	<title>{data.editInstance ? 'Редактирование' : 'Мастер настройки'} | olcRTC Manager</title>
+</svelte:head>
+
+<div class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+	<div class="mb-8">
+		<h1 class="text-3xl font-extrabold tracking-tight text-white">
+			{data.editInstance ? 'Редактирование туннеля' : 'Мастер настройки туннеля'}
+		</h1>
+		<p class="mt-1 text-sm text-zinc-500">
+			{#if data.editInstance}
+				Изменение параметров и копирование ссылки обмена для туннеля "{data.editInstance.name}"
+			{:else}
+				Создайте, экспортируйте конфигурацию и мгновенно сохраните как active туннель в системе
+			{/if}
+		</p>
+	</div>
+
+	{#if form?.error}
+		<div
+			class="mb-6 flex items-center gap-3 border border-red-500/30 bg-red-950/40 p-4 text-sm text-red-300"
+		>
+			<ShieldAlert class="h-5 w-5 shrink-0 text-red-400" />
+			<span>{form.error}</span>
+		</div>
+	{/if}
+
+	<div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
+		<div class="space-y-6">
+			<div class="border border-zinc-800 bg-zinc-900 p-6 shadow-md">
+				<h2
+					class="mb-3 flex items-center gap-2 text-sm font-bold tracking-wider text-white uppercase"
+				>
+					<ArrowDownToLine class="h-4.5 w-4.5 text-zinc-500" />
+					<span>Быстрый импорт туннеля</span>
+				</h2>
+
+				<p class="mb-4 text-[11px] leading-normal text-zinc-400">
+					Вставьте ссылку конфигурации формата <code class="font-mono text-zinc-300 select-all"
+						>olcrtc://...</code
+					> для мгновенного импорта всех параметров.
+				</p>
+
+				<div class="flex gap-2">
+					<input
+						type="text"
+						bind:value={importUrlInput}
+						placeholder="olcrtc://telemost?vp8channel..."
+						class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-xs text-white focus:border-zinc-500 focus:outline-none"
+					/>
+					<button
+						type="button"
+						onclick={handleImportUrl}
+						class="shrink-0 cursor-pointer bg-white px-4 py-2 text-xs font-semibold text-black shadow-sm select-none hover:bg-zinc-200"
+					>
+						Импорт
+					</button>
+				</div>
+
+				{#if importError}
+					<p class="mt-2.5 flex items-center gap-1 text-[10px] font-semibold text-red-400">
+						<AlertCircle class="h-3.5 w-3.5 shrink-0" />
+						<span>{importError}</span>
+					</p>
+				{:else if importSuccess}
+					<p class="mt-2.5 flex items-center gap-1 text-[10px] font-semibold text-emerald-400">
+						<Check class="h-3.5 w-3.5 shrink-0" />
+						<span>Конфигурация успешно импортирована!</span>
+					</p>
+				{/if}
+			</div>
+
+			<div class="border border-zinc-800 bg-zinc-900 p-6 shadow-md">
+				<h2 class="mb-6 flex items-center gap-2 text-lg font-bold text-white">
+					<Sliders class="h-5 w-5 text-zinc-500" />
+					<span>Параметры инстанса</span>
+				</h2>
+
+				<form method="POST" action="?/save" use:enhance class="space-y-5">
+					{#if data.editInstance}
+						<input type="hidden" name="id" value={data.editInstance.id} />
+					{/if}
+					<input type="hidden" name="socksHost" value={socksHost} />
+					<input type="hidden" name="dns" value={dns} />
+					<input type="hidden" name="debug" value={debug ? 'true' : 'false'} />
+
+					<div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+						<div>
+							<label
+								for="name"
+								class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
+							>
+								Название туннеля *
+							</label>
+							<input
+								type="text"
+								id="name"
+								name="name"
+								bind:value={name}
+								class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:outline-none"
+								required
+							/>
+						</div>
+
+						<div>
+							<label
+								for="mode"
+								class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
+							>
+								Режим работы *
+							</label>
+							<select
+								id="mode"
+								name="mode"
+								bind:value={mode}
+								class="w-full cursor-pointer border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:outline-none"
+							>
+								<option value="cnc" class="bg-zinc-950 text-white">Клиент</option>
+								<option value="srv" class="bg-zinc-950 text-white">Сервер</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+						<div>
+							<label
+								for="provider"
+								class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
+							>
+								Сервис-провайдер *
+							</label>
+							<select
+								id="provider"
+								name="provider"
+								bind:value={provider}
+								class="w-full cursor-pointer border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:outline-none"
+							>
+								<option value="jitsi" class="bg-zinc-950 text-white">Инстанс Jitsi Meet</option>
+								<option value="wbstream" class="bg-zinc-950 text-white">WB Stream</option>
+								<option value="telemost" class="bg-zinc-950 text-white">Яндекс.Телемост</option>
+							</select>
+						</div>
+
+						<div>
+							<label
+								for="transport"
+								class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
+							>
+								Канал данных (Транспорт) *
+							</label>
+							<select
+								id="transport"
+								name="transport"
+								bind:value={transport}
+								class="w-full cursor-pointer border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:outline-none"
+							>
+								{#if provider === 'jitsi'}
+									<option value="datachannel">datachannel (Рекомендуется)</option>
+									<option value="vp8channel">vp8channel</option>
+								{:else if provider === 'wbstream'}
+									<option value="vp8channel">vp8channel (Рекомендуется)</option>
+									<option value="seichannel">seichannel</option>
+								{:else}
+									<option value="videochannel">videochannel (Рекомендуется)</option>
+									<option value="vp8channel">vp8channel</option>
+								{/if}
+							</select>
+						</div>
+					</div>
+
+					<div>
+						<label
+							for="roomUrl"
+							class="mb-2 block flex items-center justify-between text-xs font-semibold tracking-wider text-zinc-400 uppercase"
+						>
+							<span>Ссылка на комнату (конференцию) *</span>
+							{#if parsedRoomId && parsedRoomId !== roomUrl}
+								<span
+									class="border border-zinc-800 bg-zinc-950 px-2 py-0.5 font-mono text-[10px] font-bold tracking-wider text-zinc-500 uppercase"
+								>
+									ID: {parsedRoomId}
+								</span>
+							{/if}
+						</label>
+						<input
+							type="url"
+							id="roomUrl"
+							name="roomUrl"
+							bind:value={roomUrl}
+							placeholder="Вставьте ссылку на конференцию"
+							class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-zinc-500 focus:outline-none"
+							required
+						/>
+
+						{#if provider === 'jitsi'}
+							<div class="mt-3 space-y-3 border border-zinc-800 bg-zinc-950 p-3.5">
+								<div class="flex items-center justify-between">
+									<span
+										class="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-zinc-400 uppercase"
+									>
+										<BookOpen class="h-3.5 w-3.5 text-zinc-400" />
+										<span>Слитые Jitsi-сервера ({JITSI_SERVERS.length})</span>
+									</span>
+									<button
+										type="button"
+										onclick={() => (showJitsiDirectory = !showJitsiDirectory)}
+										class="cursor-pointer border border-zinc-800 bg-zinc-950 px-2 py-1 text-[9px] font-bold text-zinc-300 uppercase select-none hover:bg-zinc-850"
+									>
+										{showJitsiDirectory ? 'Скрыть список' : 'Показать список'}
+									</button>
+								</div>
+
+								{#if showJitsiDirectory}
+									<div class="space-y-2.5">
+										<div class="relative">
+											<input
+												type="text"
+												bind:value={jitsiSearchQuery}
+												placeholder="Поиск хоста (например: arbitr, aston...)"
+												class="w-full border border-zinc-800 bg-black py-1.5 pr-3 pl-7 text-[11px] text-white placeholder-zinc-700 focus:border-zinc-500 focus:outline-none"
+											/>
+											<Search class="absolute top-2 left-2.5 h-3.5 w-3.5 text-zinc-500" />
+										</div>
+
+										<div
+											class="grid max-h-36 grid-cols-1 gap-1.5 overflow-y-auto pr-1 text-[10px] sm:grid-cols-2"
+										>
+											{#each filteredJitsiServers as server (server)}
+												<button
+													type="button"
+													onclick={() => selectJitsiServer(server)}
+													class="cursor-pointer truncate border border-zinc-800 bg-black px-2 py-1 text-left font-mono text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-white"
+													title={server}
+												>
+													{server}
+												</button>
+											{/each}
+										</div>
+										<p class="flex items-start gap-1 text-[9px] leading-normal text-zinc-500">
+											<Info class="mt-0.5 h-3 w-3 shrink-0 text-zinc-400" />
+											<span
+												>Кликните по домену, чтобы заменить его в вашей ссылке, сохранив название
+												комнаты.</span
+											>
+										</p>
+									</div>
+								{/if}
+							</div>
+						{/if}
+					</div>
+
+					<div>
+						<label
+							for="cryptoKey"
+							class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
+						>
+							Ключ шифрования (32 байта Hex) *
+						</label>
+						<div class="relative">
+							<input
+								type="text"
+								id="cryptoKey"
+								name="cryptoKey"
+								bind:value={cryptoKey}
+								placeholder="Ключ должен совпадать на клиенте и сервере"
+								class="w-full border border-zinc-800 bg-zinc-950 py-2.5 pr-12 pl-4 font-mono text-[11px] text-white focus:border-zinc-500 focus:outline-none"
+								required
+							/>
+							<button
+								type="button"
+								onclick={handleRegenKey}
+								class="absolute inset-y-0 right-0 flex cursor-pointer items-center justify-center px-3 text-zinc-400 hover:bg-zinc-850 hover:text-zinc-200"
+								title="Сгенерировать случайный ключ"
+							>
+								<RefreshCw class="h-4 w-4" />
+							</button>
+						</div>
+					</div>
+
+					{#if mode === 'cnc'}
+						<div class="space-y-4 border border-zinc-800 bg-zinc-950 p-4">
+							<h3
+								class="flex items-center gap-1.5 text-xs font-bold tracking-wider text-zinc-300 uppercase"
+							>
+								<Info class="h-3.5 w-3.5" />
+								<span>Настройки SOCKS5 прокси</span>
+							</h3>
+
+							<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+								<div>
+									<label
+										for="socksPort"
+										class="mb-1.5 block text-[10px] font-bold tracking-wider text-zinc-400 uppercase"
+									>
+										SOCKS5 Порт *
+									</label>
+									<input
+										type="number"
+										id="socksPort"
+										name="socksPort"
+										bind:value={socksPort}
+										min="1"
+										max="65535"
+										class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs font-semibold text-white focus:border-zinc-500 focus:outline-none"
+										required
+									/>
+								</div>
+
+								<div class="flex items-center gap-2 pt-6">
+									<input
+										type="checkbox"
+										id="debugCheck"
+										bind:checked={debug}
+										class="h-4 w-4 cursor-pointer border-zinc-800 bg-zinc-950 accent-zinc-500"
+									/>
+									<label
+										for="debugCheck"
+										class="cursor-pointer text-xs font-semibold text-zinc-400 select-none"
+									>
+										Включить отладку (debug)
+									</label>
+								</div>
+							</div>
+
+							<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+								<div>
+									<label
+										for="socksUser"
+										class="mb-1.5 block text-[10px] font-bold tracking-wider text-zinc-400 uppercase"
+									>
+										Логин авторизации (необязательно)
+									</label>
+									<input
+										type="text"
+										id="socksUser"
+										name="socksUser"
+										bind:value={socksUser}
+										placeholder="Пользователь прокси"
+										class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white focus:border-zinc-500 focus:outline-none"
+									/>
+								</div>
+
+								<div>
+									<label
+										for="socksPass"
+										class="mb-1.5 block text-[10px] font-bold tracking-wider text-zinc-400 uppercase"
+									>
+										Пароль авторизации (необязательно)
+									</label>
+									<input
+										type="text"
+										id="socksPass"
+										name="socksPass"
+										bind:value={socksPass}
+										placeholder="Пароль прокси"
+										class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white focus:border-zinc-500 focus:outline-none"
+									/>
+								</div>
+							</div>
+						</div>
+					{/if}
+
+					<button
+						type="submit"
+						class="mt-8 flex w-full cursor-pointer items-center justify-center gap-2 bg-white px-4 py-3 text-sm font-semibold text-black shadow-sm hover:bg-zinc-200"
+					>
+						<Sliders class="h-5 w-5" />
+						<span
+							>{data.editInstance ? 'Сохранить изменения' : 'Сохранить в панель управления'}</span
+						>
+					</button>
+				</form>
+			</div>
+		</div>
+
+		<div class="flex flex-col gap-6">
+			<div class="flex flex-col border border-zinc-800 bg-zinc-900 p-6 shadow-md">
+				<div class="mb-3 flex items-center justify-between">
+					<h3 class="flex items-center gap-2 text-sm font-bold tracking-wider text-white uppercase">
+						<Link class="h-4 w-4 text-zinc-500" />
+						<span>Ссылка</span>
+					</h3>
+					<button
+						type="button"
+						onclick={() => copyToClipboard(liveShareUrl, 'share')}
+						class="flex cursor-pointer items-center gap-1.5 border border-zinc-800 px-3 py-1 text-[10px] font-bold text-zinc-300 uppercase select-none hover:bg-zinc-200 hover:text-black"
+					>
+						{#if copiedShare}
+							<Check class="h-3 w-3 text-emerald-400" />
+							<span class="text-emerald-400">Скопировано</span>
+						{:else}
+							<Copy class="h-3 w-3" />
+							<span>Скопировать</span>
+						{/if}
+					</button>
+				</div>
+
+				<pre
+					class="overflow-x-auto border border-zinc-800 bg-black p-3.5 font-mono text-[10px] leading-relaxed break-all whitespace-pre-wrap text-zinc-300 shadow-inner select-all">{liveShareUrl}</pre>
+			</div>
+
+			<div class="flex flex-col border border-zinc-800 bg-zinc-900 p-6 shadow-md">
+				<div class="mb-4 flex items-center justify-between">
+					<h3 class="flex items-center gap-2 text-sm font-bold tracking-wider text-white uppercase">
+						<Key class="h-4 w-4 text-zinc-500" />
+						<span>YAML конфиг</span>
+					</h3>
+					<button
+						type="button"
+						onclick={() => copyToClipboard(liveYaml, 'yaml')}
+						class="flex cursor-pointer items-center gap-1.5 border border-zinc-800 px-3 py-1 text-[10px] font-bold text-zinc-300 uppercase hover:bg-zinc-200 hover:text-black"
+					>
+						{#if copiedYaml}
+							<Check class="h-3 w-3 text-emerald-400" />
+							<span class="text-emerald-400">Скопировано</span>
+						{:else}
+							<Copy class="h-3 w-3" />
+							<span>Скопировать</span>
+						{/if}
+					</button>
+				</div>
+
+				<pre
+					class="overflow-x-auto border border-zinc-800 bg-black p-4 font-mono text-[10px] leading-relaxed whitespace-pre-wrap text-zinc-300 shadow-inner select-all sm:text-[11px]">{liveYaml}</pre>
+			</div>
+
+			{#if mode === 'cnc'}
+				<div class="flex flex-col border border-zinc-800 bg-zinc-900 p-6 shadow-md">
+					<div class="mb-4 flex items-center justify-between">
+						<h3
+							class="flex items-center gap-2 text-sm font-bold tracking-wider text-white uppercase"
+						>
+							<TerminalIcon class="h-4 w-4 text-zinc-500" />
+							<span>Строка запуска бинарника</span>
+						</h3>
+						<button
+							type="button"
+							onclick={() => copyToClipboard(liveClientRunCommand, 'cmd')}
+							class="flex cursor-pointer items-center gap-1.5 border border-zinc-800 px-3 py-1 text-[10px] font-bold text-zinc-300 uppercase hover:bg-zinc-200 hover:text-black"
+						>
+							{#if copiedCommand}
+								<Check class="h-3 w-3 text-emerald-400" />
+								<span class="text-emerald-400">Скопировано</span>
+							{:else}
+								<Copy class="h-3 w-3" />
+								<span>Скопировать</span>
+							{/if}
+						</button>
+					</div>
+
+					<code
+						class="overflow-x-auto border border-zinc-800 bg-black p-3 font-mono text-[10px] leading-relaxed tracking-tight text-emerald-400 shadow-inner select-all sm:text-[11px]"
+						>{liveClientRunCommand}</code
+					>
+				</div>
+			{/if}
+		</div>
+	</div>
+</div>
