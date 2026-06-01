@@ -6,7 +6,7 @@
 
 	let { data, children } = $props();
 
-	// Active route helper
+
 	let currentPath = $derived(page.url.pathname);
 </script>
 

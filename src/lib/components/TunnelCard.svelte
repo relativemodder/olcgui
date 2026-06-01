@@ -17,7 +17,6 @@
 		inst,
 		status = inst.status || 'stopped',
 		autoRestart = inst.autoRestart || false,
-		activeLogId = null,
 		toggleLogDrawer = () => {},
 		updateOptimisticStatus = () => {},
 		updateOptimisticAutoRestart = () => {}

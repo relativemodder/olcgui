@@ -1,29 +1,22 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { PROVIDER_CONFIG, JITSI_SERVERS } from '$lib/wizard/constants';
+	import WizardImportPanel from '$lib/components/wizard/WizardImportPanel.svelte';
+	import WizardExportPanel from '$lib/components/wizard/WizardExportPanel.svelte';
+	import WizardJitsiDirectory from '$lib/components/wizard/WizardJitsiDirectory.svelte';
+	import { PROVIDER_CONFIG } from '$lib/wizard/constants';
 	import {
 		generateCryptoKey,
 		parseRoomUrl,
 		generateYaml,
 		generateOlcrtcUri,
-		parseOlcrtcUri,
-		resolveImportUrl,
-		replaceJitsiServer
+		replaceJitsiServer,
+		type ParsedOlcrtcUri
 	} from '$lib/wizard/utils';
 	import {
 		Sliders,
-		Key,
 		RefreshCw,
-		Copy,
-		Check,
 		Info,
-		ShieldAlert,
-		Terminal as TerminalIcon,
-		Search,
-		ArrowDownToLine,
-		Link,
-		BookOpen,
-		AlertCircle
+		ShieldAlert
 	} from 'lucide-svelte';
 
 	let { form, data } = $props();
@@ -47,16 +40,7 @@
 	let socksPass = $state(initial?.socksPass ?? '');
 	let debug = $state(initial?.debug ?? false);
 
-	let copiedYaml = $state(false);
-	let copiedCommand = $state(false);
-	let copiedShare = $state(false);
 
-	let importUrlInput = $state('');
-	let importError = $state('');
-	let importSuccess = $state(false);
-
-	let showJitsiDirectory = $state(false);
-	let jitsiSearchQuery = $state('');
 
 	function handleRegenKey() {
 		cryptoKey = generateCryptoKey();
@@ -117,57 +101,13 @@
 
 	let liveShareUrl = $derived(generateOlcrtcUri(provider, transport, roomUrl, cryptoKey, name));
 
-	function handleImportUrl() {
-		importError = '';
-		importSuccess = false;
-		const val = importUrlInput.trim();
-		if (!val) return;
-
-		try {
-			const parsed = parseOlcrtcUri(val);
-
-			provider = parsed.provider;
-			lastProvider = parsed.provider;
-			transport = parsed.transport;
-			cryptoKey = parsed.cryptoKey;
-			name = parsed.name;
-
-			roomUrl = resolveImportUrl(parsed);
-
-			importSuccess = true;
-			importUrlInput = '';
-			setTimeout(() => {
-				importSuccess = false;
-			}, 3000);
-		} catch (e) {
-			importError = e instanceof Error ? e.message : 'Не удалось распознать формат ссылки.';
-		}
-	}
-
-	let filteredJitsiServers = $derived.by(() => {
-		const q = jitsiSearchQuery.trim().toLowerCase();
-		if (!q) return JITSI_SERVERS;
-		return JITSI_SERVERS.filter((s) => s.toLowerCase().includes(q));
-	});
-
-	function selectJitsiServer(server: string) {
-		roomUrl = replaceJitsiServer(roomUrl, server);
-	}
-
-	async function copyToClipboard(text: string, flag: 'yaml' | 'cmd' | 'share') {
-		try {
-			await navigator.clipboard.writeText(text);
-			if (flag === 'yaml') {
-				copiedYaml = true;
-				setTimeout(() => (copiedYaml = false), 2000);
-			} else if (flag === 'cmd') {
-				copiedCommand = true;
-				setTimeout(() => (copiedCommand = false), 2000);
-			} else if (flag === 'share') {
-				copiedShare = true;
-				setTimeout(() => (copiedShare = false), 2000);
-			}
-		} catch {}
+	function handleImportData(data: ParsedOlcrtcUri & { resolvedUrl: string }) {
+		provider = data.provider;
+		lastProvider = data.provider;
+		transport = data.transport;
+		cryptoKey = data.cryptoKey;
+		name = data.name;
+		roomUrl = data.resolvedUrl;
 	}
 </script>
 
@@ -200,48 +140,7 @@
 
 	<div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
 		<div class="space-y-6">
-			<div class="border border-zinc-800 bg-zinc-900 p-6 shadow-md">
-				<h2
-					class="mb-3 flex items-center gap-2 text-sm font-bold tracking-wider text-white uppercase"
-				>
-					<ArrowDownToLine class="h-4.5 w-4.5 text-zinc-500" />
-					<span>Быстрый импорт туннеля</span>
-				</h2>
-
-				<p class="mb-4 text-[11px] leading-normal text-zinc-400">
-					Вставьте ссылку конфигурации формата <code class="font-mono text-zinc-300 select-all"
-						>olcrtc://...</code
-					> для мгновенного импорта всех параметров.
-				</p>
-
-				<div class="flex gap-2">
-					<input
-						type="text"
-						bind:value={importUrlInput}
-						placeholder="olcrtc://telemost?vp8channel..."
-						class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-xs text-white focus:border-zinc-500 focus:outline-none"
-					/>
-					<button
-						type="button"
-						onclick={handleImportUrl}
-						class="shrink-0 cursor-pointer bg-white px-4 py-2 text-xs font-semibold text-black shadow-sm select-none hover:bg-zinc-200"
-					>
-						Импорт
-					</button>
-				</div>
-
-				{#if importError}
-					<p class="mt-2.5 flex items-center gap-1 text-[10px] font-semibold text-red-400">
-						<AlertCircle class="h-3.5 w-3.5 shrink-0" />
-						<span>{importError}</span>
-					</p>
-				{:else if importSuccess}
-					<p class="mt-2.5 flex items-center gap-1 text-[10px] font-semibold text-emerald-400">
-						<Check class="h-3.5 w-3.5 shrink-0" />
-						<span>Конфигурация успешно импортирована!</span>
-					</p>
-				{/if}
-			</div>
+			<WizardImportPanel onImport={handleImportData} />
 
 			<div class="border border-zinc-800 bg-zinc-900 p-6 shadow-md">
 				<h2 class="mb-6 flex items-center gap-2 text-lg font-bold text-white">
@@ -344,7 +243,7 @@
 					<div>
 						<label
 							for="roomUrl"
-							class="mb-2 block flex items-center justify-between text-xs font-semibold tracking-wider text-zinc-400 uppercase"
+							class="mb-2 flex items-center justify-between text-xs font-semibold tracking-wider text-zinc-400 uppercase"
 						>
 							<span>Ссылка на комнату (конференцию) *</span>
 							{#if parsedRoomId && parsedRoomId !== roomUrl}
@@ -366,59 +265,7 @@
 						/>
 
 						{#if provider === 'jitsi'}
-							<div class="mt-3 space-y-3 border border-zinc-800 bg-zinc-950 p-3.5">
-								<div class="flex items-center justify-between">
-									<span
-										class="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-zinc-400 uppercase"
-									>
-										<BookOpen class="h-3.5 w-3.5 text-zinc-400" />
-										<span>Слитые Jitsi-сервера ({JITSI_SERVERS.length})</span>
-									</span>
-									<button
-										type="button"
-										onclick={() => (showJitsiDirectory = !showJitsiDirectory)}
-										class="cursor-pointer border border-zinc-800 bg-zinc-950 px-2 py-1 text-[9px] font-bold text-zinc-300 uppercase select-none hover:bg-zinc-850"
-									>
-										{showJitsiDirectory ? 'Скрыть список' : 'Показать список'}
-									</button>
-								</div>
-
-								{#if showJitsiDirectory}
-									<div class="space-y-2.5">
-										<div class="relative">
-											<input
-												type="text"
-												bind:value={jitsiSearchQuery}
-												placeholder="Поиск хоста (например: arbitr, aston...)"
-												class="w-full border border-zinc-800 bg-black py-1.5 pr-3 pl-7 text-[11px] text-white placeholder-zinc-700 focus:border-zinc-500 focus:outline-none"
-											/>
-											<Search class="absolute top-2 left-2.5 h-3.5 w-3.5 text-zinc-500" />
-										</div>
-
-										<div
-											class="grid max-h-36 grid-cols-1 gap-1.5 overflow-y-auto pr-1 text-[10px] sm:grid-cols-2"
-										>
-											{#each filteredJitsiServers as server (server)}
-												<button
-													type="button"
-													onclick={() => selectJitsiServer(server)}
-													class="cursor-pointer truncate border border-zinc-800 bg-black px-2 py-1 text-left font-mono text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-white"
-													title={server}
-												>
-													{server}
-												</button>
-											{/each}
-										</div>
-										<p class="flex items-start gap-1 text-[9px] leading-normal text-zinc-500">
-											<Info class="mt-0.5 h-3 w-3 shrink-0 text-zinc-400" />
-											<span
-												>Кликните по домену, чтобы заменить его в вашей ссылке, сохранив название
-												комнаты.</span
-											>
-										</p>
-									</div>
-								{/if}
-							</div>
+							<WizardJitsiDirectory onSelect={(server) => { roomUrl = replaceJitsiServer(roomUrl, server); }} />
 						{/if}
 					</div>
 
@@ -546,87 +393,11 @@
 			</div>
 		</div>
 
-		<div class="flex flex-col gap-6">
-			<div class="flex flex-col border border-zinc-800 bg-zinc-900 p-6 shadow-md">
-				<div class="mb-3 flex items-center justify-between">
-					<h3 class="flex items-center gap-2 text-sm font-bold tracking-wider text-white uppercase">
-						<Link class="h-4 w-4 text-zinc-500" />
-						<span>Ссылка</span>
-					</h3>
-					<button
-						type="button"
-						onclick={() => copyToClipboard(liveShareUrl, 'share')}
-						class="flex cursor-pointer items-center gap-1.5 border border-zinc-800 px-3 py-1 text-[10px] font-bold text-zinc-300 uppercase select-none hover:bg-zinc-200 hover:text-black"
-					>
-						{#if copiedShare}
-							<Check class="h-3 w-3 text-emerald-400" />
-							<span class="text-emerald-400">Скопировано</span>
-						{:else}
-							<Copy class="h-3 w-3" />
-							<span>Скопировать</span>
-						{/if}
-					</button>
-				</div>
-
-				<pre
-					class="overflow-x-auto border border-zinc-800 bg-black p-3.5 font-mono text-[10px] leading-relaxed break-all whitespace-pre-wrap text-zinc-300 shadow-inner select-all">{liveShareUrl}</pre>
-			</div>
-
-			<div class="flex flex-col border border-zinc-800 bg-zinc-900 p-6 shadow-md">
-				<div class="mb-4 flex items-center justify-between">
-					<h3 class="flex items-center gap-2 text-sm font-bold tracking-wider text-white uppercase">
-						<Key class="h-4 w-4 text-zinc-500" />
-						<span>YAML конфиг</span>
-					</h3>
-					<button
-						type="button"
-						onclick={() => copyToClipboard(liveYaml, 'yaml')}
-						class="flex cursor-pointer items-center gap-1.5 border border-zinc-800 px-3 py-1 text-[10px] font-bold text-zinc-300 uppercase hover:bg-zinc-200 hover:text-black"
-					>
-						{#if copiedYaml}
-							<Check class="h-3 w-3 text-emerald-400" />
-							<span class="text-emerald-400">Скопировано</span>
-						{:else}
-							<Copy class="h-3 w-3" />
-							<span>Скопировать</span>
-						{/if}
-					</button>
-				</div>
-
-				<pre
-					class="overflow-x-auto border border-zinc-800 bg-black p-4 font-mono text-[10px] leading-relaxed whitespace-pre-wrap text-zinc-300 shadow-inner select-all sm:text-[11px]">{liveYaml}</pre>
-			</div>
-
-			{#if mode === 'cnc'}
-				<div class="flex flex-col border border-zinc-800 bg-zinc-900 p-6 shadow-md">
-					<div class="mb-4 flex items-center justify-between">
-						<h3
-							class="flex items-center gap-2 text-sm font-bold tracking-wider text-white uppercase"
-						>
-							<TerminalIcon class="h-4 w-4 text-zinc-500" />
-							<span>Строка запуска бинарника</span>
-						</h3>
-						<button
-							type="button"
-							onclick={() => copyToClipboard(liveClientRunCommand, 'cmd')}
-							class="flex cursor-pointer items-center gap-1.5 border border-zinc-800 px-3 py-1 text-[10px] font-bold text-zinc-300 uppercase hover:bg-zinc-200 hover:text-black"
-						>
-							{#if copiedCommand}
-								<Check class="h-3 w-3 text-emerald-400" />
-								<span class="text-emerald-400">Скопировано</span>
-							{:else}
-								<Copy class="h-3 w-3" />
-								<span>Скопировать</span>
-							{/if}
-						</button>
-					</div>
-
-					<code
-						class="overflow-x-auto border border-zinc-800 bg-black p-3 font-mono text-[10px] leading-relaxed tracking-tight text-emerald-400 shadow-inner select-all sm:text-[11px]"
-						>{liveClientRunCommand}</code
-					>
-				</div>
-			{/if}
-		</div>
+		<WizardExportPanel
+			{liveShareUrl}
+			{liveYaml}
+			{liveClientRunCommand}
+			{mode}
+		/>
 	</div>
 </div>

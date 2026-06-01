@@ -25,7 +25,7 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	// Triggers git checkout branch operations
+
 	checkout: async ({ url }) => {
 		const name = url.searchParams.get('name');
 		if (!name) {

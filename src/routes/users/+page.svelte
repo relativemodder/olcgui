@@ -5,7 +5,7 @@
 
 	let { data, form } = $props();
 
-	// Form states
+
 	let username = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');

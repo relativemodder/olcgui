@@ -1,7 +1,7 @@
 import { spawnSync } from 'child_process';
 import { join } from 'path';
 import { env } from '$env/dynamic/private';
-import { ensureOlcrtcRepoSync } from './repo';
+import { isOlcrtcRepoReady } from './repo';
 
 const GIT_DIR = env.OLCRTC_GIT_DIR || join(process.cwd(), 'olcrtc');
 
@@ -24,7 +24,13 @@ function runGitCommand(args: string[]): {
 	stderr: string;
 } {
 	try {
-		ensureOlcrtcRepoSync();
+		if (!isOlcrtcRepoReady()) {
+			return {
+				success: false,
+				stdout: '',
+				stderr: 'Repository is not initialized.'
+			};
+		}
 
 		const result = spawnSync('git', args, { cwd: GIT_DIR, encoding: 'utf-8' });
 		return {

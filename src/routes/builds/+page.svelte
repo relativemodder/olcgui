@@ -29,13 +29,18 @@
 			if (res.ok) {
 				const info = await res.json();
 				repoSyncing = !!info.repoSyncing;
+
+				if (!repoSyncing && repoInterval) {
+					clearInterval(repoInterval);
+					repoInterval = null;
+				}
 			}
 		} catch (e) {
 			console.error('Failed to poll repo sync status:', e);
 		}
 	}
 
-	// Poll compile progress
+
 	async function pollBuild() {
 		try {
 			const res = await fetch('/api/builds');
@@ -48,7 +53,6 @@
 				if (!isBuilding && buildInterval) {
 					clearInterval(buildInterval);
 					buildInterval = null;
-					window.location.reload();
 				}
 			}
 		} catch (e) {
@@ -71,16 +75,25 @@
 		}
 	}
 
-	onMount(() => {
-		pollRepoSync();
-		repoInterval = setInterval(pollRepoSync, 800);
+	async function triggerRepoPull() {
+		try {
+			const res = await fetch('/api/repo/pull', { method: 'POST' });
+			if (res.ok) {
 
-		pollBuild();
-		setTimeout(() => {
-			if (isBuilding) {
-				buildInterval = setInterval(pollBuild, 1000);
+				await pollRepoSync();
+				if (repoSyncing && !repoInterval) {
+					repoInterval = setInterval(pollRepoSync, 800);
+				}
 			}
-		}, 100);
+		} catch (e) {
+			console.error('Failed to start repo pull:', e);
+		}
+	}
+
+	onMount(async () => {
+
+		await pollRepoSync();
+		if (repoSyncing) repoInterval = setInterval(pollRepoSync, 800);
 	});
 
 	onDestroy(() => {
@@ -129,6 +142,31 @@
 
 	<div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
 		<div class="space-y-6 lg:col-span-2">
+			<div class="flex flex-col border border-zinc-800 bg-zinc-900 p-6 shadow-md">
+				<div class="mb-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+					<h2 class="flex items-center gap-2 text-sm font-bold tracking-wider text-white uppercase">
+						<RefreshCw class="h-5 w-5 text-zinc-500" />
+						<span>Репозиторий (olcrtc)</span>
+					</h2>
+					<button
+						type="button"
+						onclick={triggerRepoPull}
+						disabled={repoSyncing}
+						class="flex cursor-pointer items-center gap-2 bg-white px-6 py-2.5 text-xs font-semibold text-black shadow-sm hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+					>
+						{#if repoSyncing}
+							<Loader2 class="h-4 w-4 animate-spin" />
+							<span>Идет pull...</span>
+						{:else}
+							<RefreshCw class="h-4 w-4" />
+							<span>Pull репозитория</span>
+						{/if}
+					</button>
+				</div>
+				<p class="text-xs text-zinc-300/80">
+					Pull выполняется только по кнопке.
+				</p>
+			</div>
 			{#if data.currentCommit}
 				<div class="border border-zinc-800 bg-zinc-900 p-6 shadow-md">
 					<h2

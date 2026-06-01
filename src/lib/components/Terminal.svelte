@@ -5,7 +5,7 @@
 		logs = [],
 		title = 'Журнал',
 		statusText = '',
-		statusType = 'idle', // 'idle' | 'running' | 'success' | 'error'
+		statusType = 'idle',
 		emptyText = 'Журнал пуст.',
 		heightClass = 'h-80'
 	} = $props();
@@ -19,9 +19,9 @@
 	}
 
 	$effect(() => {
-		// Auto scroll when logs length changes
+
 		if (logs.length > 0) {
-			// Small timeout to allow DOM to paint
+
 			setTimeout(scrollToBottom, 30);
 		}
 	});

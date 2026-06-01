@@ -3,7 +3,7 @@ import { setupDatabase } from '$lib/server/db/setup';
 import { initProcessManager } from '$lib/server/process/manager';
 import { users } from '$lib/server/db/schema';
 import { getSession } from '$lib/server/auth/session';
-import { ensureOlcrtcRepo } from '$lib/server/git/repo';
+import { ensureOlcrtcRepo, isOlcrtcRepoReady } from '$lib/server/git/repo';
 import { redirect, type Handle } from '@sveltejs/kit';
 
 let dbInitialized = false;
@@ -12,7 +12,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 	if (!dbInitialized) {
 		try {
 			await setupDatabase();
-			await ensureOlcrtcRepo();
+
+			const repoReady = isOlcrtcRepoReady();
+			console.log('[Hooks] init check:', {
+				pathname: event.url.pathname,
+				processCwd: process.cwd(),
+				olcrtcRepoReady: repoReady
+			});
+
+			if (!repoReady) {
+				console.log('[Hooks] ensureOlcrtcRepo() about to run (repo not ready).');
+				await ensureOlcrtcRepo();
+				console.log('[Hooks] ensureOlcrtcRepo() finished.');
+			}
+
 			await initProcessManager();
 			dbInitialized = true;
 		} catch (error) {

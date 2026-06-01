@@ -1,8 +1,10 @@
 import { existsSync } from 'fs';
-import { join } from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import { env } from '$env/dynamic/private';
 
-const GIT_DIR = env.OLCRTC_GIT_DIR || join(process.cwd(), 'olcrtc');
+const DEFAULT_REPO_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'olcrtc');
+const GIT_DIR = env.OLCRTC_GIT_DIR || DEFAULT_REPO_DIR;
 const GIT_REMOTE_URL = env.OLCRTC_GIT_REMOTE_URL || 'https://github.com/openlibrecommunity/olcrtc';
 
 let ensurePromise: Promise<void> | null = null;
@@ -15,6 +17,10 @@ export function getRepoSyncing(): boolean {
 
 function isGitRepoDir(dir: string): boolean {
 	return existsSync(join(dir, '.git'));
+}
+
+export function isOlcrtcRepoReady(): boolean {
+	return existsSync(GIT_DIR) && isGitRepoDir(GIT_DIR);
 }
 
 export async function readStreamToString(stream: ReadableStream<Uint8Array>): Promise<string> {

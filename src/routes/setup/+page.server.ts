@@ -29,7 +29,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			// Safety: double-check that no users exist before performing onboarding
+
 			const existingUsers = await db.select().from(users).limit(1);
 			if (existingUsers.length > 0) {
 				return fail(400, { error: 'Первоначальная настройка администратора уже выполнена!' });
@@ -46,14 +46,14 @@ export const actions: Actions = {
 				})
 				.returning();
 
-			// Generate and issue an active session cookie
+
 			const sessionToken = createSession(newAdmin.id, newAdmin.username, newAdmin.role);
 			cookies.set('session', sessionToken, {
 				path: '/',
 				httpOnly: true,
 				sameSite: 'lax',
-				secure: false, // Localhost/development safe
-				maxAge: 60 * 60 * 24 // 24 hours
+				secure: false,
+				maxAge: 60 * 60 * 24
 			});
 		} catch (error) {
 			console.error('[SetupAction] Onboarding failed:', error);

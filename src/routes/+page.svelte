@@ -23,7 +23,7 @@
 		data.instances.filter((i) => (polledStatuses[i.id]?.status ?? i.status) === 'error').length
 	);
 
-	// Poll general statuses
+
 	async function pollStatuses() {
 		try {
 			const res = await fetch(`/api/instances?_t=${Date.now()}`);
@@ -235,7 +235,6 @@
 						{inst}
 						status={polledStatuses[inst.id]?.status ?? inst.status}
 						autoRestart={polledStatuses[inst.id]?.autoRestart ?? inst.autoRestart}
-						{activeLogId}
 						{toggleLogDrawer}
 						updateOptimisticStatus={(id: number, newStatus: string) => {
 							polledStatuses = {
