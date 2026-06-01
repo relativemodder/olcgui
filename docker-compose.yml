@@ -1,13 +1,13 @@
 services:
   olcgui:
     build: .
-    container_name: olcgui-manager
+    container_name: olcgui
     ports:
       - '5173:5173'
       - '8800-8820:8800-8820' # default SOCKS5 port range for client-mode tunnels
     volumes:
-      - ./data:/app/data # persists DB and instance configs
-      - ./olcrtc:/app/olcrtc # olcrtc repo and compiled binary
+      - ./data:/app/data:Z # persists DB and instance configs
+      - ./olcrtc:/app/olcrtc:Z # olcrtc repo and compiled binary
     environment:
       - DATABASE_URL=/app/data/sqlite.db
       - OLCRTC_DATA_DIR=/app/data/instances

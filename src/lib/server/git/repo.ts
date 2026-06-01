@@ -1,4 +1,4 @@
-import { existsSync } from 'fs';
+import { existsSync, readdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { env } from '$env/dynamic/private';
@@ -80,7 +80,12 @@ export async function ensureOlcrtcRepo(): Promise<void> {
 		try {
 			if (existsSync(GIT_DIR)) {
 				if (!isGitRepoDir(GIT_DIR)) {
-					throw new Error(`[GitRepo] Directory exists but is not a git repo: ${GIT_DIR}`);
+					const files = readdirSync(GIT_DIR);
+					if (files.length > 0) {
+						throw new Error(
+							`[GitRepo] Directory exists but is not a git repo (and is not empty): ${GIT_DIR}`
+						);
+					}
 				}
 			}
 
