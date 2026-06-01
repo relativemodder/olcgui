@@ -3,8 +3,8 @@ import { instances, logs as dbLogs } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { generateYaml, type WizardConfig } from '$lib/wizard/utils';
 import { evaluateRestart, type RestartMetrics } from './restartPolicy';
-import { mkdirSync, writeFileSync, unlinkSync, existsSync } from 'fs';
-import { join } from 'path';
+import { mkdirSync, writeFileSync, unlinkSync, existsSync, chmodSync, renameSync } from 'fs';
+import { join, dirname } from 'path';
 import { env } from '$env/dynamic/private';
 
 export interface ActiveInstance {
@@ -29,6 +29,45 @@ try {
 	mkdirSync(DATA_DIR, { recursive: true });
 } catch (e) {
 	console.error('[ProcessManager] Failed to create data directory:', e);
+}
+
+export async function saveUploadedBinary(buffer: Buffer): Promise<void> {
+	const dir = dirname(BINARY_PATH);
+	mkdirSync(dir, { recursive: true });
+	
+	const tempPath = `${BINARY_PATH}.tmp`;
+	writeFileSync(tempPath, buffer);
+	chmodSync(tempPath, 0o755);
+
+	try {
+		const proc = Bun.spawn([tempPath], {
+			stdout: 'pipe',
+			stderr: 'pipe'
+		});
+
+		const stderrText = await new Response(proc.stderr).text();
+		const stdoutText = await new Response(proc.stdout).text();
+		
+		await proc.exited;
+		
+		const output = stderrText + stdoutText;
+		if (!output.includes('usage: olcrtc <config.yaml>')) {
+			throw new Error('Файл не является корректным исполняемым файлом ядра olcrtc для данной архитектуры.');
+		}
+
+		renameSync(tempPath, BINARY_PATH);
+	} catch (err) {
+		try {
+			unlinkSync(tempPath);
+		} catch (_e) {
+			// ignore cleanup errors
+		}
+		
+		if (err instanceof Error && err.message.includes('Файл не является')) {
+			throw err;
+		}
+		throw new Error('Файл не является корректным исполняемым файлом для данной архитектуры (ошибка выполнения).', { cause: err });
+	}
 }
 
 export function getInstanceLogs(id: number): string[] {

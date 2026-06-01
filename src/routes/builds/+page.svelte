@@ -12,6 +12,7 @@
 		ChevronRight
 	} from 'lucide-svelte';
 	import Terminal from '$lib/components/Terminal.svelte';
+	import UploadBinaryPanel from '$lib/components/builds/UploadBinaryPanel.svelte';
 
 	let { data, form } = $props();
 
@@ -245,6 +246,8 @@
 					heightClass="h-80"
 				/>
 			</div>
+
+			<UploadBinaryPanel />
 		</div>
 
 		<div class="border border-zinc-800 bg-zinc-900 p-6 shadow-md">
