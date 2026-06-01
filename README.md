@@ -17,11 +17,8 @@ Web interface for managing [olcrtc](https://github.com/olcrtc) tunnel instances.
 **Compose is broken right now, use docker build or podman build:**
 
 ```bash
+mkdir data olcrtc
 podman build -t olcgui . --no-cache && podman rm -f olcgui && podman run -d --name olcgui -p 5173:5173 -v ./data:/app/data:Z -v ./olcrtc:/app/olcrtc:Z olcgui
-```
-
-```bash
-docker-compose up -d --build # don't use it for now
 ```
 
 The `olcrtc` repository and database are mounted as volumes so they survive container restarts. App is available at `http://localhost:5173`.
