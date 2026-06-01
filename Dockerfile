@@ -22,7 +22,6 @@ RUN bun install
 COPY . .
 
 ENV OLCRTC_DATA_DIR=/app/data/instances
-ENV OLCRTC_BINARY_PATH=/app/olcrtc/build/olcrtc-linux-amd64
 ENV OLCRTC_GIT_DIR=/app/olcrtc
 ENV OLCRTC_BUILD_DIR=/app/olcrtc
 ENV MAGE_CMD=mage
@@ -30,6 +29,8 @@ ENV DATABASE_URL=/app/data/sqlite.db
 
 RUN mkdir -p /app/data/instances
 
+RUN bun run build
+ENV PORT=5173
 EXPOSE 5173
 
-CMD ["bun", "run", "dev", "--host", "0.0.0.0"]
+CMD ["bun", "./build/index.js"]

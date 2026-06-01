@@ -21,8 +21,9 @@ export interface ActiveInstance {
 const activeInstances = new Map<number, ActiveInstance>();
 
 const DATA_DIR = env.OLCRTC_DATA_DIR || './data/instances';
+const arch = process.arch === 'arm64' || process.arch === 'aarch64' ? 'arm64' : 'amd64';
 const BINARY_PATH =
-	env.OLCRTC_BINARY_PATH || join(process.cwd(), 'olcrtc/build/olcrtc-linux-amd64');
+	env.OLCRTC_BINARY_PATH || join(process.cwd(), `olcrtc/build/olcrtc-linux-${arch}`);
 
 try {
 	mkdirSync(DATA_DIR, { recursive: true });
@@ -268,3 +269,16 @@ export async function initProcessManager(): Promise<void> {
 		console.error('[ProcessManager] Boot supervisor restoration failed:', error);
 	}
 }
+
+function cleanupChildProcesses() {
+	console.log('[ProcessManager] Shutting down, killing all child processes...');
+	for (const block of activeInstances.values()) {
+		try {
+			block.process.kill(9);
+		} catch {}
+	}
+	process.exit(0);
+}
+
+process.on('SIGINT', cleanupChildProcesses);
+process.on('SIGTERM', cleanupChildProcesses);
