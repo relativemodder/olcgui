@@ -1,5 +1,6 @@
 services:
   olcgui:
+    image: olcgui
     build: .
     container_name: olcgui
     ports:
