@@ -1,5 +1,10 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
+import type { Config } from '@sveltejs/kit';
 import { saveUploadedBinary } from '$lib/server/process/manager';
+
+export const config: Config = {
+	maxRequestBodySize: 1024 * 1024 * 100 // 100 MB
+};
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {

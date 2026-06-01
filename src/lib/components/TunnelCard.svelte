@@ -98,72 +98,96 @@
 
 	<div class="flex flex-wrap items-center gap-3 lg:self-center">
 		{#if status === 'running' || status === 'restarting'}
-			<button
-				type="button"
-				disabled={isStopping}
-				onclick={async () => {
-					if (isStopping) return;
-					isStopping = true;
-					try {
-						updateOptimisticStatus(inst.id, 'stopped');
-						await fetch(`?/stop&id=${inst.id}`, { method: 'POST', body: new FormData() });
-					} finally {
-						isStopping = false;
-					}
-				}}
-				class="border-zinc-750 flex h-9 cursor-pointer items-center gap-2 border bg-zinc-800 px-4 text-xs text-zinc-300 shadow-sm hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
-			>
-				<Square class="h-3.5 w-3.5 shrink-0" />
-				<span>Остановить</span>
-			</button>
-		{:else}
-			<button
-				type="button"
-				disabled={isStarting}
-				onclick={async () => {
-					if (isStarting) return;
-					isStarting = true;
-					try {
+			<form method="POST" action="?/stop&id={inst.id}" use:enhance={({ cancel }) => {
+				if (isStopping) {
+					cancel();
+					return;
+				}
+				isStopping = true;
+				updateOptimisticStatus(inst.id, 'stopped');
+				return async ({ result }) => {
+					isStopping = false;
+					if (result.type === 'failure') {
 						updateOptimisticStatus(inst.id, 'running');
-						await fetch(`?/start&id=${inst.id}`, { method: 'POST', body: new FormData() });
-					} finally {
-						isStarting = false;
+						alert(result.data?.error || 'Произошла ошибка при остановке');
+					} else if (result.type === 'error') {
+						updateOptimisticStatus(inst.id, 'running');
+						alert(result.error?.message || 'Произошла ошибка при остановке');
 					}
-				}}
-				class="flex h-9 cursor-pointer items-center gap-2 border border-transparent bg-white px-4 text-xs font-semibold text-black shadow-sm hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
-			>
-				<Play class="h-3.5 w-3.5 shrink-0 fill-current" />
-				<span>Запустить</span>
-			</button>
+				};
+			}}>
+				<button
+					type="submit"
+					disabled={isStopping}
+					class="border-zinc-750 flex h-9 cursor-pointer items-center gap-2 border bg-zinc-800 px-4 text-xs text-zinc-300 shadow-sm hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+				>
+					<Square class="h-3.5 w-3.5 shrink-0" />
+					<span>Остановить</span>
+				</button>
+			</form>
+		{:else}
+			<form method="POST" action="?/start&id={inst.id}" use:enhance={({ cancel }) => {
+				if (isStarting) {
+					cancel();
+					return;
+				}
+				isStarting = true;
+				updateOptimisticStatus(inst.id, 'running');
+				return async ({ result }) => {
+					isStarting = false;
+					if (result.type === 'failure') {
+						updateOptimisticStatus(inst.id, 'stopped');
+						alert(result.data?.error || 'Произошла ошибка при запуске');
+					} else if (result.type === 'error') {
+						updateOptimisticStatus(inst.id, 'stopped');
+						alert(result.error?.message || 'Произошла ошибка при запуске');
+					}
+				};
+			}}>
+				<button
+					type="submit"
+					disabled={isStarting}
+					class="flex h-9 cursor-pointer items-center gap-2 border border-transparent bg-white px-4 text-xs font-semibold text-black shadow-sm hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
+				>
+					<Play class="h-3.5 w-3.5 shrink-0 fill-current" />
+					<span>Запустить</span>
+				</button>
+			</form>
 		{/if}
 
-		<button
-			type="button"
-			disabled={isTogglingAutoRestart}
-			onclick={async () => {
-				if (isTogglingAutoRestart) return;
-				isTogglingAutoRestart = true;
-				try {
-					updateOptimisticAutoRestart(inst.id, !autoRestart);
-					await fetch(`?/toggleAutoRestart&id=${inst.id}`, {
-						method: 'POST',
-						body: new FormData()
-					});
-				} finally {
-					isTogglingAutoRestart = false;
+		<form method="POST" action="?/toggleAutoRestart&id={inst.id}" use:enhance={({ cancel }) => {
+			if (isTogglingAutoRestart) {
+				cancel();
+				return;
+			}
+			isTogglingAutoRestart = true;
+			updateOptimisticAutoRestart(inst.id, !autoRestart);
+			return async ({ result }) => {
+				isTogglingAutoRestart = false;
+				if (result.type === 'failure') {
+					updateOptimisticAutoRestart(inst.id, autoRestart);
+					alert(result.data?.error || 'Произошла ошибка');
+				} else if (result.type === 'error') {
+					updateOptimisticAutoRestart(inst.id, autoRestart);
+					alert(result.error?.message || 'Произошла ошибка');
 				}
-			}}
-			class="border-zinc-750 flex h-9 cursor-pointer items-center gap-2 border bg-zinc-800 px-3.5 text-xs hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
-			title="Автоматический перезапуск в случае сбоев"
-		>
-			{#if autoRestart}
-				<ToggleRight class="h-5 w-5 shrink-0 text-emerald-400" />
-				<span class="font-medium text-zinc-300">Авто-старт</span>
-			{:else}
-				<ToggleLeft class="h-5 w-5 shrink-0 text-zinc-500" />
-				<span class="font-medium text-zinc-500">Авто-старт</span>
-			{/if}
-		</button>
+			};
+		}}>
+			<button
+				type="submit"
+				disabled={isTogglingAutoRestart}
+				class="border-zinc-750 flex h-9 cursor-pointer items-center gap-2 border bg-zinc-800 px-3.5 text-xs hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
+				title="Автоматический перезапуск в случае сбоев"
+			>
+				{#if autoRestart}
+					<ToggleRight class="h-5 w-5 shrink-0 text-emerald-400" />
+					<span class="font-medium text-zinc-300">Авто-старт</span>
+				{:else}
+					<ToggleLeft class="h-5 w-5 shrink-0 text-zinc-500" />
+					<span class="font-medium text-zinc-500">Авто-старт</span>
+				{/if}
+			</button>
+		</form>
 
 		<a
 			href="/wizard?edit={inst.id}"
@@ -183,7 +207,20 @@
 			<span>Логи</span>
 		</button>
 
-		<form action="?/delete&id={inst.id}" method="POST" use:enhance>
+		<form action="?/delete&id={inst.id}" method="POST" use:enhance={({ cancel }) => {
+			if (!confirm('Вы уверены, что хотите удалить этот туннель?')) {
+				cancel();
+				return;
+			}
+			return async ({ result, update }) => {
+				if (result.type === 'failure') {
+					alert(result.data?.error || 'Ошибка при удалении');
+				} else if (result.type === 'error') {
+					alert(result.error?.message || 'Ошибка при удалении');
+				}
+				await update();
+			};
+		}}>
 			<button
 				type="submit"
 				class="border-zinc-750 flex h-9 w-9 cursor-pointer items-center justify-center border bg-zinc-800 text-zinc-400 shadow-sm hover:border-red-600 hover:bg-red-950/50 hover:text-red-400"

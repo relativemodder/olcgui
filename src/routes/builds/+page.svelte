@@ -92,6 +92,9 @@
 	onMount(async () => {
 		await pollRepoSync();
 		if (repoSyncing) repoInterval = setInterval(pollRepoSync, 800);
+
+		await pollBuild();
+		if (isBuilding) buildInterval = setInterval(pollBuild, 1000);
 	});
 
 	onDestroy(() => {
