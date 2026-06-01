@@ -78,9 +78,6 @@ export function generateYaml(config: WizardConfig, mode: 'srv' | 'cnc'): string 
 	return lines.join('\n');
 }
 
-/**
- * Generates an olcrtc:// URI scheme string from configurations.
- */
 export function generateOlcrtcUri(
 	provider: 'jitsi' | 'wbstream' | 'telemost',
 	transport: string,
@@ -104,9 +101,6 @@ export interface ParsedOlcrtcUri {
 	name: string;
 }
 
-/**
- * Parses an olcrtc:// URI scheme string and populates the config parameters.
- */
 export function parseOlcrtcUri(uri: string): ParsedOlcrtcUri {
 	const trimmed = uri.trim();
 	if (!trimmed.startsWith('olcrtc://')) {

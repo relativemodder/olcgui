@@ -7,7 +7,7 @@ export const GET: RequestHandler = async () => {
 
 export const POST: RequestHandler = async () => {
 	try {
-		startBuild();
+		await startBuild();
 		return json({ success: true });
 	} catch (error) {
 		return json(

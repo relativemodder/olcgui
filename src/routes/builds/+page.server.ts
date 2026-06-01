@@ -10,9 +10,9 @@ import { fail } from '@sveltejs/kit';
 export const load: PageServerLoad = async () => {
 	try {
 		return {
-			branches: getBranches(),
-			currentBranchName: getCurrentBranchName(),
-			currentCommit: getCurrentCommit()
+			branches: await getBranches(),
+			currentBranchName: await getCurrentBranchName(),
+			currentCommit: await getCurrentCommit()
 		};
 	} catch (error) {
 		console.error('[BuildsLoad] Error loading git info:', error);
@@ -33,7 +33,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			const res = checkoutBranch(name);
+			const res = await checkoutBranch(name);
 			if (!res.success) {
 				return fail(400, { error: res.error });
 			}

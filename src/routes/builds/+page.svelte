@@ -20,6 +20,21 @@
 	let buildSuccess = $state<boolean | null>(null);
 	let buildInterval = $state<Timer | null>(null);
 
+	let repoSyncing = $state<boolean>(false);
+	let repoInterval = $state<Timer | null>(null);
+
+	async function pollRepoSync() {
+		try {
+			const res = await fetch('/api/repo');
+			if (res.ok) {
+				const info = await res.json();
+				repoSyncing = !!info.repoSyncing;
+			}
+		} catch (e) {
+			console.error('Failed to poll repo sync status:', e);
+		}
+	}
+
 	// Poll compile progress
 	async function pollBuild() {
 		try {
@@ -57,6 +72,9 @@
 	}
 
 	onMount(() => {
+		pollRepoSync();
+		repoInterval = setInterval(pollRepoSync, 800);
+
 		pollBuild();
 		setTimeout(() => {
 			if (isBuilding) {
@@ -67,6 +85,7 @@
 
 	onDestroy(() => {
 		if (buildInterval) clearInterval(buildInterval);
+		if (repoInterval) clearInterval(repoInterval);
 	});
 </script>
 
@@ -74,7 +93,24 @@
 	<title>Сборка и ветки | olcRTC Manager</title>
 </svelte:head>
 
-<div class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+<div class="relative mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+	{#if repoSyncing}
+		<div
+			class="absolute inset-0 z-50 flex items-center justify-center rounded-xl border border-purple-500/20 bg-black/50 backdrop-blur-md"
+		>
+			<div class="flex flex-col items-center gap-3 p-8">
+				<div class="flex items-center gap-3">
+					<Loader2 class="h-5 w-5 animate-spin text-purple-300" />
+					<span class="text-sm font-bold text-purple-200 uppercase tracking-wider"
+						>Идет подготовка репозитория…</span
+					>
+				</div>
+				<p class="text-xs text-zinc-300/80 text-center">
+					Это может занять несколько минут при первом клонировании.
+				</p>
+			</div>
+		</div>
+	{/if}
 	<div class="mb-8">
 		<h1 class="text-3xl font-extrabold tracking-tight text-white">Сборка проекта</h1>
 		<p class="mt-1 text-sm text-zinc-500">
@@ -142,7 +178,7 @@
 					<button
 						type="button"
 						onclick={triggerBuild}
-						disabled={isBuilding}
+						disabled={isBuilding || repoSyncing}
 						class="flex cursor-pointer items-center gap-2 bg-white px-6 py-2.5 text-xs font-semibold text-black shadow-sm hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						{#if isBuilding}
@@ -211,7 +247,7 @@
 							<form action="?/checkout&name={branch.name}" method="POST" use:enhance>
 								<button
 									type="submit"
-									disabled={isBuilding}
+									disabled={isBuilding || repoSyncing}
 									class="flex cursor-pointer items-center gap-1 border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-[10px] font-bold text-zinc-300 uppercase hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50"
 								>
 									<span>Выбрать</span>

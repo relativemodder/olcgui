@@ -1,6 +1,7 @@
 import { spawnSync } from 'child_process';
 import { join } from 'path';
 import { env } from '$env/dynamic/private';
+import { ensureOlcrtcRepoSync } from './repo';
 
 const GIT_DIR = env.OLCRTC_GIT_DIR || join(process.cwd(), 'olcrtc');
 
@@ -17,12 +18,14 @@ export interface CommitInfo {
 	date: string;
 }
 
-export function runGitCommand(args: string[]): {
+function runGitCommand(args: string[]): {
 	success: boolean;
 	stdout: string;
 	stderr: string;
 } {
 	try {
+		ensureOlcrtcRepoSync();
+
 		const result = spawnSync('git', args, { cwd: GIT_DIR, encoding: 'utf-8' });
 		return {
 			success: result.status === 0,
