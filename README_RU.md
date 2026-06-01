@@ -14,6 +14,12 @@
 
 ## Запуск через Docker
 
+**Compose пока что сломан, используйте podman build:**
+
+```bash
+podman build -t olcgui . --no-cache && podman rm -f olcgui && podman run -d --name olcgui -p 5173:5173 -v ./data:/app/data:Z -v ./olcrtc:/app/olcrtc:Z olcgui
+```
+
 ```bash
 docker-compose up -d --build
 ```
