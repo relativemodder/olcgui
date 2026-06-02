@@ -2,7 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { db } from '$lib/server/db/client';
 import { instances } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { startInstance, stopInstance } from '$lib/server/process/manager';
+import { restartInstance, startInstance, stopInstance } from '$lib/server/process/manager';
 import { fail } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async () => {
@@ -34,6 +34,18 @@ export const actions: Actions = {
 			return { success: true };
 		} catch (error) {
 			return fail(500, { error: (error as Error)?.message || 'Не удалось остановить процесс.' });
+		}
+	},
+
+	restart: async ({ url }) => {
+		const id = Number(url.searchParams.get('id'));
+		if (!id) return fail(400, { error: 'Неверный идентификатор инстанса.' });
+
+		try {
+			await restartInstance(id);
+			return { success: true };
+		} catch (error) {
+			return fail(500, { error: (error as Error)?.message || 'Не удалось перезапустить процесс.' });
 		}
 	},
 

@@ -6,6 +6,7 @@
 		KeyRound,
 		Play,
 		Square,
+		RefreshCw,
 		ToggleRight,
 		ToggleLeft,
 		Settings,
@@ -28,6 +29,7 @@
 
 	let isStopping = $state(false);
 	let isStarting = $state(false);
+	let isRestarting = $state(false);
 	let isTogglingAutoRestart = $state(false);
 	let deleteForm: HTMLFormElement;
 	let deleteConfirmed = false;
@@ -101,6 +103,45 @@
 	<div class="flex flex-wrap items-center gap-3 lg:self-end">
 		{#if status === 'running' || status === 'restarting'}
 			<form
+				class="w-full sm:w-auto"
+				method="POST"
+				action="?/restart&id={inst.id}"
+				use:enhance={({ cancel }) => {
+					if (isRestarting) {
+						cancel();
+						return;
+					}
+					isRestarting = true;
+					updateOptimisticStatus(inst.id, 'restarting');
+					return async ({ result }) => {
+						isRestarting = false;
+						if (result.type === 'failure') {
+							updateOptimisticStatus(inst.id, 'running');
+							showActionError(
+								actionErrorMessage(result.data?.error, 'Произошла ошибка при перезапуске')
+							);
+						} else if (result.type === 'error') {
+							updateOptimisticStatus(inst.id, 'running');
+							showActionError(result.error?.message || 'Произошла ошибка при перезапуске');
+						} else {
+							updateOptimisticStatus(inst.id, 'running');
+						}
+					};
+				}}
+			>
+				<button
+					type="submit"
+					disabled={isRestarting || isStopping}
+					class="ui-button ui-button-primary h-9 w-full cursor-pointer justify-center px-4 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+					title="Перезапустить туннель одним действием"
+				>
+					<RefreshCw class="h-3.5 w-3.5 shrink-0" />
+					<span>Рестарт</span>
+				</button>
+			</form>
+
+			<form
+				class="w-full sm:w-auto"
 				method="POST"
 				action="?/stop&id={inst.id}"
 				use:enhance={({ cancel }) => {
@@ -127,7 +168,7 @@
 				<button
 					type="submit"
 					disabled={isStopping}
-					class="ui-button h-9 cursor-pointer px-4 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50"
+					class="ui-button h-9 w-full cursor-pointer justify-center px-4 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
 				>
 					<Square class="h-3.5 w-3.5 shrink-0" />
 					<span>Остановить</span>
@@ -135,6 +176,7 @@
 			</form>
 		{:else}
 			<form
+				class="w-full sm:w-auto"
 				method="POST"
 				action="?/start&id={inst.id}"
 				use:enhance={({ cancel }) => {
@@ -161,7 +203,7 @@
 				<button
 					type="submit"
 					disabled={isStarting}
-					class="ui-button ui-button-primary h-9 cursor-pointer px-4 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50"
+					class="ui-button ui-button-primary h-9 w-full cursor-pointer justify-center px-4 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
 				>
 					<Play class="h-3.5 w-3.5 shrink-0 fill-current" />
 					<span>Запустить</span>

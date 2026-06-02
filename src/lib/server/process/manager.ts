@@ -16,6 +16,7 @@ export interface ActiveInstance {
 	status: 'running' | 'restarting' | 'error' | 'stopped';
 	configPath: string;
 	restartTimer?: Timer;
+	expectedExit?: boolean;
 }
 
 const activeInstances = new Map<number, ActiveInstance>();
@@ -193,7 +194,12 @@ export async function startInstance(id: number): Promise<void> {
 		await logInstanceLine(id, `[Manager] Process terminated with exit code ${exitCode}.`);
 
 		const block = activeInstances.get(id);
-		if (!block || block.status === 'stopped') {
+		if (
+			!block ||
+			block.process !== childProcess ||
+			block.expectedExit ||
+			block.status === 'stopped'
+		) {
 			return;
 		}
 
@@ -247,9 +253,11 @@ export async function stopInstance(id: number): Promise<void> {
 	console.log(`[ProcessManager] Stopping instance ${id}...`);
 
 	block.status = 'stopped';
+	block.expectedExit = true;
 
 	if (block.restartTimer) {
 		clearTimeout(block.restartTimer);
+		block.restartTimer = undefined;
 	}
 
 	try {
@@ -269,6 +277,57 @@ export async function stopInstance(id: number): Promise<void> {
 
 	await logInstanceLine(id, '[Manager] Process terminated manually.');
 	await db.update(instances).set({ status: 'stopped' }).where(eq(instances.id, id));
+}
+
+export async function restartInstance(id: number): Promise<void> {
+	const block = activeInstances.get(id);
+	await db.update(instances).set({ status: 'restarting' }).where(eq(instances.id, id));
+
+	if (!block) {
+		await logInstanceLine(id, '[Manager] Manual restart requested while process was not active.');
+		await startInstance(id);
+		return;
+	}
+
+	console.log(`[ProcessManager] Restarting instance ${id}...`);
+
+	block.status = 'restarting';
+	block.expectedExit = true;
+
+	if (block.restartTimer) {
+		clearTimeout(block.restartTimer);
+		block.restartTimer = undefined;
+	}
+
+	await logInstanceLine(id, '[Manager] Manual restart requested.');
+
+	const forceKillTimer = setTimeout(() => {
+		try {
+			block.process.kill(9);
+		} catch {}
+	}, 1000);
+
+	try {
+		block.process.kill(15);
+		await Promise.race([block.process.exited, new Promise((resolve) => setTimeout(resolve, 1500))]);
+	} catch {}
+
+	clearTimeout(forceKillTimer);
+
+	if (existsSync(block.configPath)) {
+		try {
+			unlinkSync(block.configPath);
+		} catch {}
+	}
+
+	try {
+		await startInstance(id);
+	} catch (error) {
+		if (activeInstances.get(id) === block) {
+			block.status = 'error';
+		}
+		throw error;
+	}
 }
 
 async function logInstanceLine(instanceId: number, line: string): Promise<void> {
