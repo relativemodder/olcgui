@@ -22,7 +22,9 @@ worker.addEventListener('activate', (event) => {
 		caches
 			.keys()
 			.then((names) =>
-				Promise.all(names.filter((name) => !CACHE_NAMES.has(name)).map((name) => caches.delete(name)))
+				Promise.all(
+					names.filter((name) => !CACHE_NAMES.has(name)).map((name) => caches.delete(name))
+				)
 			)
 			.then(() => worker.clients.claim())
 	);

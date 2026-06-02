@@ -19,7 +19,9 @@
 		<script>
 			if ('serviceWorker' in navigator) {
 				window.addEventListener('load', () => {
-					const isLocalhost = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+					const isLocalhost = ['localhost', '127.0.0.1', '[::1]'].includes(
+						window.location.hostname
+					);
 					navigator.serviceWorker.register(
 						'/service-worker.js',
 						isLocalhost ? { type: 'module' } : undefined
