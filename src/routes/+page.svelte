@@ -149,6 +149,8 @@
 		<StatCard label="Ошибки" value={String(errorCount)} icon={ShieldAlert} />
 	</div>
 
+	<hr class="mb-8 text-[color:var(--ui-border)]" />
+
 	{#if data.instances.length === 0}
 		<div
 			use:metroIntro
