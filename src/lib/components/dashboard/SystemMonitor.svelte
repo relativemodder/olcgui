@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { Cpu, HardDrive, ArrowDownUp, Activity } from 'lucide-svelte';
+	import { canPollNow, createSerialPoller } from '$lib/client/serialPoller';
 	import StatCard from '$lib/components/ui/StatCard.svelte';
 
 	interface SystemStats {
@@ -21,26 +22,39 @@
 		networkTxSec: 0
 	});
 
-	let pollingInterval = $state<ReturnType<typeof setInterval> | null>(null);
-
-	async function fetchStats() {
-		try {
-			const res = await fetch('/api/system/stats');
+	const statsPoller = createSerialPoller({
+		intervalMs: 2000,
+		failureIntervalMs: 6000,
+		shouldRun: canPollNow,
+		async run(signal) {
+			const res = await fetch('/api/system/stats', { signal });
 			if (res.ok) {
 				stats = await res.json();
+			} else {
+				throw new Error(`System stats request failed with ${res.status}`);
 			}
-		} catch (e) {
-			console.error('Failed to fetch system stats:', e);
+		},
+		onError(error) {
+			console.error('Failed to fetch system stats:', error);
+		}
+	});
+
+	function triggerVisiblePoll() {
+		if (canPollNow()) {
+			statsPoller.trigger();
 		}
 	}
 
 	onMount(() => {
-		fetchStats();
-		pollingInterval = setInterval(fetchStats, 2000);
+		statsPoller.start();
+		document.addEventListener('visibilitychange', triggerVisiblePoll);
+		window.addEventListener('online', triggerVisiblePoll);
 	});
 
 	onDestroy(() => {
-		if (pollingInterval) clearInterval(pollingInterval);
+		statsPoller.stop();
+		document.removeEventListener('visibilitychange', triggerVisiblePoll);
+		window.removeEventListener('online', triggerVisiblePoll);
 	});
 
 	function formatBytes(bytes: number, decimals = 2) {

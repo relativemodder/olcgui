@@ -11,6 +11,7 @@
 		Loader2,
 		ChevronRight
 	} from 'lucide-svelte';
+	import { canPollNow, createSerialPoller } from '$lib/client/serialPoller';
 	import Terminal from '$lib/components/Terminal.svelte';
 	import UploadBinaryPanel from '$lib/components/builds/UploadBinaryPanel.svelte';
 	import Panel from '$lib/components/ui/Panel.svelte';
@@ -23,87 +24,117 @@
 	let isBuilding = $state(false);
 	let buildLogs = $state<string[]>([]);
 	let buildSuccess = $state<boolean | null>(null);
-	let buildInterval = $state<Timer | null>(null);
+	let buildStartInFlight = $state(false);
 
 	let repoSyncing = $state<boolean>(false);
-	let repoInterval = $state<Timer | null>(null);
+	let repoPullInFlight = $state(false);
 
-	async function pollRepoSync() {
-		try {
-			const res = await fetch('/api/repo');
-			if (res.ok) {
-				const info = await res.json();
-				repoSyncing = !!info.repoSyncing;
-
-				if (!repoSyncing && repoInterval) {
-					clearInterval(repoInterval);
-					repoInterval = null;
-				}
+	const repoPoller = createSerialPoller({
+		intervalMs: 800,
+		failureIntervalMs: 5000,
+		shouldRun: canPollNow,
+		async run(signal) {
+			const res = await fetch('/api/repo', { signal });
+			if (!res.ok) {
+				throw new Error(`Repo status request failed with ${res.status}`);
 			}
-		} catch (e) {
-			console.error('Failed to poll repo sync status:', e);
+
+			const info = await res.json();
+			repoSyncing = !!info.repoSyncing;
+
+			if (!repoSyncing) {
+				return false;
+			}
+		},
+		onError(error) {
+			console.error('Failed to poll repo sync status:', error);
 		}
-	}
+	});
 
-	async function pollBuild() {
-		try {
-			const res = await fetch('/api/builds');
-			if (res.ok) {
-				const info = await res.json();
-				isBuilding = info.isBuilding;
-				buildLogs = info.logs;
-				buildSuccess = info.success;
-
-				if (!isBuilding && buildInterval) {
-					clearInterval(buildInterval);
-					buildInterval = null;
-				}
+	const buildPoller = createSerialPoller({
+		intervalMs: 1000,
+		failureIntervalMs: 5000,
+		shouldRun: canPollNow,
+		async run(signal) {
+			const res = await fetch('/api/builds', { signal });
+			if (!res.ok) {
+				throw new Error(`Build status request failed with ${res.status}`);
 			}
-		} catch (e) {
-			console.error('Failed to poll compile status:', e);
+
+			const info = await res.json();
+			isBuilding = info.isBuilding;
+			buildLogs = info.logs;
+			buildSuccess = info.success;
+
+			if (!isBuilding) {
+				return false;
+			}
+		},
+		onError(error) {
+			console.error('Failed to poll compile status:', error);
+		}
+	});
+
+	function triggerVisiblePoll() {
+		if (!canPollNow()) return;
+
+		if (repoSyncing || repoPoller.isActive()) {
+			repoPoller.trigger();
+		}
+
+		if (isBuilding || buildPoller.isActive()) {
+			buildPoller.trigger();
 		}
 	}
 
 	async function triggerBuild() {
+		if (buildStartInFlight || isBuilding || repoSyncing) return;
+
+		buildStartInFlight = true;
 		try {
 			const res = await fetch('/api/builds', { method: 'POST' });
 			if (res.ok) {
 				isBuilding = true;
 				buildLogs = ['[Build] Triggering compilation...'];
 				buildSuccess = null;
-				if (buildInterval) clearInterval(buildInterval);
-				buildInterval = setInterval(pollBuild, 1000);
+				buildPoller.trigger();
 			}
 		} catch (e) {
 			console.error('Failed to start build:', e);
+		} finally {
+			buildStartInFlight = false;
 		}
 	}
 
 	async function triggerRepoPull() {
+		if (repoPullInFlight || repoSyncing) return;
+
+		repoPullInFlight = true;
 		try {
 			const res = await fetch('/api/repo/pull', { method: 'POST' });
 			if (res.ok) {
-				await pollRepoSync();
-				if (repoSyncing && !repoInterval) {
-					repoInterval = setInterval(pollRepoSync, 800);
-				}
+				repoSyncing = true;
+				repoPoller.trigger();
 			}
 		} catch (e) {
 			console.error('Failed to start repo pull:', e);
+		} finally {
+			repoPullInFlight = false;
 		}
 	}
 
 	onMount(async () => {
-		await pollRepoSync();
-		if (repoSyncing) repoInterval = setInterval(pollRepoSync, 800);
-
-		await pollBuild();
-		if (isBuilding) buildInterval = setInterval(pollBuild, 1000);
+		repoPoller.trigger();
+		buildPoller.trigger();
+		document.addEventListener('visibilitychange', triggerVisiblePoll);
+		window.addEventListener('online', triggerVisiblePoll);
 	});
 
 	onDestroy(() => {
-		if (buildInterval) clearInterval(buildInterval);
-		if (repoInterval) clearInterval(repoInterval);
+		buildPoller.stop();
+		repoPoller.stop();
+		document.removeEventListener('visibilitychange', triggerVisiblePoll);
+		window.removeEventListener('online', triggerVisiblePoll);
 	});
 </script>
 
@@ -141,10 +172,10 @@
 					<button
 						type="button"
 						onclick={triggerRepoPull}
-						disabled={repoSyncing}
+						disabled={repoPullInFlight || repoSyncing}
 						class="ui-button ui-button-primary cursor-pointer px-6 py-2.5 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50"
 					>
-						{#if repoSyncing}
+						{#if repoPullInFlight || repoSyncing}
 							<Loader2 class="h-4 w-4 animate-spin" />
 							<span>Идет pull...</span>
 						{:else}
@@ -195,10 +226,10 @@
 					<button
 						type="button"
 						onclick={triggerBuild}
-						disabled={isBuilding || repoSyncing}
+						disabled={buildStartInFlight || isBuilding || repoSyncing}
 						class="ui-button ui-button-primary cursor-pointer px-6 py-2.5 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50"
 					>
-						{#if isBuilding}
+						{#if buildStartInFlight || isBuilding}
 							<Loader2 class="h-4 w-4 animate-spin" />
 							<span>Идет сборка...</span>
 						{:else}
@@ -261,7 +292,7 @@
 							<form action="?/checkout&name={branch.name}" method="POST" use:enhance>
 								<button
 									type="submit"
-									disabled={isBuilding || repoSyncing}
+									disabled={buildStartInFlight || isBuilding || repoPullInFlight || repoSyncing}
 									class="ui-button cursor-pointer items-center gap-1 px-3 py-1.5 text-xs font-normal uppercase disabled:cursor-not-allowed disabled:opacity-50"
 								>
 									<span>Выбрать</span>

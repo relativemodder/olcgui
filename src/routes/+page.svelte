@@ -2,6 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { Sliders, Globe, Wifi, ShieldAlert } from 'lucide-svelte';
 	import { RefreshCw, Activity } from 'lucide-svelte';
+	import { canPollNow, createSerialPoller } from '$lib/client/serialPoller';
 	import TunnelCard from '$lib/components/TunnelCard.svelte';
 	import Terminal from '$lib/components/Terminal.svelte';
 	import SystemMonitor from '$lib/components/dashboard/SystemMonitor.svelte';
@@ -14,8 +15,6 @@
 	let polledStatuses = $state<Record<number, { status: string; autoRestart: boolean }>>({});
 	let activeLogId = $state<number | null>(null);
 	let activeLogs = $state<string[]>([]);
-	let pollingInterval = $state<Timer | null>(null);
-	let logPollingInterval = $state<Timer | null>(null);
 
 	let totalCount = $derived(data.instances.length);
 	let runningCount = $derived(
@@ -28,67 +27,97 @@
 		data.instances.filter((i) => (polledStatuses[i.id]?.status ?? i.status) === 'error').length
 	);
 
-	async function pollStatuses() {
-		try {
-			const res = await fetch(`/api/instances?_t=${Date.now()}`);
-			if (res.ok) {
-				const resData = await res.json();
-				if (resData.instances) {
-					let nextStatuses = { ...polledStatuses };
-					let changed = false;
-					for (const entry of resData.instances) {
-						const current = nextStatuses[entry.id];
-						if (
-							!current ||
-							current.status !== entry.status ||
-							current.autoRestart !== entry.autoRestart
-						) {
-							nextStatuses[entry.id] = {
-								status: entry.status,
-								autoRestart: entry.autoRestart
-							};
-							changed = true;
-						}
-					}
-					if (changed) {
-						polledStatuses = nextStatuses;
-					}
-				}
-			}
-		} catch (e) {
-			console.error('Failed to poll statuses:', e);
-		}
-	}
+	const statusPoller = createSerialPoller({
+		intervalMs: 3000,
+		failureIntervalMs: 8000,
+		shouldRun: canPollNow,
+		async run(signal) {
+			if (data.instances.length === 0) return;
 
-	async function pollLogs(id: number) {
-		try {
-			const res = await fetch(`/api/instances?id=${id}&_t=${Date.now()}`);
-			if (res.ok) {
-				const resData = await res.json();
-				if (resData.logs) {
-					activeLogs = resData.logs;
-					if (resData.status) {
-						const existing = polledStatuses[id];
-						const inst = data.instances.find((i) => i.id === id);
-						const autoRestart = existing ? existing.autoRestart : inst ? inst.autoRestart : false;
-						if (
-							!existing ||
-							existing.status !== resData.status ||
-							existing.autoRestart !== autoRestart
-						) {
-							polledStatuses = {
-								...polledStatuses,
-								[id]: {
-									status: resData.status,
-									autoRestart
-								}
-							};
-						}
+			const res = await fetch(`/api/instances?_t=${Date.now()}`, { signal });
+			if (!res.ok) {
+				throw new Error(`Instance status request failed with ${res.status}`);
+			}
+
+			const resData = await res.json();
+			if (resData.instances) {
+				let nextStatuses = { ...polledStatuses };
+				let changed = false;
+				for (const entry of resData.instances) {
+					const current = nextStatuses[entry.id];
+					if (
+						!current ||
+						current.status !== entry.status ||
+						current.autoRestart !== entry.autoRestart
+					) {
+						nextStatuses[entry.id] = {
+							status: entry.status,
+							autoRestart: entry.autoRestart
+						};
+						changed = true;
+					}
+				}
+				if (changed) {
+					polledStatuses = nextStatuses;
+				}
+			}
+		},
+		onError(error) {
+			console.error('Failed to poll statuses:', error);
+		}
+	});
+
+	const logPoller = createSerialPoller({
+		intervalMs: 1500,
+		failureIntervalMs: 6000,
+		shouldRun: () => activeLogId !== null && canPollNow(),
+		async run(signal) {
+			const id = activeLogId;
+			if (id === null) {
+				return;
+			}
+
+			const res = await fetch(`/api/instances?id=${id}&_t=${Date.now()}`, { signal });
+			if (!res.ok) {
+				throw new Error(`Instance logs request failed with ${res.status}`);
+			}
+
+			const resData = await res.json();
+			if (activeLogId !== id) return;
+
+			if (resData.logs) {
+				activeLogs = resData.logs;
+				if (resData.status) {
+					const existing = polledStatuses[id];
+					const inst = data.instances.find((i) => i.id === id);
+					const autoRestart = existing ? existing.autoRestart : inst ? inst.autoRestart : false;
+					if (
+						!existing ||
+						existing.status !== resData.status ||
+						existing.autoRestart !== autoRestart
+					) {
+						polledStatuses = {
+							...polledStatuses,
+							[id]: {
+								status: resData.status,
+								autoRestart
+							}
+						};
 					}
 				}
 			}
-		} catch (e) {
-			console.error('Failed to poll logs:', e);
+		},
+		onError(error) {
+			console.error('Failed to poll logs:', error);
+		}
+	});
+
+	function triggerVisiblePoll() {
+		if (canPollNow()) {
+			statusPoller.trigger();
+			if (activeLogId !== null) {
+				logPoller.trigger();
+			}
 		}
 	}
 
@@ -96,27 +125,25 @@
 		if (activeLogId === id) {
 			activeLogId = null;
 			activeLogs = [];
-			if (logPollingInterval) {
-				clearInterval(logPollingInterval);
-				logPollingInterval = null;
-			}
+			logPoller.stop();
 		} else {
 			activeLogId = id;
 			activeLogs = [];
-			pollLogs(id);
-			if (logPollingInterval) clearInterval(logPollingInterval);
-			logPollingInterval = setInterval(() => pollLogs(id), 1500);
+			logPoller.trigger();
 		}
 	}
 
 	onMount(() => {
-		pollStatuses();
-		pollingInterval = setInterval(pollStatuses, 3000);
+		statusPoller.start();
+		document.addEventListener('visibilitychange', triggerVisiblePoll);
+		window.addEventListener('online', triggerVisiblePoll);
 	});
 
 	onDestroy(() => {
-		if (pollingInterval) clearInterval(pollingInterval);
-		if (logPollingInterval) clearInterval(logPollingInterval);
+		statusPoller.stop();
+		logPoller.stop();
+		document.removeEventListener('visibilitychange', triggerVisiblePoll);
+		window.removeEventListener('online', triggerVisiblePoll);
 	});
 </script>
 
