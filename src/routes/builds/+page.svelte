@@ -133,8 +133,12 @@
 	onDestroy(() => {
 		buildPoller.stop();
 		repoPoller.stop();
-		document.removeEventListener('visibilitychange', triggerVisiblePoll);
-		window.removeEventListener('online', triggerVisiblePoll);
+		if (typeof document !== 'undefined') {
+			document.removeEventListener('visibilitychange', triggerVisiblePoll);
+		}
+		if (typeof window !== 'undefined') {
+			window.removeEventListener('online', triggerVisiblePoll);
+		}
 	});
 </script>
 

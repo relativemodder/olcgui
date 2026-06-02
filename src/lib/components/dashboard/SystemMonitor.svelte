@@ -53,8 +53,12 @@
 
 	onDestroy(() => {
 		statsPoller.stop();
-		document.removeEventListener('visibilitychange', triggerVisiblePoll);
-		window.removeEventListener('online', triggerVisiblePoll);
+		if (typeof document !== 'undefined') {
+			document.removeEventListener('visibilitychange', triggerVisiblePoll);
+		}
+		if (typeof window !== 'undefined') {
+			window.removeEventListener('online', triggerVisiblePoll);
+		}
 	});
 
 	function formatBytes(bytes: number, decimals = 2) {
