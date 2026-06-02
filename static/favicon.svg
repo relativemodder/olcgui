@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+	<title id="title">olcRTC GUI</title>
+	<rect width="512" height="512" fill="#31363b"/>
+	<rect x="64" y="64" width="384" height="384" fill="#232629" stroke="#3daee9" stroke-width="24"/>
+	<path d="M154 182h204v42H154zM154 244h146v42H154zM154 306h86v42h-86z" fill="#eff0f1"/>
+	<path d="M322 296h36v52h-36zM374 262h36v86h-36z" fill="#3daee9"/>
+</svg>
