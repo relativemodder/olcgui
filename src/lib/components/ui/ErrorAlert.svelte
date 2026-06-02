@@ -12,13 +12,9 @@
 		class?: string;
 	} = $props();
 
-	let visible = $state(false);
+	let visible = $derived(Boolean(message));
 	let isError = $derived(type === 'error');
 	let title = $derived(isError ? 'Ошибка' : 'Готово');
-
-	$effect(() => {
-		visible = Boolean(message);
-	});
 </script>
 
 {#if message && visible}
