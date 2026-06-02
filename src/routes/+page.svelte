@@ -145,11 +145,7 @@
 	<div class="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-4">
 		<StatCard label="Всего туннелей" value={String(totalCount)} icon={Globe} />
 		<StatCard label="Активно" value={String(runningCount)} icon={Wifi} />
-		<StatCard
-			label="В процессе перезапуска"
-			value={String(restartingCount)}
-			icon={RefreshCw}
-		/>
+		<StatCard label="В процессе перезапуска" value={String(restartingCount)} icon={RefreshCw} />
 		<StatCard label="Ошибки" value={String(errorCount)} icon={ShieldAlert} />
 	</div>
 

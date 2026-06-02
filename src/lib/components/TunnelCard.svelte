@@ -92,9 +92,7 @@
 			{#if inst.mode === 'cnc'}
 				<span use:metroIntro class="ui-config-tile ui-metro-surface sm:col-span-2">
 					<Wifi class="h-3.5 w-3.5 shrink-0" />
-					<span
-						>SOCKS5: <strong>{inst.socksHost}:{inst.socksPort}</strong></span
-					>
+					<span>SOCKS5: <strong>{inst.socksHost}:{inst.socksPort}</strong></span>
 				</span>
 			{/if}
 		</div>

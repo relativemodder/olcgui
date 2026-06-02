@@ -61,16 +61,12 @@
 	</div>
 
 	{#if importError}
-		<p
-			class="mt-2.5 flex items-center gap-1 text-xs font-normal text-[color:var(--ui-danger)]"
-		>
+		<p class="mt-2.5 flex items-center gap-1 text-xs font-normal text-[color:var(--ui-danger)]">
 			<AlertCircle class="h-3.5 w-3.5 shrink-0" />
 			<span>{importError}</span>
 		</p>
 	{:else if importSuccess}
-		<p
-			class="mt-2.5 flex items-center gap-1 text-xs font-normal text-[color:var(--ui-accent)]"
-		>
+		<p class="mt-2.5 flex items-center gap-1 text-xs font-normal text-[color:var(--ui-accent)]">
 			<Check class="h-3.5 w-3.5 shrink-0" />
 			<span>Конфигурация успешно импортирована!</span>
 		</p>

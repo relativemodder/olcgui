@@ -112,10 +112,10 @@
 </svelte:head>
 
 <div class="relative mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-		{#if repoSyncing}
-			<div
-				class="absolute inset-0 z-50 flex items-center justify-center border border-[color:var(--ui-border)] bg-[color:var(--ui-overlay)]"
-			>
+	{#if repoSyncing}
+		<div
+			class="absolute inset-0 z-50 flex items-center justify-center border border-[color:var(--ui-border)] bg-[color:var(--ui-overlay)]"
+		>
 			<div class="flex flex-col items-center gap-3 p-8">
 				<div class="flex items-center gap-3">
 					<Loader2 class="h-5 w-5 animate-spin text-[color:var(--ui-muted)]" />

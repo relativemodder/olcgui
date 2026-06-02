@@ -49,8 +49,7 @@
 				<span>{statusText || 'Ошибка'}</span>
 			</span>
 		{:else}
-			<span class="text-xs font-normal text-[color:var(--ui-muted)]">{statusText || 'Готов'}</span
-			>
+			<span class="text-xs font-normal text-[color:var(--ui-muted)]">{statusText || 'Готов'}</span>
 		{/if}
 	</div>
 

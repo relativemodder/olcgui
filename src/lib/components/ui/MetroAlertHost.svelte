@@ -1,11 +1,5 @@
 <script lang="ts">
-	import {
-		AlertTriangle,
-		CheckCircle2,
-		Info,
-		ShieldAlert,
-		type IconProps
-	} from 'lucide-svelte';
+	import { AlertTriangle, CheckCircle2, Info, ShieldAlert, type IconProps } from 'lucide-svelte';
 	import type { ComponentType, SvelteComponent } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import {
@@ -64,7 +58,9 @@
 					</div>
 				</div>
 
-				<div class="flex w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end">
+				<div
+					class="flex w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end"
+				>
 					{#if active.mode === 'confirm'}
 						<button
 							type="button"

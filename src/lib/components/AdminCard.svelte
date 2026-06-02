@@ -22,9 +22,7 @@
 					<Badge variant="emerald">ВЫ</Badge>
 				{/if}
 			</div>
-			<span
-				class="mt-1.5 text-xs font-medium tracking-wide text-[color:var(--ui-muted)] uppercase"
-			>
+			<span class="mt-1.5 text-xs font-medium tracking-wide text-[color:var(--ui-muted)] uppercase">
 				{user.role === 'admin' ? 'Администратор' : 'Пользователь'}
 			</span>
 		</div>

@@ -25,9 +25,7 @@
 	<div class="ui-metro-alert-screen {className}" role="presentation">
 		<div
 			transition:fly={{ y: -28, duration: 220 }}
-			class="ui-metro-alert-strip {isError
-				? 'ui-metro-alert-error'
-				: 'ui-metro-alert-success'}"
+			class="ui-metro-alert-strip {isError ? 'ui-metro-alert-error' : 'ui-metro-alert-success'}"
 			role="alert"
 		>
 			<div class="mx-auto flex w-full max-w-3xl flex-col items-start gap-4 px-4 py-5 sm:px-6">
