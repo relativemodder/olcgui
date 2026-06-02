@@ -26,42 +26,43 @@
 </script>
 
 <div class="flex flex-col">
-	<div class="mb-3 flex items-center justify-between text-xs text-zinc-500">
-		<span class="flex items-center gap-2 text-zinc-400">
-			<TerminalIcon class="h-4 w-4 text-zinc-500" />
+	<div class="mb-3 flex items-center justify-between text-xs text-[color:var(--ui-muted)]">
+		<span class="flex items-center gap-2">
+			<TerminalIcon class="h-4 w-4 text-[color:var(--ui-muted)]" />
 			<span>{title}</span>
 		</span>
 		{#if statusType === 'running'}
 			<span
-				class="flex animate-pulse items-center gap-1.5 text-[10px] font-bold text-zinc-500 uppercase"
+				class="flex animate-pulse items-center gap-1.5 text-xs font-normal text-[color:var(--ui-muted)]"
 			>
 				<Loader2 class="h-3.5 w-3.5 animate-spin" />
 				<span>{statusText || 'Активно'}</span>
 			</span>
 		{:else if statusType === 'success'}
-			<span class="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 uppercase">
+			<span class="flex items-center gap-1.5 text-xs font-normal text-[color:var(--ui-accent)]">
 				<CheckCircle2 class="h-3.5 w-3.5" />
 				<span>{statusText || 'Успешно'}</span>
 			</span>
 		{:else if statusType === 'error'}
-			<span class="flex items-center gap-1.5 text-[10px] font-bold text-red-400 uppercase">
+			<span class="flex items-center gap-1.5 text-xs font-normal text-[color:var(--ui-danger)]">
 				<XCircle class="h-3.5 w-3.5" />
 				<span>{statusText || 'Ошибка'}</span>
 			</span>
 		{:else}
-			<span class="text-[10px] font-bold text-zinc-500 uppercase">{statusText || 'Готов'}</span>
+			<span class="text-xs font-normal text-[color:var(--ui-muted)]">{statusText || 'Готов'}</span
+			>
 		{/if}
 	</div>
 
 	<div
 		bind:this={container}
-		class="rounded-md border border-zinc-800 bg-black p-4 {heightClass} overflow-y-auto font-mono text-[10px] leading-relaxed text-zinc-300 shadow-inner select-text sm:text-[11px]"
+		class="ui-code p-4 {heightClass} overflow-y-auto font-mono text-[10px] leading-relaxed select-text sm:text-[11px]"
 	>
 		{#if logs.length === 0}
-			<span class="block py-10 text-center text-zinc-600 italic">{emptyText}</span>
+			<span class="block py-10 text-center text-[color:var(--ui-muted)] italic">{emptyText}</span>
 		{:else}
 			{#each logs as logLine, i (i)}
-				<div class="border-b border-zinc-900/30 py-0.5 last:border-b-0">
+				<div class="border-b border-[color:var(--ui-border-subtle)] py-0.5 last:border-b-0">
 					{logLine}
 				</div>
 			{/each}

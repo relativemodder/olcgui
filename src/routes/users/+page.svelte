@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Users, UserPlus, ShieldAlert, Loader2 } from 'lucide-svelte';
+	import { Users, UserPlus, Loader2 } from 'lucide-svelte';
 	import AdminCard from '$lib/components/AdminCard.svelte';
+	import FormField from '$lib/components/ui/FormField.svelte';
+	import Panel from '$lib/components/ui/Panel.svelte';
+	import ErrorAlert from '$lib/components/ui/ErrorAlert.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 
 	let { data, form } = $props();
 
@@ -16,46 +21,22 @@
 </svelte:head>
 
 <div class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-	<div class="mb-8">
-		<h1 class="text-3xl font-extrabold tracking-tight text-white">Доступ в панель</h1>
-		<p class="mt-1 text-sm font-medium text-zinc-500">
-			Управление администраторами, разграничение сессий и настройка прав безопасности
-		</p>
-	</div>
+	<PageHeader title="Доступ в панель" description="Управление администраторами и сессиями" />
 
-	{#if form?.error}
-		<div
-			class="mb-6 flex items-center gap-3 border border-red-500/30 bg-red-950/40 p-4 text-sm text-red-300"
-		>
-			<ShieldAlert class="h-5 w-5 shrink-0 text-red-400" />
-			<span>{form.error}</span>
-		</div>
-	{/if}
+	<ErrorAlert message={form?.error ?? ''} />
 
 	<div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
 		<div class="space-y-4 lg:col-span-2">
-			<h2
-				class="mb-2 flex items-center gap-2 text-sm font-bold tracking-wider text-white uppercase"
-			>
-				<Users class="h-4.5 w-4.5 text-zinc-500" />
-				<span>Список администраторов ({data.adminUsers.length})</span>
-			</h2>
-
-			<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-				{#each data.adminUsers as user (user.id)}
-					<AdminCard {user} currentUser={data.currentUser} />
-				{/each}
-			</div>
+			<Panel title="Список администраторов ({data.adminUsers.length})" icon={Users}>
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					{#each data.adminUsers as user (user.id)}
+						<AdminCard {user} currentUser={data.currentUser} />
+					{/each}
+				</div>
+			</Panel>
 		</div>
 
-		<div class="border border-zinc-800 bg-zinc-900 p-6 shadow-md">
-			<h2
-				class="mb-6 flex items-center gap-2 text-sm font-bold tracking-wider text-white uppercase"
-			>
-				<UserPlus class="h-5 w-5 text-zinc-500" />
-				<span>Новый администратор</span>
-			</h2>
-
+		<Panel title="Новый администратор" icon={UserPlus}>
 			<form
 				method="POST"
 				action="?/create"
@@ -71,13 +52,7 @@
 				}}
 				class="space-y-4"
 			>
-				<div>
-					<label
-						for="username"
-						class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-					>
-						Имя пользователя *
-					</label>
+				<FormField id="username" label="Имя пользователя" required>
 					<input
 						type="text"
 						id="username"
@@ -85,18 +60,12 @@
 						bind:value={username}
 						placeholder="admin_sec"
 						disabled={loading}
-						class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+						class="ui-input w-full px-4 py-2.5 text-base font-normal"
 						required
 					/>
-				</div>
+				</FormField>
 
-				<div>
-					<label
-						for="password"
-						class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-					>
-						Пароль *
-					</label>
+				<FormField id="password" label="Пароль" required>
 					<input
 						type="password"
 						id="password"
@@ -104,18 +73,12 @@
 						bind:value={password}
 						placeholder="••••••••"
 						disabled={loading}
-						class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+						class="ui-input w-full px-4 py-2.5 text-sm"
 						required
 					/>
-				</div>
+				</FormField>
 
-				<div>
-					<label
-						for="confirmPassword"
-						class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-					>
-						Подтвердите пароль *
-					</label>
+				<FormField id="confirmPassword" label="Подтвердите пароль" required>
 					<input
 						type="password"
 						id="confirmPassword"
@@ -123,15 +86,16 @@
 						bind:value={confirmPassword}
 						placeholder="••••••••"
 						disabled={loading}
-						class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+						class="ui-input w-full px-4 py-2.5 text-sm"
 						required
 					/>
-				</div>
+				</FormField>
 
-				<button
+				<Button
 					type="submit"
-					disabled={loading}
-					class="mt-6 flex w-full cursor-pointer items-center justify-center gap-2 bg-white px-4 py-3 text-sm font-semibold text-black shadow-sm hover:bg-zinc-300"
+					variant="primary"
+					{loading}
+					class="mt-6 flex w-full cursor-pointer items-center justify-center gap-2 px-4 py-3"
 				>
 					{#if loading}
 						<Loader2 class="h-5 w-5 animate-spin" />
@@ -140,8 +104,8 @@
 						<UserPlus class="h-4 w-4" />
 						<span>Зарегистрировать</span>
 					{/if}
-				</button>
+				</Button>
 			</form>
-		</div>
+		</Panel>
 	</div>
 </div>

@@ -47,7 +47,7 @@ export const actions: Actions = {
 		const debug = data.get('debug') === 'true';
 
 		if (!name || !mode || !provider || !roomUrl || !cryptoKey || !transport) {
-			return fail(400, { error: 'Пожалуйста, заполните все обязательные поля.' });
+			return fail(400, { error: 'Заполните все обязательные поля.' });
 		}
 
 		try {

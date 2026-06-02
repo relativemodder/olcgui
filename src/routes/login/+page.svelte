@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { LockKeyhole, User, ShieldAlert, Loader2 } from 'lucide-svelte';
+	import { LockKeyhole, User, Loader2 } from 'lucide-svelte';
+	import FormField from '$lib/components/ui/FormField.svelte';
+	import ErrorAlert from '$lib/components/ui/ErrorAlert.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import { metroIntro } from '$lib/motion/metro';
 
 	let { form } = $props();
 
@@ -13,30 +17,21 @@
 	<title>Вход в панель | olcRTC Manager</title>
 </svelte:head>
 
-<div
-	class="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-950 px-4 font-sans"
->
-	<div class="w-full max-w-md border border-zinc-800 bg-zinc-900 p-8 shadow-md">
+<div class="relative flex min-h-screen items-center justify-center px-4">
+	<div use:metroIntro class="ui-panel ui-metro-surface w-full max-w-md p-8">
 		<div class="mb-8 flex flex-col items-center">
 			<div
-				class="mb-4 flex h-16 w-16 items-center justify-center border border-zinc-800 bg-zinc-950"
+				class="mb-4 flex h-16 w-16 items-center justify-center border border-[color:var(--ui-border-strong)] bg-[color:var(--ui-surface-2)]"
 			>
-				<LockKeyhole class="h-8 w-8 text-zinc-400" />
+				<LockKeyhole class="h-8 w-8 text-[color:var(--ui-muted)]" />
 			</div>
-			<h1 class="text-center text-2xl font-bold tracking-tight text-white">olcRTC Manager</h1>
-			<p class="mt-1 text-center text-sm font-medium text-zinc-500">
+			<h1 class="text-center text-4xl font-thin">olcRTC Manager</h1>
+			<p class="mt-1 text-center text-base font-normal text-[color:var(--ui-muted)]">
 				Авторизуйтесь для управления туннелями
 			</p>
 		</div>
 
-		{#if form?.error}
-			<div
-				class="mb-6 flex items-center gap-3 border border-red-500/30 bg-red-950/40 p-3 text-sm text-red-300"
-			>
-				<ShieldAlert class="h-5 w-5 shrink-0 text-red-400" />
-				<span>{form.error}</span>
-			</div>
-		{/if}
+		<ErrorAlert message={form?.error ?? ''} />
 
 		<form
 			action="?/login"
@@ -50,16 +45,10 @@
 			}}
 			class="space-y-5"
 		>
-			<div>
-				<label
-					for="username"
-					class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-				>
-					Имя пользователя
-				</label>
+			<FormField id="username" label="Имя пользователя" required>
 				<div class="relative">
 					<div
-						class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-500"
+						class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[color:var(--ui-muted)]"
 					>
 						<User class="h-4 w-4" />
 					</div>
@@ -70,22 +59,16 @@
 						bind:value={username}
 						placeholder="admin"
 						disabled={loading}
-						class="w-full border border-zinc-800 bg-zinc-950 py-3 pr-4 pl-10 text-sm text-white placeholder-zinc-700 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+						class="ui-input w-full py-3 pr-4 pl-10 text-sm"
 						required
 					/>
 				</div>
-			</div>
+			</FormField>
 
-			<div>
-				<label
-					for="password"
-					class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-				>
-					Пароль
-				</label>
+			<FormField id="password" label="Пароль" required>
 				<div class="relative">
 					<div
-						class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-zinc-500"
+						class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[color:var(--ui-muted)]"
 					>
 						<LockKeyhole class="h-4 w-4" />
 					</div>
@@ -96,16 +79,17 @@
 						bind:value={password}
 						placeholder="••••••••"
 						disabled={loading}
-						class="w-full border border-zinc-800 bg-zinc-950 py-3 pr-4 pl-10 text-sm text-white placeholder-zinc-700 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+						class="ui-input w-full py-3 pr-4 pl-10 text-sm"
 						required
 					/>
 				</div>
-			</div>
+			</FormField>
 
-			<button
+			<Button
 				type="submit"
-				disabled={loading}
-				class="mt-8 flex w-full cursor-pointer items-center justify-center gap-2 bg-white px-4 py-3 text-sm font-semibold text-black shadow-sm hover:bg-zinc-200"
+				variant="primary"
+				{loading}
+				class="mt-8 flex w-full cursor-pointer items-center justify-center gap-2 px-4 py-3"
 			>
 				{#if loading}
 					<Loader2 class="h-5 w-5 animate-spin" />
@@ -113,7 +97,7 @@
 				{:else}
 					<span>Войти в систему</span>
 				{/if}
-			</button>
+			</Button>
 		</form>
 	</div>
 </div>

@@ -31,7 +31,7 @@ export const actions: Actions = {
 		try {
 			const existingUsers = await db.select().from(users).limit(1);
 			if (existingUsers.length > 0) {
-				return fail(400, { error: 'Первоначальная настройка администратора уже выполнена!' });
+				return fail(400, { error: 'Администратор уже создан.' });
 			}
 
 			const passwordHash = await hashPassword(password);
@@ -55,7 +55,7 @@ export const actions: Actions = {
 			});
 		} catch (error) {
 			console.error('[SetupAction] Onboarding failed:', error);
-			return fail(500, { error: 'Произошла критическая ошибка базы данных при создании админа.' });
+			return fail(500, { error: 'Ошибка БД. Не удалось создать аккаунт.' });
 		}
 
 		throw redirect(303, '/');

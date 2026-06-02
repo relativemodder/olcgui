@@ -4,6 +4,9 @@ Web interface for managing [olcrtc](https://github.com/olcrtc) tunnel instances.
 
 [Читать на русском](README_RU.md)
 
+<img src="/assets/mainpage.png">
+<img src="/assets/buildpage.png">
+
 ## Stack
 
 - SvelteKit 5

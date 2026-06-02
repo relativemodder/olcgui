@@ -2,7 +2,8 @@
 
 Веб-интерфейс для управления инстансами туннелей [olcrtc](https://github.com/olcrtc).
 
-<img src="/assets/ui1.png">
+<img src="/assets/mainpage.png">
+<img src="/assets/buildpage.png">
 
 ## Стек
 

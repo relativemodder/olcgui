@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { ShieldAlert, ShieldCheck, Loader2 } from 'lucide-svelte';
+	import { ShieldCheck, Loader2 } from 'lucide-svelte';
+	import FormField from '$lib/components/ui/FormField.svelte';
+	import ErrorAlert from '$lib/components/ui/ErrorAlert.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import { metroIntro } from '$lib/motion/metro';
 
 	let { form } = $props();
 
@@ -14,30 +18,21 @@
 	<title>Первоначальная настройка | olcRTC Manager</title>
 </svelte:head>
 
-<div
-	class="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-950 px-4 font-sans"
->
-	<div class="w-full max-w-md border border-zinc-800 bg-zinc-900 p-8 shadow-md">
+<div class="relative flex min-h-screen items-center justify-center px-4">
+	<div use:metroIntro class="ui-panel ui-metro-surface w-full max-w-md p-8">
 		<div class="mb-8 flex flex-col items-center">
 			<div
-				class="mb-4 flex h-16 w-16 items-center justify-center border border-zinc-800 bg-zinc-950"
+				class="mb-4 flex h-16 w-16 items-center justify-center border border-[color:var(--ui-border-strong)] bg-[color:var(--ui-surface-2)]"
 			>
-				<ShieldCheck class="h-8 w-8 text-zinc-400" />
+				<ShieldCheck class="h-8 w-8 text-[color:var(--ui-muted)]" />
 			</div>
-			<h1 class="text-2xl font-bold tracking-tight text-white">olcRTC Manager</h1>
-			<p class="mt-1 text-center text-sm font-medium text-zinc-500">
+			<h1 class="text-4xl font-thin">olcRTC Manager</h1>
+			<p class="mt-1 text-center text-base font-normal text-[color:var(--ui-muted)]">
 				Создайте первоначальную учетную запись администратора
 			</p>
 		</div>
 
-		{#if form?.error}
-			<div
-				class="mb-6 flex items-center gap-3 border border-red-500/30 bg-red-950/40 p-3 text-sm text-red-300"
-			>
-				<ShieldAlert class="h-5 w-5 shrink-0 text-red-400" />
-				<span>{form.error}</span>
-			</div>
-		{/if}
+		<ErrorAlert message={form?.error ?? ''} />
 
 		<form
 			method="POST"
@@ -50,13 +45,7 @@
 			}}
 			class="space-y-5"
 		>
-			<div>
-				<label
-					for="username"
-					class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-				>
-					Имя администратора
-				</label>
+			<FormField id="username" label="Имя администратора" required>
 				<input
 					type="text"
 					id="username"
@@ -64,18 +53,12 @@
 					bind:value={username}
 					placeholder="например, admin"
 					disabled={loading}
-					class="w-full border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white placeholder-zinc-700 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+					class="ui-input w-full px-4 py-3 text-sm"
 					required
 				/>
-			</div>
+			</FormField>
 
-			<div>
-				<label
-					for="password"
-					class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-				>
-					Пароль
-				</label>
+			<FormField id="password" label="Пароль" required>
 				<input
 					type="password"
 					id="password"
@@ -83,18 +66,12 @@
 					bind:value={password}
 					placeholder="Не менее 6 символов"
 					disabled={loading}
-					class="w-full border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white placeholder-zinc-700 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+					class="ui-input w-full px-4 py-3 text-sm"
 					required
 				/>
-			</div>
+			</FormField>
 
-			<div>
-				<label
-					for="confirmPassword"
-					class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-				>
-					Подтверждение пароля
-				</label>
+			<FormField id="confirmPassword" label="Подтверждение пароля" required>
 				<input
 					type="password"
 					id="confirmPassword"
@@ -102,15 +79,16 @@
 					bind:value={confirmPassword}
 					placeholder="Повторите введенный пароль"
 					disabled={loading}
-					class="w-full border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-white placeholder-zinc-700 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+					class="ui-input w-full px-4 py-3 text-sm"
 					required
 				/>
-			</div>
+			</FormField>
 
-			<button
+			<Button
 				type="submit"
-				disabled={loading}
-				class="mt-8 flex w-full cursor-pointer items-center justify-center gap-2 bg-white px-4 py-3 text-sm font-semibold text-black shadow-sm hover:bg-white/80"
+				variant="primary"
+				{loading}
+				class="mt-8 flex w-full cursor-pointer items-center justify-center gap-2 px-4 py-3"
 			>
 				{#if loading}
 					<Loader2 class="h-5 w-5 animate-spin" />
@@ -118,7 +96,7 @@
 				{:else}
 					<span>Завершить настройку</span>
 				{/if}
-			</button>
+			</Button>
 		</form>
 	</div>
 </div>

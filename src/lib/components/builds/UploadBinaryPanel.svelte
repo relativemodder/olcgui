@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { UploadCloud, AlertTriangle, Loader2 } from 'lucide-svelte';
+	import Panel from '$lib/components/ui/Panel.svelte';
 
 	let isUploading = $state(false);
 	let uploadSuccess = $state<boolean | null>(null);
@@ -41,29 +42,21 @@
 	}
 </script>
 
-<div class="flex flex-col border border-zinc-800 bg-zinc-900 p-6 shadow-md">
-	<div class="mb-4 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-		<h2 class="flex items-center gap-2 text-sm font-bold tracking-wider text-white uppercase">
-			<UploadCloud class="h-5 w-5 text-zinc-500" />
-			<span>Загрузка готовой сборки</span>
-		</h2>
-	</div>
-
+<Panel title="Загрузка готовой сборки" icon={UploadCloud}>
 	<div
-		class="mb-6 flex items-start gap-3 border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm text-yellow-200"
+		class="mb-6 flex items-start gap-3 border border-[color:var(--ui-warning-border)] bg-[color:var(--ui-warning-bg)] p-4 text-sm text-[color:var(--ui-warning-text)]"
 	>
-		<AlertTriangle class="h-5 w-5 shrink-0 text-yellow-500" />
+		<AlertTriangle class="h-5 w-5 shrink-0 text-[color:var(--ui-warning)]" />
 		<p class="leading-relaxed">
-			<strong class="font-bold">Внимание:</strong> Этот функционал предназначен исключительно для маломощных
-			серверов, у которых не хватает вычислительных мощностей для локальной компиляции исходного кода.
-			Загружайте только бинарные файлы, собранные для вашей целевой архитектуры.
+			<strong class="font-medium">Внимание:</strong> Для серверов без поддержки локальной компиляции. Загружайте
+			только бинарные файлы, собранные для вашей целевой архитектуры.
 		</p>
 	</div>
 
 	<div class="flex flex-col gap-4">
 		<div class="flex items-center gap-4">
 			<label
-				class="flex cursor-pointer items-center gap-2 bg-white px-6 py-2.5 text-xs font-semibold text-black shadow-sm hover:bg-zinc-200"
+				class="ui-button ui-button-primary flex cursor-pointer items-center gap-2 px-6 py-2.5 text-xs font-normal"
 				class:opacity-50={isUploading}
 				class:cursor-not-allowed={isUploading}
 			>
@@ -79,9 +72,9 @@
 		</div>
 
 		{#if uploadSuccess === true}
-			<p class="text-sm font-semibold text-emerald-400">{uploadMessage}</p>
+			<p class="text-base font-normal text-[color:var(--ui-accent)]">{uploadMessage}</p>
 		{:else if uploadSuccess === false}
-			<p class="text-sm font-semibold text-red-400">{uploadMessage}</p>
+			<p class="text-base font-normal text-[color:var(--ui-danger)]">{uploadMessage}</p>
 		{/if}
 	</div>
-</div>
+</Panel>

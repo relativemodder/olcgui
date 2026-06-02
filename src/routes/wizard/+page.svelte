@@ -12,7 +12,14 @@
 		replaceJitsiServer,
 		type ParsedOlcrtcUri
 	} from '$lib/wizard/utils';
-	import { Sliders, RefreshCw, Info, ShieldAlert } from 'lucide-svelte';
+	import { Sliders, RefreshCw, Info } from 'lucide-svelte';
+	import FormField from '$lib/components/ui/FormField.svelte';
+	import SelectField from '$lib/components/ui/SelectField.svelte';
+	import Panel from '$lib/components/ui/Panel.svelte';
+	import ErrorAlert from '$lib/components/ui/ErrorAlert.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import { metroIntro } from '$lib/motion/metro';
 
 	let { form, data } = $props();
 
@@ -109,38 +116,20 @@
 </svelte:head>
 
 <div class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-	<div class="mb-8">
-		<h1 class="text-3xl font-extrabold tracking-tight text-white">
-			{data.editInstance ? 'Редактирование туннеля' : 'Мастер настройки туннеля'}
-		</h1>
-		<p class="mt-1 text-sm text-zinc-500">
-			{#if data.editInstance}
-				Изменение параметров и копирование ссылки обмена для туннеля "{data.editInstance.name}"
-			{:else}
-				Создайте, экспортируйте конфигурацию и мгновенно сохраните как active туннель в системе
-			{/if}
-		</p>
-	</div>
+	<PageHeader
+		title={data.editInstance ? 'Редактирование туннеля' : 'Мастер настройки туннеля'}
+		description={data.editInstance
+			? `Изменение параметров и копирование ссылки обмена для туннеля "${data.editInstance.name}"`
+			: 'Настройте параметры и сохраните туннель'}
+	/>
 
-	{#if form?.error}
-		<div
-			class="mb-6 flex items-center gap-3 border border-red-500/30 bg-red-950/40 p-4 text-sm text-red-300"
-		>
-			<ShieldAlert class="h-5 w-5 shrink-0 text-red-400" />
-			<span>{form.error}</span>
-		</div>
-	{/if}
+	<ErrorAlert message={form?.error ?? ''} />
 
 	<div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
 		<div class="space-y-6">
 			<WizardImportPanel onImport={handleImportData} />
 
-			<div class="border border-zinc-800 bg-zinc-900 p-6 shadow-md">
-				<h2 class="mb-6 flex items-center gap-2 text-lg font-bold text-white">
-					<Sliders class="h-5 w-5 text-zinc-500" />
-					<span>Параметры инстанса</span>
-				</h2>
-
+			<Panel title="Параметры инстанса" icon={Sliders}>
 				<form method="POST" action="?/save" use:enhance class="space-y-5">
 					{#if data.editInstance}
 						<input type="hidden" name="id" value={data.editInstance.id} />
@@ -150,98 +139,58 @@
 					<input type="hidden" name="debug" value={debug ? 'true' : 'false'} />
 
 					<div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-						<div>
-							<label
-								for="name"
-								class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-							>
-								Название туннеля *
-							</label>
+						<FormField id="name" label="Название туннеля" required>
 							<input
 								type="text"
 								id="name"
 								name="name"
 								bind:value={name}
-								class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+								class="ui-input w-full px-4 py-2.5 text-base font-normal"
 								required
 							/>
-						</div>
+						</FormField>
 
-						<div>
-							<label
-								for="mode"
-								class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-							>
-								Режим работы *
-							</label>
-							<select
-								id="mode"
-								name="mode"
-								bind:value={mode}
-								class="w-full cursor-pointer border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
-							>
-								<option value="cnc" class="bg-zinc-950 text-white">Клиент</option>
-								<option value="srv" class="bg-zinc-950 text-white">Сервер</option>
-							</select>
-						</div>
+						<SelectField id="mode" label="Режим работы" bind:value={mode} required>
+							<option value="cnc">Клиент</option>
+							<option value="srv">Сервер</option>
+						</SelectField>
 					</div>
 
 					<div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-						<div>
-							<label
-								for="provider"
-								class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-							>
-								Сервис-провайдер *
-							</label>
-							<select
-								id="provider"
-								name="provider"
-								bind:value={provider}
-								class="w-full cursor-pointer border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
-							>
-								<option value="jitsi" class="bg-zinc-950 text-white">Инстанс Jitsi Meet</option>
-								<option value="wbstream" class="bg-zinc-950 text-white">WB Stream</option>
-								<option value="telemost" class="bg-zinc-950 text-white">Яндекс.Телемост</option>
-							</select>
-						</div>
+						<SelectField id="provider" label="Сервис-провайдер" bind:value={provider} required>
+							<option value="jitsi">Инстанс Jitsi Meet</option>
+							<option value="wbstream">WB Stream</option>
+							<option value="telemost">Яндекс.Телемост</option>
+						</SelectField>
 
-						<div>
-							<label
-								for="transport"
-								class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-							>
-								Канал данных (Транспорт) *
-							</label>
-							<select
-								id="transport"
-								name="transport"
-								bind:value={transport}
-								class="w-full cursor-pointer border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
-							>
-								{#if provider === 'jitsi'}
-									<option value="datachannel">datachannel (Рекомендуется)</option>
-									<option value="vp8channel">vp8channel</option>
-								{:else if provider === 'wbstream'}
-									<option value="vp8channel">vp8channel (Рекомендуется)</option>
-									<option value="seichannel">seichannel</option>
-								{:else}
-									<option value="videochannel">videochannel (Рекомендуется)</option>
-									<option value="vp8channel">vp8channel</option>
-								{/if}
-							</select>
-						</div>
+						<SelectField
+							id="transport"
+							label="Канал данных (Транспорт)"
+							bind:value={transport}
+							required
+						>
+							{#if provider === 'jitsi'}
+								<option value="datachannel">datachannel (Рекомендуется)</option>
+								<option value="vp8channel">vp8channel</option>
+							{:else if provider === 'wbstream'}
+								<option value="vp8channel">vp8channel (Рекомендуется)</option>
+								<option value="seichannel">seichannel</option>
+							{:else}
+								<option value="videochannel">videochannel (Рекомендуется)</option>
+								<option value="vp8channel">vp8channel</option>
+							{/if}
+						</SelectField>
 					</div>
 
 					<div>
 						<label
 							for="roomUrl"
-							class="mb-2 flex items-center justify-between text-xs font-semibold tracking-wider text-zinc-400 uppercase"
+							class="mb-2 flex items-center justify-between text-sm font-medium tracking-wide text-[color:var(--ui-muted)] uppercase"
 						>
 							<span>Ссылка на комнату (конференцию) *</span>
 							{#if parsedRoomId && parsedRoomId !== roomUrl}
 								<span
-									class="border border-zinc-800 bg-zinc-950 px-2 py-0.5 font-mono text-[10px] font-bold tracking-wider text-zinc-500 uppercase"
+									class="border border-[color:var(--ui-border)] bg-[color:var(--ui-surface-2)] px-2 py-0.5 font-mono text-xs font-normal tracking-wide text-[color:var(--ui-muted)] uppercase"
 								>
 									ID: {parsedRoomId}
 								</span>
@@ -253,7 +202,7 @@
 							name="roomUrl"
 							bind:value={roomUrl}
 							placeholder="Вставьте ссылку на конференцию"
-							class="w-full border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-sm text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+							class="ui-input w-full px-4 py-2.5 text-sm"
 							required
 						/>
 
@@ -269,7 +218,7 @@
 					<div>
 						<label
 							for="cryptoKey"
-							class="mb-2 block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
+							class="mb-2 block text-sm font-medium tracking-wide text-[color:var(--ui-muted)] uppercase"
 						>
 							Ключ шифрования (32 байта Hex) *
 						</label>
@@ -280,13 +229,13 @@
 								name="cryptoKey"
 								bind:value={cryptoKey}
 								placeholder="Ключ должен совпадать на клиенте и сервере"
-								class="w-full border border-zinc-800 bg-zinc-950 py-2.5 pr-12 pl-4 font-mono text-[11px] text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+								class="ui-input w-full py-2.5 pr-12 pl-4 font-mono text-[11px]"
 								required
 							/>
 							<button
 								type="button"
 								onclick={handleRegenKey}
-								class="hover:bg-zinc-850 absolute inset-y-0 right-0 flex cursor-pointer items-center justify-center px-3 text-zinc-400 hover:text-zinc-200"
+								class="absolute inset-y-0 right-0 flex cursor-pointer items-center justify-center px-3 text-[color:var(--ui-muted)] hover:text-[color:var(--ui-text)]"
 								title="Сгенерировать случайный ключ"
 							>
 								<RefreshCw class="h-4 w-4" />
@@ -295,22 +244,19 @@
 					</div>
 
 					{#if mode === 'cnc'}
-						<div class="space-y-4 border border-zinc-800 bg-zinc-950 p-4">
+						<div
+							use:metroIntro={{ rotation: 58, x: -16, z: -30 }}
+							class="ui-metro-surface space-y-4 border border-[color:var(--ui-border)] bg-[color:var(--ui-surface-2)] p-4"
+						>
 							<h3
-								class="flex items-center gap-1.5 text-xs font-bold tracking-wider text-zinc-300 uppercase"
+								class="flex items-center gap-1.5 text-xl font-thin tracking-wide text-[color:var(--ui-text)] uppercase"
 							>
 								<Info class="h-3.5 w-3.5" />
 								<span>Настройки SOCKS5 прокси</span>
 							</h3>
 
 							<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-								<div>
-									<label
-										for="socksPort"
-										class="mb-1.5 block text-[10px] font-bold tracking-wider text-zinc-400 uppercase"
-									>
-										SOCKS5 Порт *
-									</label>
+								<FormField id="socksPort" label="SOCKS5 Порт" required class="">
 									<input
 										type="number"
 										id="socksPort"
@@ -318,21 +264,21 @@
 										bind:value={socksPort}
 										min="1"
 										max="65535"
-										class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs font-semibold text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+										class="ui-input w-full px-3 py-2 text-sm font-normal"
 										required
 									/>
-								</div>
+								</FormField>
 
 								<div class="flex items-center gap-2 pt-6">
 									<input
 										type="checkbox"
 										id="debugCheck"
 										bind:checked={debug}
-										class="h-4 w-4 cursor-pointer border-zinc-800 bg-zinc-950 accent-zinc-500"
+										class="h-4 w-4 cursor-pointer border-[color:var(--ui-border-strong)] bg-[color:var(--ui-surface-2)] accent-[color:var(--ui-accent)]"
 									/>
 									<label
 										for="debugCheck"
-										class="cursor-pointer text-xs font-semibold text-zinc-400 select-none"
+										class="cursor-pointer text-sm font-normal text-[color:var(--ui-muted)] select-none"
 									>
 										Включить отладку (debug)
 									</label>
@@ -340,52 +286,41 @@
 							</div>
 
 							<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-								<div>
-									<label
-										for="socksUser"
-										class="mb-1.5 block text-[10px] font-bold tracking-wider text-zinc-400 uppercase"
-									>
-										Логин авторизации (необязательно)
-									</label>
+								<FormField id="socksUser" label="Логин авторизации (необязательно)" class="">
 									<input
 										type="text"
 										id="socksUser"
 										name="socksUser"
 										bind:value={socksUser}
 										placeholder="Пользователь прокси"
-										class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+										class="ui-input w-full px-3 py-2 text-xs"
 									/>
-								</div>
+								</FormField>
 
-								<div>
-									<label
-										for="socksPass"
-										class="mb-1.5 block text-[10px] font-bold tracking-wider text-zinc-400 uppercase"
-									>
-										Пароль авторизации (необязательно)
-									</label>
+								<FormField id="socksPass" label="Пароль авторизации (необязательно)" class="">
 									<input
 										type="text"
 										id="socksPass"
 										name="socksPass"
 										bind:value={socksPass}
 										placeholder="Пароль прокси"
-										class="w-full border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs text-white focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+										class="ui-input w-full px-3 py-2 text-xs"
 									/>
-								</div>
+								</FormField>
 							</div>
 						</div>
 					{/if}
 
-					<button
+					<Button
 						type="submit"
-						class="mt-8 flex w-full cursor-pointer items-center justify-center gap-2 bg-white px-4 py-3 text-sm font-semibold text-black shadow-sm hover:bg-zinc-200"
+						variant="primary"
+						class="mt-8 flex w-full cursor-pointer items-center justify-center gap-2 px-4 py-3"
 					>
 						<Sliders class="h-5 w-5" />
 						<span>{data.editInstance ? 'Сохранить изменения' : 'Создать туннель'}</span>
-					</button>
+					</Button>
 				</form>
-			</div>
+			</Panel>
 		</div>
 
 		<WizardExportPanel {liveShareUrl} {liveYaml} {liveClientRunCommand} {mode} />

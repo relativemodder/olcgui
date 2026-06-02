@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Search, Info, BookOpen } from 'lucide-svelte';
 	import { JITSI_SERVERS } from '$lib/wizard/constants';
+	import { metroIntro } from '$lib/motion/metro';
 
 	let { onSelect } = $props<{
 		onSelect: (server: string) => void;
@@ -16,18 +17,21 @@
 	});
 </script>
 
-<div class="mt-3 space-y-3 border border-zinc-800 bg-zinc-950 p-3.5">
+<div
+	use:metroIntro={{ rotation: 54, x: -14, z: -28, stagger: 32 }}
+	class="ui-metro-surface mt-3 space-y-3 border border-[color:var(--ui-border)] bg-[color:var(--ui-surface-2)] p-3.5"
+>
 	<div class="flex items-center justify-between">
 		<span
-			class="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-zinc-400 uppercase"
+			class="flex items-center gap-1.5 text-xs font-medium tracking-wide text-[color:var(--ui-muted)] uppercase"
 		>
-			<BookOpen class="h-3.5 w-3.5 text-zinc-400" />
+			<BookOpen class="h-3.5 w-3.5 text-[color:var(--ui-muted)]" />
 			<span>Слитые Jitsi-сервера ({JITSI_SERVERS.length})</span>
 		</span>
 		<button
 			type="button"
 			onclick={() => (showJitsiDirectory = !showJitsiDirectory)}
-			class="hover:bg-zinc-850 cursor-pointer border border-zinc-800 bg-zinc-950 px-2 py-1 text-[9px] font-bold text-zinc-300 uppercase select-none"
+			class="ui-button cursor-pointer px-2 py-1 text-xs font-normal uppercase select-none"
 		>
 			{showJitsiDirectory ? 'Скрыть список' : 'Показать список'}
 		</button>
@@ -40,9 +44,9 @@
 					type="text"
 					bind:value={jitsiSearchQuery}
 					placeholder="Поиск хоста (например: arbitr, aston...)"
-					class="w-full border border-zinc-800 bg-black py-1.5 pr-3 pl-7 text-[11px] text-white placeholder-zinc-700 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+					class="ui-input w-full py-1.5 pr-3 pl-7 text-[11px]"
 				/>
-				<Search class="absolute top-2 left-2.5 h-3.5 w-3.5 text-zinc-500" />
+				<Search class="absolute top-2 left-2.5 h-3.5 w-3.5 text-[color:var(--ui-muted)]" />
 			</div>
 
 			<div
@@ -52,15 +56,15 @@
 					<button
 						type="button"
 						onclick={() => onSelect(server)}
-						class="cursor-pointer truncate border border-zinc-800 bg-black px-2 py-1 text-left font-mono text-zinc-400 hover:border-zinc-600 hover:bg-zinc-900 hover:text-white"
+						class="ui-button cursor-pointer truncate px-2 py-1 text-left font-mono text-xs font-normal"
 						title={server}
 					>
 						{server}
 					</button>
 				{/each}
 			</div>
-			<p class="flex items-start gap-1 text-[9px] leading-normal text-zinc-500">
-				<Info class="mt-0.5 h-3 w-3 shrink-0 text-zinc-400" />
+			<p class="flex items-start gap-1 text-[9px] leading-normal text-[color:var(--ui-muted)]">
+				<Info class="mt-0.5 h-3 w-3 shrink-0 text-[color:var(--ui-muted)]" />
 				<span
 					>Кликните по домену, чтобы заменить его в вашей ссылке, сохранив название комнаты.</span
 				>

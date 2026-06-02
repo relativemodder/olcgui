@@ -37,7 +37,7 @@ export const actions: Actions = {
 		const confirm = data.get('confirmPassword')?.toString();
 
 		if (!username || !password || !confirm) {
-			return fail(400, { error: 'Пожалуйста, заполните все поля формы.' });
+			return fail(400, { error: 'Заполните все поля.' });
 		}
 
 		if (password !== confirm) {
@@ -45,14 +45,14 @@ export const actions: Actions = {
 		}
 
 		if (password.length < 6) {
-			return fail(400, { error: 'Пароль должен быть длиной не менее 6 символов.' });
+			return fail(400, { error: 'Пароль должен содержать не менее 6 символов.' });
 		}
 
 		try {
 			const [existing] = await db.select().from(users).where(eq(users.username, username)).limit(1);
 
 			if (existing) {
-				return fail(400, { error: 'Пользователь с таким именем уже зарегистрирован.' });
+				return fail(400, { error: 'Имя пользователя занято.' });
 			}
 
 			const passwordHash = await hashPassword(password);
@@ -78,7 +78,7 @@ export const actions: Actions = {
 		}
 
 		if (locals.user && locals.user.userId === id) {
-			return fail(400, { error: 'Вы не можете удалить свою собственную учетную запись.' });
+			return fail(400, { error: 'Нельзя удалить свой аккаунт.' });
 		}
 
 		try {

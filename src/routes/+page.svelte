@@ -1,9 +1,13 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { RefreshCw, Activity, Globe, Wifi, ShieldAlert, Sliders } from 'lucide-svelte';
+	import { Sliders, Globe, Wifi, ShieldAlert } from 'lucide-svelte';
+	import { RefreshCw, Activity } from 'lucide-svelte';
 	import TunnelCard from '$lib/components/TunnelCard.svelte';
 	import Terminal from '$lib/components/Terminal.svelte';
 	import SystemMonitor from '$lib/components/dashboard/SystemMonitor.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import StatCard from '$lib/components/ui/StatCard.svelte';
+	import { metroIntro } from '$lib/motion/metro';
 
 	let { data } = $props();
 
@@ -121,99 +125,51 @@
 </svelte:head>
 
 <div class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-	<div class="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-		<div>
-			<h1 class="text-3xl font-extrabold tracking-tight text-white">Панель управления</h1>
-			<p class="mt-1 text-sm text-zinc-400">
-				Мониторинг, перезапуски и управление SOCKS5 WebRTC туннелями
-			</p>
-		</div>
-		<a
-			href="/wizard"
-			class="flex cursor-pointer items-center gap-2 bg-white px-4 py-2.5 text-sm font-semibold text-black shadow-sm hover:bg-zinc-200"
-		>
-			<Sliders class="h-4 w-4" />
-			<span>Создать туннель</span>
-		</a>
-	</div>
+	<PageHeader
+		title="Панель управления"
+		description="Мониторинг, перезапуски и управление SOCKS5 WebRTC туннелями"
+	>
+		{#snippet actions()}
+			<a
+				href="/wizard"
+				class="ui-button ui-button-primary cursor-pointer px-4 py-2.5 text-sm font-normal"
+			>
+				<Sliders class="h-4 w-4" />
+				<span>Создать туннель</span>
+			</a>
+		{/snippet}
+	</PageHeader>
 
 	<SystemMonitor />
 
 	<div class="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-4">
-		<div class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md">
-			<div>
-				<span class="block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-					>Всего туннелей</span
-				>
-				<span class="mt-1 block text-2xl font-bold text-white">{totalCount}</span>
-			</div>
-			<div
-				class="flex h-10 w-10 items-center justify-center border border-zinc-800 bg-zinc-950 text-zinc-500"
-			>
-				<Globe class="h-5 w-5" />
-			</div>
-		</div>
-
-		<div class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md">
-			<div>
-				<span class="block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-					>Активно</span
-				>
-				<span class="mt-1 block text-2xl font-bold text-zinc-400">{runningCount}</span>
-			</div>
-			<div
-				class="flex h-10 w-10 items-center justify-center border border-zinc-800 bg-zinc-950 text-zinc-400"
-			>
-				<Wifi class="h-5 w-5" />
-			</div>
-		</div>
-
-		<div class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md">
-			<div>
-				<span class="block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-					>В процессе перезапуска</span
-				>
-				<span class="mt-1 block text-2xl font-bold text-zinc-400">{restartingCount}</span>
-			</div>
-			<div
-				class="flex h-10 w-10 items-center justify-center border border-zinc-800 bg-zinc-950 text-zinc-400"
-			>
-				<RefreshCw class="h-5 w-5" />
-			</div>
-		</div>
-
-		<div class="flex items-center justify-between border border-zinc-800 bg-zinc-900 p-5 shadow-md">
-			<div>
-				<span class="block text-xs font-semibold tracking-wider text-zinc-400 uppercase"
-					>Ошибки</span
-				>
-				<span class="mt-1 block text-2xl font-bold text-zinc-400">{errorCount}</span>
-			</div>
-			<div
-				class="flex h-10 w-10 items-center justify-center border border-zinc-800 bg-zinc-950 text-zinc-400"
-			>
-				<ShieldAlert class="h-5 w-5" />
-			</div>
-		</div>
+		<StatCard label="Всего туннелей" value={String(totalCount)} icon={Globe} />
+		<StatCard label="Активно" value={String(runningCount)} icon={Wifi} />
+		<StatCard
+			label="В процессе перезапуска"
+			value={String(restartingCount)}
+			icon={RefreshCw}
+		/>
+		<StatCard label="Ошибки" value={String(errorCount)} icon={ShieldAlert} />
 	</div>
 
 	{#if data.instances.length === 0}
 		<div
-			class="flex w-full flex-col items-center justify-center border border-zinc-800 bg-zinc-900 p-12 text-center shadow-lg"
+			use:metroIntro
+			class="ui-panel ui-metro-surface ui-empty flex w-full flex-col items-center justify-center p-12 text-center"
 		>
 			<div
-				class="mb-4 flex h-16 w-16 items-center justify-center border border-zinc-800 bg-zinc-950 text-red-500"
+				class="mb-4 flex h-16 w-16 items-center justify-center border border-[color:var(--ui-border-strong)] bg-[color:var(--ui-surface-2)] text-[color:var(--ui-danger)]"
 			>
 				<Activity class="h-8 w-8" />
 			</div>
-			<h3 class="text-lg font-bold tracking-tight text-white">Нет настроенных туннелей</h3>
-			<p class="mt-2 max-w-sm text-sm text-zinc-400">
-				Вы еще не настроили ни одного инстанса. Воспользуйтесь мастером настройки, чтобы создать ваш
-				первый туннель.
+			<h3 class="text-2xl font-thin">Нет настроенных туннелей</h3>
+			<p class="mt-2 max-w-sm text-sm text-[color:var(--ui-muted)]">
+				Туннелей пока нет. Создайте первый через мастер настройки.
 			</p>
 			<a
 				href="/wizard"
-				class="mt-6 flex cursor-pointer items-center gap-2 bg-white px-6 py-2 text-sm font-semibold text-black shadow-sm hover:bg-zinc-200"
+				class="ui-button ui-button-primary mt-6 cursor-pointer px-6 py-2 text-sm font-normal"
 			>
 				<Sliders class="h-4 w-4" />
 				<span>Запустить мастер</span>
@@ -222,7 +178,7 @@
 	{:else}
 		<div class="grid grid-cols-1 gap-6">
 			{#each data.instances as inst (inst.id)}
-				<div class="flex flex-col overflow-hidden border border-zinc-800 bg-zinc-900 shadow-md">
+				<div use:metroIntro class="ui-panel ui-metro-surface flex flex-col overflow-hidden">
 					<TunnelCard
 						{inst}
 						status={polledStatuses[inst.id]?.status ?? inst.status}
@@ -251,7 +207,9 @@
 					/>
 
 					{#if activeLogId === inst.id}
-						<div class="flex flex-col border-t border-zinc-800 bg-zinc-950 p-5">
+						<div
+							class="flex flex-col border-t border-[color:var(--ui-border)] bg-[color:var(--ui-surface-2)] p-5"
+						>
 							<Terminal
 								logs={activeLogs}
 								title="Консоль инстанса"

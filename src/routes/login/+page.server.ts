@@ -13,7 +13,7 @@ export const actions: Actions = {
 		const password = data.get('password')?.toString();
 
 		if (!username || !password) {
-			return fail(400, { error: 'Пожалуйста, введите логин и пароль' });
+			return fail(400, { error: 'Введите логин и пароль' });
 		}
 
 		try {
@@ -38,7 +38,7 @@ export const actions: Actions = {
 			});
 		} catch (error) {
 			console.error('[LoginAction] Login error:', error);
-			return fail(500, { error: 'Внутренняя ошибка сервера при попытке входа.' });
+			return fail(500, { error: 'Ошибка входа. Попробуйте ещё раз.' });
 		}
 
 		throw redirect(303, '/');
