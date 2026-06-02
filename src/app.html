@@ -4,29 +4,57 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
-		<meta name="theme-color" content="#31363b" />
-		<meta name="mobile-web-app-capable" content="yes" />
-		<meta name="apple-mobile-web-app-capable" content="yes" />
-		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-		<meta name="apple-mobile-web-app-title" content="olcRTC GUI" />
-		<link rel="manifest" href="/manifest.webmanifest" />
 		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-		<link rel="apple-touch-icon" href="/pwa-192.png" />
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="tap">
 		<div style="display: contents">%sveltekit.body%</div>
 		<script>
+			const legacyWorkerCleanupKey = 'olcgui:legacy-service-worker-cleaned';
+
+			function cleanupLegacyCaches() {
+				if (!('caches' in window)) {
+					return Promise.resolve();
+				}
+
+				return caches
+					.keys()
+					.then((names) =>
+						Promise.all(
+							names
+								.filter((name) => name.startsWith('precache-') || name.startsWith('runtime-'))
+								.map((name) => caches.delete(name))
+						)
+					)
+					.then(() => undefined);
+			}
+
 			if ('serviceWorker' in navigator) {
-				window.addEventListener('load', () => {
-					const isLocalhost = ['localhost', '127.0.0.1', '[::1]'].includes(
-						window.location.hostname
-					);
-					navigator.serviceWorker.register(
-						'/service-worker.js',
-						isLocalhost ? { type: 'module' } : undefined
-					);
+				window.addEventListener('load', async () => {
+					try {
+						const registration = await navigator.serviceWorker.getRegistration('/');
+						const hadRegistration = Boolean(registration);
+
+						await registration?.unregister();
+						await cleanupLegacyCaches();
+
+						if (
+							hadRegistration &&
+							navigator.serviceWorker.controller &&
+							sessionStorage.getItem(legacyWorkerCleanupKey) !== '1'
+						) {
+							sessionStorage.setItem(legacyWorkerCleanupKey, '1');
+							window.location.reload();
+							return;
+						}
+
+						sessionStorage.removeItem(legacyWorkerCleanupKey);
+					} catch {
+						// Ignore cleanup failures; the app should still load normally.
+					}
 				});
+			} else {
+				cleanupLegacyCaches().catch(() => undefined);
 			}
 		</script>
 	</body>
