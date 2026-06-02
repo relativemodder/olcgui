@@ -28,6 +28,9 @@ jobs:
       - name: Run type check
         run: bun run check
 
+      - name: Clone OlcRTC for tests
+        run: git clone https://github.com/openlibrecommunity/olcrtc
+
       - name: Run tests
         run: bun test
 
