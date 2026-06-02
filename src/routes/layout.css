@@ -148,8 +148,12 @@ body {
 	}
 
 	.ui-panel {
-		border: 1px solid var(--ui-border);
-		background: var(--ui-surface);
+		position: relative;
+		--ui-reveal-fill: var(--ui-surface);
+		border: 1px solid transparent;
+		background:
+			linear-gradient(var(--ui-reveal-fill), var(--ui-reveal-fill)) padding-box,
+			linear-gradient(var(--ui-border), var(--ui-border)) border-box;
 	}
 
 	.ui-panel-header {
@@ -184,8 +188,106 @@ body {
 	}
 
 	.ui-card {
-		border: 1px solid var(--ui-border);
-		background: var(--ui-surface-2);
+		position: relative;
+		--ui-reveal-fill: var(--ui-surface-2);
+		border: 1px solid transparent;
+		background:
+			linear-gradient(var(--ui-reveal-fill), var(--ui-reveal-fill)) padding-box,
+			linear-gradient(var(--ui-border), var(--ui-border)) border-box;
+	}
+
+	.ui-instance-card {
+		transition:
+			background-color 140ms ease-out,
+			border-color 140ms ease-out;
+	}
+
+	.ui-instance-card:hover {
+		--ui-reveal-fill: var(--ui-surface-2);
+	}
+
+	.ui-instance-card:hover .ui-instance-card-title {
+		text-decoration-line: underline;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.ui-panel,
+		.ui-card {
+			--ui-reveal-x: 50%;
+			--ui-reveal-y: 50%;
+			transition:
+				background 120ms ease-out,
+				filter 140ms ease-out;
+		}
+
+		.ui-panel[data-ui-reveal-active='true'],
+		.ui-card[data-ui-reveal-active='true'],
+		.ui-panel:hover,
+		.ui-card:hover {
+			background:
+				linear-gradient(var(--ui-reveal-fill), var(--ui-reveal-fill)) padding-box,
+				radial-gradient(
+						circle 18rem at var(--ui-reveal-x) var(--ui-reveal-y),
+						rgba(239, 240, 241, 0.92),
+						rgba(189, 195, 199, 0.46) 28%,
+						rgba(189, 195, 199, 0.16) 48%,
+						rgba(189, 195, 199, 0) 72%
+					)
+					border-box,
+				linear-gradient(var(--ui-border), var(--ui-border)) border-box;
+		}
+
+		[data-ui-pressable='true'] {
+			--ui-press-x: 50%;
+			--ui-press-y: 50%;
+			--ui-press-rotate-x: 0deg;
+			--ui-press-rotate-y: 0deg;
+			--ui-press-transform: perspective(56rem) translateZ(-0.55rem)
+				rotateX(var(--ui-press-rotate-x)) rotateY(var(--ui-press-rotate-y)) scale(0.986);
+			transform-origin: var(--ui-press-x) var(--ui-press-y);
+			transition:
+				transform 140ms cubic-bezier(0.1, 0.9, 0.2, 1),
+				filter 140ms cubic-bezier(0.1, 0.9, 0.2, 1);
+			will-change: transform, filter;
+		}
+
+		.ui-button[data-ui-pressable='true'],
+		button[data-ui-pressable='true'],
+		a[href][data-ui-pressable='true'],
+		[role='button'][data-ui-pressable='true']:not(.ui-panel, .ui-card),
+		[role='link'][data-ui-pressable='true']:not(.ui-panel, .ui-card),
+		summary[data-ui-pressable='true'] {
+			--ui-press-transform: perspective(44rem) translateZ(-0.45rem)
+				rotateX(var(--ui-press-rotate-x)) rotateY(var(--ui-press-rotate-y)) scale(0.965);
+		}
+
+		[data-ui-press-active='true'] {
+			transform: var(--ui-press-transform);
+			filter: brightness(0.9);
+		}
+	}
+
+	[data-ui-press-mode='touch'] {
+		transform-origin: center;
+		transition:
+			transform 90ms cubic-bezier(0.2, 0, 0.2, 1),
+			filter 90ms cubic-bezier(0.2, 0, 0.2, 1);
+		will-change: transform, filter;
+	}
+
+	[data-ui-press-mode='touch'][data-ui-press-active='true'] {
+		transform: scale(0.985);
+		filter: brightness(0.92);
+	}
+
+	.ui-button[data-ui-press-mode='touch'][data-ui-press-active='true'],
+	button[data-ui-press-mode='touch'][data-ui-press-active='true'],
+	a[href][data-ui-press-mode='touch'][data-ui-press-active='true'],
+	[role='button'][data-ui-press-mode='touch'][data-ui-press-active='true']:not(.ui-panel, .ui-card),
+	[role='link'][data-ui-press-mode='touch'][data-ui-press-active='true']:not(.ui-panel, .ui-card),
+	summary[data-ui-press-mode='touch'][data-ui-press-active='true'] {
+		transform: scale(0.955);
+		filter: brightness(0.9);
 	}
 
 	.ui-config-tile {

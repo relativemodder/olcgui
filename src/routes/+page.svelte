@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { onMount, onDestroy } from 'svelte';
 	import { Sliders, Globe, Wifi, ShieldAlert } from 'lucide-svelte';
 	import { RefreshCw, Activity } from 'lucide-svelte';
@@ -15,6 +16,8 @@
 	let polledStatuses = $state<Record<number, { status: string; autoRestart: boolean }>>({});
 	let activeLogId = $state<number | null>(null);
 	let activeLogs = $state<string[]>([]);
+	const instanceCardIgnoreSelector =
+		'a, button, form, input, select, textarea, summary, [role="button"], [data-tunnel-card-ignore]';
 
 	let totalCount = $derived(data.instances.length);
 	let runningCount = $derived(
@@ -133,6 +136,26 @@
 		}
 	}
 
+	function openInstanceSettings(event: MouseEvent, id: number) {
+		if (
+			event.defaultPrevented ||
+			(event.target instanceof Element && event.target.closest(instanceCardIgnoreSelector))
+		) {
+			return;
+		}
+
+		void goto(`/wizard?edit=${id}`);
+	}
+
+	function openInstanceSettingsFromKeyboard(event: KeyboardEvent, id: number) {
+		if (event.target !== event.currentTarget || (event.key !== 'Enter' && event.key !== ' ')) {
+			return;
+		}
+
+		event.preventDefault();
+		void goto(`/wizard?edit=${id}`);
+	}
+
 	onMount(() => {
 		statusPoller.start();
 		document.addEventListener('visibilitychange', triggerVisiblePoll);
@@ -207,7 +230,15 @@
 	{:else}
 		<div class="grid grid-cols-1 gap-6">
 			{#each data.instances as inst (inst.id)}
-				<div use:metroIntro class="ui-panel ui-metro-surface flex flex-col overflow-hidden">
+				<div
+					use:metroIntro
+					class="ui-panel ui-metro-surface ui-instance-card group flex cursor-pointer flex-col overflow-hidden"
+					role="link"
+					tabindex="0"
+					aria-label="Открыть настройки туннеля {inst.name}"
+					onclick={(event) => openInstanceSettings(event, inst.id)}
+					onkeydown={(event) => openInstanceSettingsFromKeyboard(event, inst.id)}
+				>
 					<TunnelCard
 						{inst}
 						status={polledStatuses[inst.id]?.status ?? inst.status}
@@ -237,6 +268,8 @@
 
 					{#if activeLogId === inst.id}
 						<div
+							data-tunnel-card-ignore
+							data-ui-press-exclude
 							class="flex flex-col border-t border-[color:var(--ui-border)] bg-[color:var(--ui-surface-2)] p-5"
 						>
 							<Terminal

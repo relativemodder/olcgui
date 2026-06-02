@@ -13,6 +13,8 @@
 	import { LayoutDashboard, Sliders, Cpu, Users, LogOut, Terminal } from 'lucide-svelte';
 	import NavItem from '$lib/components/ui/NavItem.svelte';
 	import MetroAlertHost from '$lib/components/ui/MetroAlertHost.svelte';
+	import PressFeedback from '$lib/components/ui/PressFeedback.svelte';
+	import RevealBorder from '$lib/components/ui/RevealBorder.svelte';
 
 	let { data, children } = $props();
 
@@ -87,4 +89,6 @@
 
 	<div class="mb-10 md:hidden"></div>
 	<MetroAlertHost />
+	<PressFeedback />
+	<RevealBorder />
 </div>

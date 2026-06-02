@@ -46,7 +46,7 @@
 	}
 </script>
 
-<div class="ui-panel flex flex-col justify-between gap-6 p-6 lg:flex-row lg:items-stretch">
+<div class="flex flex-col justify-between gap-6 p-6 lg:flex-row lg:items-stretch">
 	<div
 		class="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-x-4 sm:grid-cols-[auto_minmax(0,1fr)]"
 	>
@@ -58,15 +58,11 @@
 
 		<div class="col-start-1 row-start-1 min-w-0 sm:col-start-2">
 			<div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-				<a
-					href="/wizard?edit={inst.id}"
-					class="hover:opacity-80"
-					title="Нажмите для редактирования и копирования ссылки обмена"
+				<h2
+					class="ui-title ui-instance-card-title text-2xl font-thin underline-offset-2 group-hover:no-underline"
 				>
-					<h2 class="ui-title text-2xl font-thin underline-offset-2 hover:underline">
-						{inst.name}
-					</h2>
-				</a>
+					{inst.name}
+				</h2>
 				<div class="flex flex-wrap items-center gap-2 sm:gap-3">
 					<Badge>
 						{inst.mode === 'srv' ? 'СЕРВЕР' : 'КЛИЕНТ'}
