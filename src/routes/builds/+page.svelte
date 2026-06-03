@@ -12,7 +12,14 @@
 		ChevronRight
 	} from 'lucide-svelte';
 	import { canPollNow, createSerialPoller } from '$lib/client/serialPoller';
-	import { Terminal, UploadBinaryPanel, Panel, PageHeader, ErrorAlert, StatusIndicator } from '$lib';
+	import {
+		Terminal,
+		UploadBinaryPanel,
+		Panel,
+		PageHeader,
+		ErrorAlert,
+		StatusIndicator
+	} from '$lib';
 
 	let { data, form } = $props();
 

@@ -27,7 +27,9 @@
 </script>
 
 <div
-	class="ui-card ui-toggle-card ui-metro-surface flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm {small ? 'py-2' : 'py-2.5'} {indented ? 'ml-9' : ''} {className}"
+	class="ui-card ui-toggle-card ui-metro-surface flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm {small
+		? 'py-2'
+		: 'py-2.5'} {indented ? 'ml-9' : ''} {className}"
 	data-ui-interactive
 	role="button"
 	tabindex="0"

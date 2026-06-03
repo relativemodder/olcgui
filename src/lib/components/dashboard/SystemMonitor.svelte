@@ -96,7 +96,8 @@
 			progressColor={memPercent >= 90 ? 'bg-[color:var(--ui-danger)]' : undefined}
 		>
 			<span class="block text-4xl font-thin">{formatBytes(stats.memoryUsed, 1)}</span>
-			<span class="text-xs text-[color:var(--ui-muted)]">/ {formatBytes(stats.memoryTotal, 1)}</span>
+			<span class="text-xs text-[color:var(--ui-muted)]">/ {formatBytes(stats.memoryTotal, 1)}</span
+			>
 		</StatCard>
 	{/if}
 

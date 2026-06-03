@@ -4,7 +4,16 @@
 	import { Sliders, Globe, Wifi, ShieldAlert, Settings } from 'lucide-svelte';
 	import { RefreshCw, Activity } from 'lucide-svelte';
 	import { canPollNow, createSerialPoller } from '$lib/client/serialPoller';
-	import { CustomizationPopup, TunnelCard, Terminal, SystemMonitor, PageHeader, StatCard, intro, tileVisibility } from '$lib';
+	import {
+		CustomizationPopup,
+		TunnelCard,
+		Terminal,
+		SystemMonitor,
+		PageHeader,
+		StatCard,
+		intro,
+		tileVisibility
+	} from '$lib';
 
 	let { data } = $props();
 

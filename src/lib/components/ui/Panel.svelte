@@ -22,7 +22,11 @@
 	} = $props();
 </script>
 
-<div use:intro={{ delay: motionDelay }} class="ui-panel ui-metro-surface {className}" data-ui-interactive={interactive ? '' : undefined}>
+<div
+	use:intro={{ delay: motionDelay }}
+	class="ui-panel ui-metro-surface {className}"
+	data-ui-interactive={interactive ? '' : undefined}
+>
 	{#if title || actions}
 		<div class="ui-panel-header">
 			{#if title}

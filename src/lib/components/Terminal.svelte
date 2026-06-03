@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { Terminal as TerminalIcon, Loader2, CheckCircle2, XCircle, ChevronDown } from 'lucide-svelte';
+	import {
+		Terminal as TerminalIcon,
+		Loader2,
+		CheckCircle2,
+		XCircle,
+		ChevronDown
+	} from 'lucide-svelte';
 
 	let {
 		logs = [],
@@ -87,7 +93,7 @@
 		{#if userScrolledUp}
 			<button
 				onclick={scrollToBottomAndResume}
-				class="absolute bottom-3 right-3 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[color:var(--ui-border-strong)] bg-[color:var(--ui-surface-2)] text-[color:var(--ui-text)] shadow-lg transition-all hover:bg-[color:var(--ui-surface-strong)]"
+				class="absolute right-3 bottom-3 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[color:var(--ui-border-strong)] bg-[color:var(--ui-surface-2)] text-[color:var(--ui-text)] shadow-lg transition-all hover:bg-[color:var(--ui-surface-strong)]"
 				aria-label="Прокрутить вниз"
 			>
 				<ChevronDown class="h-4 w-4" />

@@ -145,7 +145,7 @@
 								<div class="flex flex-col gap-1">
 									<ToggleCard
 										value={$tileVisibility[group.key]}
-										ontoggle={() => $tileVisibility[group.key] = !$tileVisibility[group.key]}
+										ontoggle={() => ($tileVisibility[group.key] = !$tileVisibility[group.key])}
 										label={group.label}
 										desc={group.desc}
 										chevron
@@ -157,7 +157,7 @@
 										{#each group.children as child (child.key)}
 											<ToggleCard
 												value={$tileVisibility[child.key]}
-												ontoggle={() => $tileVisibility[child.key] = !$tileVisibility[child.key]}
+												ontoggle={() => ($tileVisibility[child.key] = !$tileVisibility[child.key])}
 												label={child.label}
 												desc={child.desc}
 												small
@@ -171,7 +171,7 @@
 							{#each standaloneTiles as tile (tile.key)}
 								<ToggleCard
 									value={$tileVisibility[tile.key]}
-									ontoggle={() => $tileVisibility[tile.key] = !$tileVisibility[tile.key]}
+									ontoggle={() => ($tileVisibility[tile.key] = !$tileVisibility[tile.key])}
 									label={tile.label}
 									desc={tile.desc}
 								/>

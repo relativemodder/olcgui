@@ -52,9 +52,7 @@
 		<StatusIndicator status={status as 'running' | 'restarting' | 'error' | 'stopped'} />
 		<div class="min-w-0 flex-1">
 			<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-				<h2
-					class="ui-title ui-instance-card-title text-2xl font-light"
-				>
+				<h2 class="ui-title ui-instance-card-title text-2xl font-light">
 					{inst.name}
 				</h2>
 				<Badge>
@@ -94,214 +92,214 @@
 		</div>
 
 		<div class="flex flex-wrap items-center gap-3">
-		{#if status === 'running' || status === 'restarting'}
+			{#if status === 'running' || status === 'restarting'}
+				<form
+					class="w-full sm:w-auto"
+					method="POST"
+					action="?/restart&id={inst.id}"
+					use:enhance={({ cancel }) => {
+						if (isRestarting) {
+							cancel();
+							return;
+						}
+						isRestarting = true;
+						updateOptimisticStatus(inst.id, 'restarting');
+						return async ({ result }) => {
+							isRestarting = false;
+							if (result.type === 'failure') {
+								updateOptimisticStatus(inst.id, 'running');
+								showActionError(
+									actionErrorMessage(result.data?.error, 'Произошла ошибка при перезапуске')
+								);
+							} else if (result.type === 'error') {
+								updateOptimisticStatus(inst.id, 'running');
+								showActionError(result.error?.message || 'Произошла ошибка при перезапуске');
+							} else {
+								updateOptimisticStatus(inst.id, 'running');
+							}
+						};
+					}}
+				>
+					<button
+						type="submit"
+						disabled={isRestarting || isStopping}
+						class="ui-button ui-button-primary h-9 w-full cursor-pointer justify-center px-4 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+						title="Перезапустить туннель одним действием"
+					>
+						<RefreshCw class="h-3.5 w-3.5 shrink-0" />
+						<span>Рестарт</span>
+					</button>
+				</form>
+
+				<form
+					class="w-full sm:w-auto"
+					method="POST"
+					action="?/stop&id={inst.id}"
+					use:enhance={({ cancel }) => {
+						if (isStopping) {
+							cancel();
+							return;
+						}
+						isStopping = true;
+						updateOptimisticStatus(inst.id, 'stopped');
+						return async ({ result }) => {
+							isStopping = false;
+							if (result.type === 'failure') {
+								updateOptimisticStatus(inst.id, 'running');
+								showActionError(
+									actionErrorMessage(result.data?.error, 'Произошла ошибка при остановке')
+								);
+							} else if (result.type === 'error') {
+								updateOptimisticStatus(inst.id, 'running');
+								showActionError(result.error?.message || 'Произошла ошибка при остановке');
+							}
+						};
+					}}
+				>
+					<button
+						type="submit"
+						disabled={isStopping}
+						class="ui-button h-9 w-full cursor-pointer justify-center px-4 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+					>
+						<Square class="h-3.5 w-3.5 shrink-0" />
+						<span>Остановить</span>
+					</button>
+				</form>
+			{:else}
+				<form
+					class="w-full sm:w-auto"
+					method="POST"
+					action="?/start&id={inst.id}"
+					use:enhance={({ cancel }) => {
+						if (isStarting) {
+							cancel();
+							return;
+						}
+						isStarting = true;
+						updateOptimisticStatus(inst.id, 'running');
+						return async ({ result }) => {
+							isStarting = false;
+							if (result.type === 'failure') {
+								updateOptimisticStatus(inst.id, 'stopped');
+								showActionError(
+									actionErrorMessage(result.data?.error, 'Произошла ошибка при запуске')
+								);
+							} else if (result.type === 'error') {
+								updateOptimisticStatus(inst.id, 'stopped');
+								showActionError(result.error?.message || 'Произошла ошибка при запуске');
+							}
+						};
+					}}
+				>
+					<button
+						type="submit"
+						disabled={isStarting}
+						class="ui-button ui-button-primary h-9 w-full cursor-pointer justify-center px-4 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+					>
+						<Play class="h-3.5 w-3.5 shrink-0 fill-current" />
+						<span>Запустить</span>
+					</button>
+				</form>
+			{/if}
+
 			<form
-				class="w-full sm:w-auto"
 				method="POST"
-				action="?/restart&id={inst.id}"
+				action="?/toggleAutoRestart&id={inst.id}"
 				use:enhance={({ cancel }) => {
-					if (isRestarting) {
+					if (isTogglingAutoRestart) {
 						cancel();
 						return;
 					}
-					isRestarting = true;
-					updateOptimisticStatus(inst.id, 'restarting');
+					isTogglingAutoRestart = true;
+					updateOptimisticAutoRestart(inst.id, !autoRestart);
 					return async ({ result }) => {
-						isRestarting = false;
+						isTogglingAutoRestart = false;
 						if (result.type === 'failure') {
-							updateOptimisticStatus(inst.id, 'running');
-							showActionError(
-								actionErrorMessage(result.data?.error, 'Произошла ошибка при перезапуске')
-							);
+							updateOptimisticAutoRestart(inst.id, autoRestart);
+							showActionError(actionErrorMessage(result.data?.error, 'Произошла ошибка'));
 						} else if (result.type === 'error') {
-							updateOptimisticStatus(inst.id, 'running');
-							showActionError(result.error?.message || 'Произошла ошибка при перезапуске');
-						} else {
-							updateOptimisticStatus(inst.id, 'running');
+							updateOptimisticAutoRestart(inst.id, autoRestart);
+							showActionError(result.error?.message || 'Произошла ошибка');
 						}
 					};
 				}}
 			>
 				<button
 					type="submit"
-					disabled={isRestarting || isStopping}
-					class="ui-button ui-button-primary h-9 w-full cursor-pointer justify-center px-4 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-					title="Перезапустить туннель одним действием"
+					disabled={isTogglingAutoRestart}
+					class="ui-button h-9 cursor-pointer px-3.5 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50"
+					title="Автоматический перезапуск в случае сбоев"
 				>
-					<RefreshCw class="h-3.5 w-3.5 shrink-0" />
-					<span>Рестарт</span>
+					{#if autoRestart}
+						<ToggleRight class="h-5 w-5 shrink-0 text-[color:var(--ui-accent)]" />
+						<span>Авто-старт</span>
+					{:else}
+						<ToggleLeft class="h-5 w-5 shrink-0 text-[color:var(--ui-muted)]" />
+						<span class="text-[color:var(--ui-muted)]">Авто-старт</span>
+					{/if}
 				</button>
 			</form>
 
-			<form
-				class="w-full sm:w-auto"
-				method="POST"
-				action="?/stop&id={inst.id}"
-				use:enhance={({ cancel }) => {
-					if (isStopping) {
-						cancel();
-						return;
-					}
-					isStopping = true;
-					updateOptimisticStatus(inst.id, 'stopped');
-					return async ({ result }) => {
-						isStopping = false;
-						if (result.type === 'failure') {
-							updateOptimisticStatus(inst.id, 'running');
-							showActionError(
-								actionErrorMessage(result.data?.error, 'Произошла ошибка при остановке')
-							);
-						} else if (result.type === 'error') {
-							updateOptimisticStatus(inst.id, 'running');
-							showActionError(result.error?.message || 'Произошла ошибка при остановке');
-						}
-					};
-				}}
+			<a
+				href="/wizard?edit={inst.id}"
+				class="ui-button h-9 cursor-pointer px-3.5 text-xs font-normal"
+				title="Редактировать параметры и получить ссылку обмена"
 			>
-				<button
-					type="submit"
-					disabled={isStopping}
-					class="ui-button h-9 w-full cursor-pointer justify-center px-4 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-				>
-					<Square class="h-3.5 w-3.5 shrink-0" />
-					<span>Остановить</span>
-				</button>
-			</form>
-		{:else}
-			<form
-				class="w-full sm:w-auto"
-				method="POST"
-				action="?/start&id={inst.id}"
-				use:enhance={({ cancel }) => {
-					if (isStarting) {
-						cancel();
-						return;
-					}
-					isStarting = true;
-					updateOptimisticStatus(inst.id, 'running');
-					return async ({ result }) => {
-						isStarting = false;
-						if (result.type === 'failure') {
-							updateOptimisticStatus(inst.id, 'stopped');
-							showActionError(
-								actionErrorMessage(result.data?.error, 'Произошла ошибка при запуске')
-							);
-						} else if (result.type === 'error') {
-							updateOptimisticStatus(inst.id, 'stopped');
-							showActionError(result.error?.message || 'Произошла ошибка при запуске');
-						}
-					};
-				}}
-			>
-				<button
-					type="submit"
-					disabled={isStarting}
-					class="ui-button ui-button-primary h-9 w-full cursor-pointer justify-center px-4 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-				>
-					<Play class="h-3.5 w-3.5 shrink-0 fill-current" />
-					<span>Запустить</span>
-				</button>
-			</form>
-		{/if}
+				<Settings class="h-3.5 w-3.5 shrink-0 text-[color:var(--ui-muted)]" />
+				<span>Настройки</span>
+			</a>
 
-		<form
-			method="POST"
-			action="?/toggleAutoRestart&id={inst.id}"
-			use:enhance={({ cancel }) => {
-				if (isTogglingAutoRestart) {
-					cancel();
-					return;
-				}
-				isTogglingAutoRestart = true;
-				updateOptimisticAutoRestart(inst.id, !autoRestart);
-				return async ({ result }) => {
-					isTogglingAutoRestart = false;
-					if (result.type === 'failure') {
-						updateOptimisticAutoRestart(inst.id, autoRestart);
-						showActionError(actionErrorMessage(result.data?.error, 'Произошла ошибка'));
-					} else if (result.type === 'error') {
-						updateOptimisticAutoRestart(inst.id, autoRestart);
-						showActionError(result.error?.message || 'Произошла ошибка');
-					}
-				};
-			}}
-		>
 			<button
-				type="submit"
-				disabled={isTogglingAutoRestart}
-				class="ui-button h-9 cursor-pointer px-3.5 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50"
-				title="Автоматический перезапуск в случае сбоев"
+				type="button"
+				onclick={() => toggleLogDrawer(inst.id)}
+				class="ui-button h-9 cursor-pointer px-3.5 text-xs font-normal"
 			>
-				{#if autoRestart}
-					<ToggleRight class="h-5 w-5 shrink-0 text-[color:var(--ui-accent)]" />
-					<span>Авто-старт</span>
-				{:else}
-					<ToggleLeft class="h-5 w-5 shrink-0 text-[color:var(--ui-muted)]" />
-					<span class="text-[color:var(--ui-muted)]">Авто-старт</span>
-				{/if}
+				<TerminalIcon class="h-3.5 w-3.5 shrink-0" />
+				<span>Логи</span>
 			</button>
-		</form>
 
-		<a
-			href="/wizard?edit={inst.id}"
-			class="ui-button h-9 cursor-pointer px-3.5 text-xs font-normal"
-			title="Редактировать параметры и получить ссылку обмена"
-		>
-			<Settings class="h-3.5 w-3.5 shrink-0 text-[color:var(--ui-muted)]" />
-			<span>Настройки</span>
-		</a>
-
-		<button
-			type="button"
-			onclick={() => toggleLogDrawer(inst.id)}
-			class="ui-button h-9 cursor-pointer px-3.5 text-xs font-normal"
-		>
-			<TerminalIcon class="h-3.5 w-3.5 shrink-0" />
-			<span>Логи</span>
-		</button>
-
-		<form
-			bind:this={deleteForm}
-			action="?/delete&id={inst.id}"
-			method="POST"
-			use:enhance={({ cancel }) => {
-				if (!deleteConfirmed) {
-					cancel();
-					return;
-				}
-				deleteConfirmed = false;
-				return async ({ result, update }) => {
-					if (result.type === 'failure') {
-						showActionError(actionErrorMessage(result.data?.error, 'Ошибка при удалении'));
-					} else if (result.type === 'error') {
-						showActionError(result.error?.message || 'Ошибка при удалении');
+			<form
+				bind:this={deleteForm}
+				action="?/delete&id={inst.id}"
+				method="POST"
+				use:enhance={({ cancel }) => {
+					if (!deleteConfirmed) {
+						cancel();
+						return;
 					}
-					await update();
-				};
-			}}
-		>
-			<button
-				type="submit"
-				class="ui-button ui-button-icon ui-button-danger cursor-pointer"
-				title="Удалить туннель"
-				onclick={async (event) => {
-					event.preventDefault();
-					const confirmed = await showMetroConfirm('Удалить туннель «' + inst.name + '»?', {
-						title: 'Удаление туннеля',
-						tone: 'warning',
-						confirmLabel: 'Удалить',
-						cancelLabel: 'Отмена'
-					});
-
-					if (confirmed) {
-						deleteConfirmed = true;
-						deleteForm.requestSubmit();
-					}
+					deleteConfirmed = false;
+					return async ({ result, update }) => {
+						if (result.type === 'failure') {
+							showActionError(actionErrorMessage(result.data?.error, 'Ошибка при удалении'));
+						} else if (result.type === 'error') {
+							showActionError(result.error?.message || 'Ошибка при удалении');
+						}
+						await update();
+					};
 				}}
 			>
-				<Trash2 class="h-3.5 w-3.5 shrink-0" />
-			</button>
-		</form>
+				<button
+					type="submit"
+					class="ui-button ui-button-icon ui-button-danger cursor-pointer"
+					title="Удалить туннель"
+					onclick={async (event) => {
+						event.preventDefault();
+						const confirmed = await showMetroConfirm('Удалить туннель «' + inst.name + '»?', {
+							title: 'Удаление туннеля',
+							tone: 'warning',
+							confirmLabel: 'Удалить',
+							cancelLabel: 'Отмена'
+						});
+
+						if (confirmed) {
+							deleteConfirmed = true;
+							deleteForm.requestSubmit();
+						}
+					}}
+				>
+					<Trash2 class="h-3.5 w-3.5 shrink-0" />
+				</button>
+			</form>
 		</div>
 	</div>
 </div>
