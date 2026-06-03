@@ -3,7 +3,7 @@ import type { Actions } from './$types';
 import { db } from '$lib/server/db/client';
 import { users } from '$lib/server/db/schema';
 import { hashPassword } from '$lib/server/auth/password';
-import { createSession } from '$lib/server/auth/session';
+import { createSession, setSessionCookie } from '$lib/server/auth/session';
 
 export const actions: Actions = {
 	default: async ({ request, cookies }) => {
@@ -46,13 +46,7 @@ export const actions: Actions = {
 				.returning();
 
 			const sessionToken = createSession(newAdmin.id, newAdmin.username, newAdmin.role);
-			cookies.set('session', sessionToken, {
-				path: '/',
-				httpOnly: true,
-				sameSite: 'lax',
-				secure: false,
-				maxAge: 60 * 60 * 24
-			});
+			setSessionCookie(cookies, sessionToken);
 		} catch (error) {
 			console.error('[SetupAction] Onboarding failed:', error);
 			return fail(500, { error: 'Ошибка БД. Не удалось создать аккаунт.' });

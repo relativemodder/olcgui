@@ -16,6 +16,8 @@ export { default as SelectField } from './components/ui/SelectField.svelte';
 export { default as StatCard } from './components/ui/StatCard.svelte';
 export { default as StatusIndicator } from './components/ui/StatusIndicator.svelte';
 export { default as ToggleCard } from './components/ui/ToggleCard.svelte';
+export { default as UserEditModal } from './components/ui/UserEditModal.svelte';
+export { default as UserCreateModal } from './components/ui/UserCreateModal.svelte';
 
 // Components
 export { default as AdminCard } from './components/AdminCard.svelte';
@@ -41,7 +43,6 @@ export type { IntroParams } from './motion/intro';
 export { animationMode } from './stores/animation';
 export type { AnimationMode } from './stores/animation';
 export { colorScheme } from './stores/colorScheme';
-export type { ColorSchemeId } from './stores/colorScheme';
 export { tileVisibility } from './stores/tileVisibility';
 export type { TileVisibility } from './stores/tileVisibility';
 export { metroAlerts } from './stores/metroAlert';
@@ -49,8 +50,8 @@ export type { MetroAlert, MetroAlertTone } from './stores/metroAlert';
 export { persistedWritable } from './stores/persisted';
 
 // Themes
-export { colorSchemes, getColorScheme } from './themes/schemes';
-export type { ColorScheme } from './themes/schemes';
+export { colorSchemes, getColorScheme, applyTheme } from './themes';
+export type { ColorScheme, ColorSchemeId } from './themes';
 
 // Alert utilities
 export { showMetroAlert, showMetroConfirm, dismissMetroAlert } from './metroAlert';

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ToggleRight, ToggleLeft, ChevronRight } from 'lucide-svelte';
+	import { ChevronRight } from 'lucide-svelte';
 
 	let {
 		value,
@@ -50,11 +50,12 @@
 			ontoggle();
 		}}
 	>
-		{#if value}
-			<ToggleRight class="{small ? 'h-5 w-5' : 'h-6 w-6'} text-[color:var(--ui-accent)]" />
-		{:else}
-			<ToggleLeft class="{small ? 'h-5 w-5' : 'h-6 w-6'} text-[color:var(--ui-muted)]" />
-		{/if}
+		<div
+			class="ui-switch-track {small ? 'ui-switch-small' : ''}"
+			class:ui-switch-on={value}
+		>
+			<div class="ui-switch-thumb" class:ui-switch-on={value} />
+		</div>
 	</button>
 	<div class="flex flex-1 flex-col">
 		<span class="font-medium text-[color:var(--ui-text)]">{label}</span>

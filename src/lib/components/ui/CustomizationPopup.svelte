@@ -4,7 +4,7 @@
 	import { animationMode } from '$lib/stores/animation';
 	import { colorScheme } from '$lib/stores/colorScheme';
 	import { tileVisibility, type TileVisibility } from '$lib/stores/tileVisibility';
-	import { colorSchemes } from '$lib/themes/schemes';
+	import { colorSchemes } from '$lib/themes';
 	import ToggleCard from '$lib/components/ui/ToggleCard.svelte';
 
 	let {
@@ -203,6 +203,14 @@
 					>
 						<RotateCcw class="h-3.5 w-3.5" />
 						<span>Сбросить</span>
+					</button>
+					<button
+						type="button"
+						class="ui-button flex cursor-pointer items-center gap-1.5 px-3 py-1.5 text-xs font-normal"
+						onclick={onclose}
+					>
+						<X class="h-3.5 w-3.5" />
+						<span>Закрыть</span>
 					</button>
 				</div>
 			</div>

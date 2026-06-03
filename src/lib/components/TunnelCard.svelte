@@ -5,10 +5,9 @@
 		Wifi,
 		KeyRound,
 		Play,
-		Square,
 		RefreshCw,
-		ToggleRight,
-		ToggleLeft,
+		Check,
+		X as XIcon,
 		Settings,
 		Terminal as TerminalIcon,
 		Trash2
@@ -231,10 +230,10 @@
 					title="Автоматический перезапуск в случае сбоев"
 				>
 					{#if autoRestart}
-						<ToggleRight class="h-5 w-5 shrink-0 text-[color:var(--ui-accent)]" />
+						<Check class="h-4 w-4 shrink-0 text-[color:var(--ui-accent)]" />
 						<span>Авто-старт</span>
 					{:else}
-						<ToggleLeft class="h-5 w-5 shrink-0 text-[color:var(--ui-muted)]" />
+						<XIcon class="h-4 w-4 shrink-0 text-[color:var(--ui-muted)]" />
 						<span class="text-[color:var(--ui-muted)]">Авто-старт</span>
 					{/if}
 				</button>

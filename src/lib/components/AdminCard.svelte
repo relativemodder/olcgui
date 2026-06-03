@@ -1,10 +1,18 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { Users, Trash2 } from 'lucide-svelte';
+	import { Users, Trash2, Pencil } from 'lucide-svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import { intro } from '$lib/motion/intro';
 
-	let { user, currentUser = null } = $props();
+	let {
+		user,
+		currentUser = null,
+		onedit = (_user: { id: number; username: string; role: string }) => {}
+	}: {
+		user: { id: number; username: string; role: string };
+		currentUser?: { userId: number; username: string; role: string } | null;
+		onedit?: (user: { id: number; username: string; role: string }) => void;
+	} = $props();
 </script>
 
 <div use:intro class="ui-panel ui-metro-surface flex items-center justify-between p-5">
@@ -28,15 +36,25 @@
 		</div>
 	</div>
 
-	{#if currentUser && currentUser.userId !== user.id}
-		<form action="?/delete&id={user.id}" method="POST" use:enhance>
+	{#if currentUser && currentUser.role === 'admin' && currentUser.userId !== user.id}
+		<div class="flex items-center gap-1.5">
 			<button
-				type="submit"
-				class="ui-button ui-button-icon ui-button-danger cursor-pointer"
-				title="Удалить администратора"
+				type="button"
+				class="ui-button ui-button-icon cursor-pointer"
+				title="Сменить пароль"
+				onclick={() => onedit(user)}
 			>
-				<Trash2 class="h-4 w-4" />
+				<Pencil class="h-4 w-4" />
 			</button>
-		</form>
+			<form action="?/delete&id={user.id}" method="POST" use:enhance>
+				<button
+					type="submit"
+					class="ui-button ui-button-icon ui-button-danger cursor-pointer"
+					title="Удалить"
+				>
+					<Trash2 class="h-4 w-4" />
+				</button>
+			</form>
+		</div>
 	{/if}
 </div>

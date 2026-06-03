@@ -6,26 +6,31 @@ import {
 	checkoutBranch
 } from '$lib/server/git/client';
 import { fail } from '@sveltejs/kit';
+import { requireAdmin, normalizeError } from '$lib/server/auth/guards';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
 	try {
 		return {
 			branches: await getBranches(),
 			currentBranchName: await getCurrentBranchName(),
-			currentCommit: await getCurrentCommit()
+			currentCommit: await getCurrentCommit(),
+			isAdmin: locals.user?.role === 'admin'
 		};
 	} catch (error) {
 		console.error('[BuildsLoad] Error loading git info:', error);
 		return {
 			branches: [],
 			currentBranchName: 'master',
-			currentCommit: null
+			currentCommit: null,
+			isAdmin: locals.user?.role === 'admin'
 		};
 	}
 };
 
 export const actions: Actions = {
-	checkout: async ({ url }) => {
+	checkout: async ({ url, locals }) => {
+		requireAdmin(locals.user);
+
 		const name = url.searchParams.get('name');
 		if (!name) {
 			return fail(400, { error: 'Не указано имя ветки для переключения.' });
@@ -39,7 +44,7 @@ export const actions: Actions = {
 			return { success: true };
 		} catch (error) {
 			return fail(500, {
-				error: error instanceof Error ? error.message : 'Не удалось переключить ветку.'
+				error: normalizeError(error, 'Не удалось переключить ветку.')
 			});
 		}
 	}

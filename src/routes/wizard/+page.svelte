@@ -12,7 +12,7 @@
 		replaceJitsiServer,
 		type ParsedOlcrtcUri
 	} from '$lib/wizard/utils';
-	import { Sliders, RefreshCw, Info } from 'lucide-svelte';
+	import { Sliders, RefreshCw, Info, Users } from 'lucide-svelte';
 	import { FormField, SelectField, Panel, ErrorAlert, PageHeader, Button, intro } from '$lib';
 
 	let { form, data } = $props();
@@ -22,6 +22,7 @@
 
 	let name = $state(initial?.name ?? '');
 	let mode = $state<'cnc' | 'srv'>(initial?.mode ?? 'srv');
+	let selectedUserId = $state<number>(initial?.userId ?? data.currentUserId ?? data.allUsers[0]?.id ?? 0);
 	let provider = $state<'jitsi' | 'wbstream' | 'telemost'>(initial?.provider ?? 'jitsi');
 	let roomUrl = $state(initial?.roomUrl ?? '');
 	let cryptoKey = $state(initial?.cryptoKey ?? generateCryptoKey());
@@ -149,6 +150,26 @@
 							<option value="srv">Сервер</option>
 						</SelectField>
 					</div>
+
+					{#if data.isAdmin && data.allUsers.length > 0}
+						<div>
+							<label for="ownerUser" class="mb-2 flex items-center gap-2 text-sm font-medium tracking-wide text-[color:var(--ui-muted)] uppercase">
+								<Users class="h-3.5 w-3.5" />
+								<span>Владелец</span>
+							</label>
+							<select
+								id="ownerUser"
+								name="userId"
+								bind:value={selectedUserId}
+								class="ui-input w-full px-4 py-2.5 text-base font-normal"
+								required
+							>
+								{#each data.allUsers as u (u.id)}
+									<option value={u.id}>{u.username}</option>
+								{/each}
+							</select>
+						</div>
+					{/if}
 
 					<div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
 						<SelectField id="provider" label="Сервис-провайдер" bind:value={provider} required>

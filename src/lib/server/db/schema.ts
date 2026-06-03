@@ -13,6 +13,7 @@ export const users = sqliteTable('users', {
 
 export const instances = sqliteTable('instances', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
+	userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
 	name: text('name').notNull(),
 	mode: text('mode').notNull().$type<'srv' | 'cnc'>(), // 'srv' = server, 'cnc' = client/cnc
 	provider: text('provider').notNull().$type<'jitsi' | 'wbstream' | 'telemost'>(),

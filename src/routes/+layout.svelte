@@ -12,29 +12,24 @@
 	import { enhance } from '$app/forms';
 	import { LayoutDashboard, Sliders, Cpu, Users, LogOut, Terminal } from 'lucide-svelte';
 	import { NavItem, MetroAlertHost, PressFeedback, RevealBorder } from '$lib';
+	import Toast from '$lib/components/ui/Toast.svelte';
 	import { colorScheme } from '$lib/stores/colorScheme';
-	import { getColorScheme } from '$lib/themes/schemes';
+	import { getColorScheme, applyTheme } from '$lib/themes';
 
 	let { data, children } = $props();
 
 	$effect(() => {
-		const scheme = getColorScheme($colorScheme);
-		if (typeof document !== 'undefined') {
-			const root = document.documentElement;
-			for (const [key, value] of Object.entries(scheme.variables)) {
-				root.style.setProperty(key, value);
-			}
-		}
+		applyTheme(getColorScheme($colorScheme));
 	});
 
 	let currentPath = $derived(page.url.pathname);
 
-	const navLinks = [
+	let navLinks = $derived([
 		{ href: '/', icon: LayoutDashboard, label: 'Панель' },
 		{ href: '/wizard', icon: Sliders, label: 'Мастер' },
 		{ href: '/builds', icon: Cpu, label: 'Сборки' },
 		{ href: '/users', icon: Users, label: 'Доступ' }
-	];
+	]);
 </script>
 
 <svelte:head></svelte:head>
@@ -98,6 +93,7 @@
 
 	<div class="mb-10 md:hidden"></div>
 	<MetroAlertHost />
+	<Toast />
 	<PressFeedback />
 	<RevealBorder />
 </div>

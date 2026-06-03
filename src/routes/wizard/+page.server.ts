@@ -1,29 +1,51 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { db } from '$lib/server/db/client';
-import { instances } from '$lib/server/db/schema';
+import { instances, users } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
+import { requireAuth, canAccessInstance } from '$lib/server/auth/guards';
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ url, locals }) => {
+	const isAdmin = locals.user?.role === 'admin';
+
+	const allUsers = isAdmin
+		? await db
+				.select({ id: users.id, username: users.username })
+				.from(users)
+				.orderBy(users.username)
+		: [];
+
 	const editIdStr = url.searchParams.get('edit');
 	if (editIdStr) {
 		const editId = Number(editIdStr);
 		if (!isNaN(editId)) {
 			const found = await db.select().from(instances).where(eq(instances.id, editId)).limit(1);
 			if (found.length > 0) {
+				const inst = found[0];
+				if (locals.user && !canAccessInstance(locals.user, inst.userId)) {
+					throw redirect(303, '/');
+				}
 				return {
-					editInstance: found[0]
+					editInstance: inst,
+					allUsers,
+					isAdmin,
+					currentUserId: locals.user?.userId
 				};
 			}
 		}
 	}
 	return {
-		editInstance: null
+		editInstance: null,
+		allUsers,
+		isAdmin,
+		currentUserId: locals.user?.userId
 	};
 };
 
 export const actions: Actions = {
-	save: async ({ request }) => {
+	save: async ({ request, locals }) => {
+		requireAuth(locals.user);
+
 		const data = await request.formData();
 		const idStr = data.get('id');
 		const id = idStr ? Number(idStr) : null;
@@ -45,6 +67,8 @@ export const actions: Actions = {
 		const socksUser = data.get('socksUser')?.toString().trim() || null;
 		const socksPass = data.get('socksPass')?.toString().trim() || null;
 		const debug = data.get('debug') === 'true';
+		const ownerIdStr = data.get('userId');
+		const ownerId = ownerIdStr ? Number(ownerIdStr) : null;
 
 		if (!name || !mode || !provider || !roomUrl || !cryptoKey || !transport) {
 			return fail(400, { error: 'Заполните все обязательные поля.' });
@@ -52,6 +76,12 @@ export const actions: Actions = {
 
 		try {
 			if (id !== null && !isNaN(id)) {
+				const [existing] = await db.select().from(instances).where(eq(instances.id, id)).limit(1);
+				if (!existing) return fail(404, { error: 'Инстанс не найден.' });
+				if (!canAccessInstance(locals.user, existing.userId)) {
+					return fail(403, { error: 'Нет доступа к этому туннелю.' });
+				}
+
 				await db
 					.update(instances)
 					.set({
@@ -66,11 +96,13 @@ export const actions: Actions = {
 						socksPort: mode === 'cnc' ? socksPort : null,
 						socksUser: mode === 'cnc' ? socksUser : null,
 						socksPass: mode === 'cnc' ? socksPass : null,
-						debug
+						debug,
+						...(locals.user.role === 'admin' && ownerId ? { userId: ownerId } : {})
 					})
 					.where(eq(instances.id, id));
 			} else {
 				await db.insert(instances).values({
+					userId: locals.user.role === 'admin' && ownerId ? ownerId : locals.user.userId,
 					name,
 					mode,
 					provider,

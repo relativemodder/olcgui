@@ -4,7 +4,7 @@ import { db } from '$lib/server/db/client';
 import { users } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { verifyPassword } from '$lib/server/auth/password';
-import { createSession, destroySession } from '$lib/server/auth/session';
+import { createSession, destroySession, setSessionCookie } from '$lib/server/auth/session';
 
 export const actions: Actions = {
 	login: async ({ request, cookies }) => {
@@ -29,13 +29,7 @@ export const actions: Actions = {
 			}
 
 			const sessionToken = createSession(user.id, user.username, user.role);
-			cookies.set('session', sessionToken, {
-				path: '/',
-				httpOnly: true,
-				sameSite: 'lax',
-				secure: false,
-				maxAge: 60 * 60 * 24
-			});
+			setSessionCookie(cookies, sessionToken);
 		} catch (error) {
 			console.error('[LoginAction] Login error:', error);
 			return fail(500, { error: 'Ошибка входа. Попробуйте ещё раз.' });

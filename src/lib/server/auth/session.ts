@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto';
+import type { Cookies } from '@sveltejs/kit';
 
 export interface Session {
 	userId: number;
@@ -30,10 +31,27 @@ export function getSession(token: string | null | undefined): Session | null {
 	return session;
 }
 
+export function updateSessionUsername(token: string, newUsername: string): void {
+	const session = sessionsStore.get(token);
+	if (session) {
+		sessionsStore.set(token, { ...session, username: newUsername });
+	}
+}
+
 export function destroySession(token: string | null | undefined): void {
 	if (token) {
 		sessionsStore.delete(token);
 	}
+}
+
+export function setSessionCookie(cookies: Cookies, token: string): void {
+	cookies.set('session', token, {
+		path: '/',
+		httpOnly: true,
+		sameSite: 'lax',
+		secure: false,
+		maxAge: 60 * 60 * 24
+	});
 }
 
 if (typeof globalThis !== 'undefined') {

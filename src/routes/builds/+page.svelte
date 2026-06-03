@@ -23,6 +23,7 @@
 
 	let { data, form } = $props();
 
+	let isAdmin = $derived(data.isAdmin);
 	let isBuilding = $state(false);
 	let buildLogs = $state<string[]>([]);
 	let buildSuccess = $state<boolean | null>(null);
@@ -78,7 +79,7 @@
 	});
 
 	function triggerVisiblePoll() {
-		if (!canPollNow()) return;
+		if (!canPollNow() || !isAdmin) return;
 
 		if (repoSyncing || repoPoller.isActive()) {
 			repoPoller.trigger();
@@ -126,8 +127,10 @@
 	}
 
 	onMount(async () => {
-		repoPoller.trigger();
-		buildPoller.trigger();
+		if (isAdmin) {
+			repoPoller.trigger();
+			buildPoller.trigger();
+		}
 		document.addEventListener('visibilitychange', triggerVisiblePoll);
 		window.addEventListener('online', triggerVisiblePoll);
 	});
@@ -173,8 +176,8 @@
 
 	<div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
 		<div class="space-y-6 lg:col-span-2">
-			<Panel title="Репозиторий (olcrtc)" icon={RefreshCw}>
-				{#snippet actions()}
+			{#if isAdmin}
+				{#snippet repoActions()}
 					<button
 						type="button"
 						onclick={triggerRepoPull}
@@ -190,8 +193,10 @@
 						{/if}
 					</button>
 				{/snippet}
-				<p class="text-xs text-[color:var(--ui-muted)]">Pull выполняется только по кнопке.</p>
-			</Panel>
+				<Panel title="Репозиторий (olcrtc)" icon={RefreshCw} actions={repoActions}>
+					<p class="text-xs text-[color:var(--ui-muted)]">Pull выполняется только по кнопке.</p>
+				</Panel>
+			{/if}
 
 			{#if data.currentCommit}
 				<Panel title="Текущий коммит исходного кода" icon={GitCommit}>
@@ -227,47 +232,49 @@
 				</Panel>
 			{/if}
 
-			<Panel title="Компилятор (Mage compiler)" icon={Cpu}>
-				{#snippet actions()}
-					<button
-						type="button"
-						onclick={triggerBuild}
-						disabled={buildStartInFlight || isBuilding || repoSyncing}
-						class="ui-button ui-button-primary cursor-pointer px-6 py-2.5 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50"
-					>
-						{#if buildStartInFlight || isBuilding}
-							<Loader2 class="h-4 w-4 animate-spin" />
-							<span>Идет сборка...</span>
-						{:else}
-							<RefreshCw class="h-4 w-4" />
-							<span>Запустить сборку (Mage build)</span>
-						{/if}
-					</button>
-				{/snippet}
+			{#if isAdmin}
+				<Panel title="Компилятор (Mage compiler)" icon={Cpu}>
+					{#snippet actions()}
+						<button
+							type="button"
+							onclick={triggerBuild}
+							disabled={buildStartInFlight || isBuilding || repoSyncing}
+							class="ui-button ui-button-primary cursor-pointer px-6 py-2.5 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							{#if buildStartInFlight || isBuilding}
+								<Loader2 class="h-4 w-4 animate-spin" />
+								<span>Идет сборка...</span>
+							{:else}
+								<RefreshCw class="h-4 w-4" />
+								<span>Запустить сборку (Mage build)</span>
+							{/if}
+						</button>
+					{/snippet}
 
-				<Terminal
-					logs={buildLogs}
-					title="Журнал компиляции"
-					statusType={isBuilding
-						? 'running'
-						: buildSuccess === true
-							? 'success'
-							: buildSuccess === false
-								? 'error'
-								: 'idle'}
-					statusText={isBuilding
-						? 'Сборка активна'
-						: buildSuccess === true
-							? 'Успешно собрано'
-							: buildSuccess === false
-								? 'Сборка провалена'
-								: 'Готов'}
-					emptyText="Журнал пуст."
-					heightClass="h-80"
-				/>
-			</Panel>
+					<Terminal
+						logs={buildLogs}
+						title="Журнал компиляции"
+						statusType={isBuilding
+							? 'running'
+							: buildSuccess === true
+								? 'success'
+								: buildSuccess === false
+									? 'error'
+									: 'idle'}
+						statusText={isBuilding
+							? 'Сборка активна'
+							: buildSuccess === true
+								? 'Успешно собрано'
+								: buildSuccess === false
+									? 'Сборка провалена'
+									: 'Готов'}
+						emptyText="Журнал пуст."
+						heightClass="h-80"
+					/>
+				</Panel>
 
-			<UploadBinaryPanel />
+				<UploadBinaryPanel />
+			{/if}
 		</div>
 
 		<Panel title="Ветки репозитория" icon={GitBranch}>
@@ -294,7 +301,7 @@
 								<StatusIndicator status="active" />
 								<span>Активная</span>
 							</span>
-						{:else}
+						{:else if isAdmin}
 							<form action="?/checkout&name={branch.name}" method="POST" use:enhance>
 								<button
 									type="submit"
