@@ -1,13 +1,14 @@
 <script lang="ts">
 	import type { ComponentType, Snippet, SvelteComponent } from 'svelte';
 	import type { IconProps } from 'lucide-svelte';
-	import { metroIntro } from '$lib/motion/metro';
+	import { intro } from '$lib/motion/intro';
 
 	let {
 		title = '',
 		icon: Icon = undefined,
 		actions = undefined as Snippet | undefined,
 		motionDelay = 'auto' as number | 'auto',
+		interactive = false,
 		class: className = '',
 		children
 	}: {
@@ -15,12 +16,13 @@
 		icon?: ComponentType<SvelteComponent<IconProps>>;
 		actions?: Snippet;
 		motionDelay?: number | 'auto';
+		interactive?: boolean;
 		class?: string;
 		children: Snippet;
 	} = $props();
 </script>
 
-<div use:metroIntro={{ delay: motionDelay }} class="ui-panel ui-metro-surface {className}">
+<div use:intro={{ delay: motionDelay }} class="ui-panel ui-metro-surface {className}" data-ui-interactive={interactive ? '' : undefined}>
 	{#if title || actions}
 		<div class="ui-panel-header">
 			{#if title}

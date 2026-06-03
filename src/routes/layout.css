@@ -30,7 +30,7 @@
 	--ui-code-bg: #1b1f22;
 	--ui-code-text: #eff0f1;
 	--ui-empty-bg: rgba(239, 240, 241, 0.04);
-	--ui-overlay: rgba(27, 31, 34, 0.9);
+	--ui-overlay: rgba(10, 10, 10, 0.9);
 	--ui-selection-text: #fcfcfc;
 	color-scheme: dark;
 }
@@ -44,6 +44,23 @@ body {
 }
 
 ::selection {
+	background: transparent;
+}
+
+.ui-input::selection,
+.ui-select::selection,
+.ui-textarea::selection,
+.ui-code::selection,
+.ui-code *::selection,
+input::selection,
+select::selection,
+textarea::selection,
+[contenteditable]::selection {
+	background: var(--ui-accent);
+	color: var(--ui-selection-text);
+}
+
+.select-all::selection {
 	background: var(--ui-accent);
 	color: var(--ui-selection-text);
 }
@@ -206,8 +223,8 @@ body {
 		--ui-reveal-fill: var(--ui-surface-2);
 	}
 
-	.ui-instance-card:hover .ui-instance-card-title {
-		text-decoration-line: underline;
+	.ui-toggle-card {
+		--ui-reveal-fill: var(--ui-surface);
 	}
 
 	@media (hover: hover) and (pointer: fine) {
@@ -389,19 +406,9 @@ body {
 		border-bottom: 1px solid var(--ui-border-strong);
 	}
 
-	.ui-metro-alert-strip::before {
-		display: block;
-		height: 0.25rem;
-		content: '';
-	}
-
 	.ui-metro-alert-error {
 		background: var(--ui-danger-bg);
 		color: var(--ui-danger-text);
-	}
-
-	.ui-metro-alert-error::before {
-		background: var(--ui-danger);
 	}
 
 	.ui-metro-alert-success {
@@ -409,26 +416,14 @@ body {
 		color: var(--ui-success-text);
 	}
 
-	.ui-metro-alert-success::before {
-		background: var(--ui-success);
-	}
-
 	.ui-metro-alert-warning {
 		background: var(--ui-warning-bg);
 		color: var(--ui-warning-text);
 	}
 
-	.ui-metro-alert-warning::before {
-		background: var(--ui-warning);
-	}
-
 	.ui-metro-alert-info {
 		background: var(--ui-surface-2);
 		color: var(--ui-text);
-	}
-
-	.ui-metro-alert-info::before {
-		background: var(--ui-accent);
 	}
 
 	.ui-code {

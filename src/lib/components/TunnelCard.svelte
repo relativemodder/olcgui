@@ -15,8 +15,9 @@
 	} from 'lucide-svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import StatusIndicator from '$lib/components/ui/StatusIndicator.svelte';
-	import { metroIntro } from '$lib/motion/metro';
+	import { intro } from '$lib/motion/intro';
 	import { showMetroAlert, showMetroConfirm } from '$lib/metroAlert';
+	import { tileVisibility } from '$lib/stores/tileVisibility';
 
 	let {
 		inst,
@@ -46,57 +47,53 @@
 	}
 </script>
 
-<div class="flex flex-col justify-between gap-6 p-6 lg:flex-row lg:items-stretch">
-	<div
-		class="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-x-4 sm:grid-cols-[auto_minmax(0,1fr)]"
-	>
-		<div
-			class="col-start-2 row-start-1 mt-1 flex shrink-0 items-center justify-center justify-self-end sm:col-start-1 sm:justify-self-auto"
-		>
-			<StatusIndicator status={status as 'running' | 'restarting' | 'error' | 'stopped'} />
-		</div>
-
-		<div class="col-start-1 row-start-1 min-w-0 sm:col-start-2">
-			<div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+<div class="flex flex-col gap-4 p-6">
+	<div class="flex items-center gap-3">
+		<StatusIndicator status={status as 'running' | 'restarting' | 'error' | 'stopped'} />
+		<div class="min-w-0 flex-1">
+			<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
 				<h2
-					class="ui-title ui-instance-card-title text-2xl font-thin underline-offset-2 group-hover:no-underline"
+					class="ui-title ui-instance-card-title text-2xl font-light"
 				>
 					{inst.name}
 				</h2>
-				<div class="flex flex-wrap items-center gap-2 sm:gap-3">
-					<Badge>
-						{inst.mode === 'srv' ? 'СЕРВЕР' : 'КЛИЕНТ'}
-					</Badge>
-					<Badge variant="slate">
-						{inst.provider}
-					</Badge>
-				</div>
+				<Badge>
+					{inst.mode === 'srv' ? 'СЕРВЕР' : 'КЛИЕНТ'}
+				</Badge>
+				<Badge variant="slate">
+					{inst.provider}
+				</Badge>
 			</div>
 		</div>
+	</div>
 
+	<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 		<div
-			class="col-span-2 mt-3 grid w-full max-w-3xl grid-cols-1 gap-1.5 text-xs text-[color:var(--ui-muted)] sm:grid-cols-[minmax(0,1fr)_auto]"
+			class="grid min-w-0 flex-1 grid-cols-1 gap-1.5 text-xs text-[color:var(--ui-muted)] sm:grid-cols-[minmax(0,1fr)_auto]"
 		>
-			<span use:metroIntro class="ui-config-tile ui-metro-surface">
-				<Globe class="h-3.5 w-3.5 shrink-0" />
-				<span class="min-w-0 flex-1 truncate" title={inst.roomUrl}>{inst.roomUrl}</span>
-			</span>
-			<span use:metroIntro class="ui-config-tile ui-metro-surface">
-				<KeyRound class="h-3.5 w-3.5 shrink-0" />
-				<span class="font-mono text-[10px] tracking-tight"
-					>{inst.cryptoKey.substring(0, 10)}...</span
-				>
-			</span>
-			{#if inst.mode === 'cnc'}
-				<span use:metroIntro class="ui-config-tile ui-metro-surface sm:col-span-2">
+			{#if $tileVisibility.roomUrl}
+				<span use:intro class="ui-config-tile ui-metro-surface">
+					<Globe class="h-3.5 w-3.5 shrink-0" />
+					<span class="min-w-0 flex-1 truncate" title={inst.roomUrl}>{inst.roomUrl}</span>
+				</span>
+			{/if}
+			{#if $tileVisibility.cryptoKey}
+				<span use:intro class="ui-config-tile ui-metro-surface">
+					<KeyRound class="h-3.5 w-3.5 shrink-0" />
+					<span class="font-mono text-[10px] tracking-tight"
+						>{inst.cryptoKey.substring(0, 10)}...</span
+					>
+				</span>
+			{/if}
+			{#if inst.mode === 'cnc' && $tileVisibility.socksInfo}
+				<span use:intro class="ui-config-tile ui-metro-surface sm:col-span-2">
 					<Wifi class="h-3.5 w-3.5 shrink-0" />
 					<span>SOCKS5: <strong>{inst.socksHost}:{inst.socksPort}</strong></span>
 				</span>
 			{/if}
 		</div>
-	</div>
 
-	<div class="flex flex-wrap items-center gap-3 lg:self-end">
+		<div class="flex flex-wrap items-center gap-3">
 		{#if status === 'running' || status === 'restarting'}
 			<form
 				class="w-full sm:w-auto"
@@ -305,5 +302,6 @@
 				<Trash2 class="h-3.5 w-3.5 shrink-0" />
 			</button>
 		</form>
+		</div>
 	</div>
 </div>

@@ -11,10 +11,7 @@
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import { LayoutDashboard, Sliders, Cpu, Users, LogOut, Terminal } from 'lucide-svelte';
-	import NavItem from '$lib/components/ui/NavItem.svelte';
-	import MetroAlertHost from '$lib/components/ui/MetroAlertHost.svelte';
-	import PressFeedback from '$lib/components/ui/PressFeedback.svelte';
-	import RevealBorder from '$lib/components/ui/RevealBorder.svelte';
+	import { NavItem, MetroAlertHost, PressFeedback, RevealBorder } from '$lib';
 
 	let { data, children } = $props();
 
@@ -41,7 +38,7 @@
 						<Terminal class="h-5 w-5" />
 					</div>
 					<div class="flex flex-col">
-						<span class="text-xl leading-none font-thin">olcRTC GUI</span>
+						<span class="text-xl leading-none font-light">olcRTC GUI</span>
 					</div>
 				</div>
 

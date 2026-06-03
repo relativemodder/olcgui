@@ -2,12 +2,8 @@
 	import { AlertTriangle, CheckCircle2, Info, ShieldAlert, type IconProps } from 'lucide-svelte';
 	import type { ComponentType, SvelteComponent } from 'svelte';
 	import { fly } from 'svelte/transition';
-	import {
-		dismissMetroAlert,
-		metroAlerts,
-		type MetroAlert,
-		type MetroAlertTone
-	} from '$lib/metroAlert';
+	import { dismissMetroAlert } from '$lib/metroAlert';
+	import { metroAlerts, type MetroAlert, type MetroAlertTone } from '$lib/stores/metroAlert';
 
 	const toneClass: Record<MetroAlertTone, string> = {
 		error: 'ui-metro-alert-error',

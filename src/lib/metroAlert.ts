@@ -1,21 +1,9 @@
-import { writable } from 'svelte/store';
+import { metroAlerts, type MetroAlert, type MetroAlertTone } from '$lib/stores/metroAlert';
 
-export type MetroAlertTone = 'error' | 'success' | 'warning' | 'info';
-
-export type MetroAlert = {
-	id: number;
-	title: string;
-	message: string;
-	tone: MetroAlertTone;
-	mode: 'alert' | 'confirm';
-	confirmLabel: string;
-	cancelLabel: string;
-	resolve?: (accepted: boolean) => void;
-};
+export type { MetroAlert, MetroAlertTone } from '$lib/stores/metroAlert';
+export { metroAlerts } from '$lib/stores/metroAlert';
 
 let nextAlertId = 1;
-
-export const metroAlerts = writable<MetroAlert[]>([]);
 
 function pushMetroAlert(alert: Omit<MetroAlert, 'id'>) {
 	const id = nextAlertId++;

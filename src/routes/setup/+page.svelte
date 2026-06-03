@@ -1,10 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { ShieldCheck, Loader2 } from 'lucide-svelte';
-	import FormField from '$lib/components/ui/FormField.svelte';
-	import ErrorAlert from '$lib/components/ui/ErrorAlert.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import { metroIntro } from '$lib/motion/metro';
+	import { FormField, ErrorAlert, Button, intro } from '$lib';
 
 	let { form } = $props();
 
@@ -19,7 +16,7 @@
 </svelte:head>
 
 <div class="relative flex min-h-screen items-center justify-center px-4">
-	<div use:metroIntro class="ui-panel ui-metro-surface w-full max-w-md p-8">
+	<div use:intro class="ui-panel ui-metro-surface w-full max-w-md p-8">
 		<div class="mb-8 flex flex-col items-center">
 			<div
 				class="mb-4 flex h-16 w-16 items-center justify-center border border-[color:var(--ui-border-strong)] bg-[color:var(--ui-surface-2)]"

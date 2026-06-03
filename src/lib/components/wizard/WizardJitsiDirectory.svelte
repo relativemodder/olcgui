@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Search, Info, BookOpen } from 'lucide-svelte';
 	import { JITSI_SERVERS } from '$lib/wizard/constants';
-	import { metroIntro } from '$lib/motion/metro';
+	import { intro } from '$lib/motion/intro';
 
 	let { onSelect } = $props<{
 		onSelect: (server: string) => void;
@@ -18,7 +18,7 @@
 </script>
 
 <div
-	use:metroIntro={{ rotation: 54, x: -14, z: -28, stagger: 32 }}
+	use:intro={{ rotation: 54, x: -14, z: -28, stagger: 32 }}
 	class="ui-metro-surface mt-3 space-y-3 border border-[color:var(--ui-border)] bg-[color:var(--ui-surface-2)] p-3.5"
 >
 	<div class="flex items-center justify-between">

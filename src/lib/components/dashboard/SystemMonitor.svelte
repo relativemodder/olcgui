@@ -3,6 +3,7 @@
 	import { Cpu, HardDrive, ArrowDownUp, Activity } from 'lucide-svelte';
 	import { canPollNow, createSerialPoller } from '$lib/client/serialPoller';
 	import StatCard from '$lib/components/ui/StatCard.svelte';
+	import { tileVisibility } from '$lib/stores/tileVisibility';
 
 	interface SystemStats {
 		cpuPercent: number;
@@ -76,43 +77,51 @@
 </script>
 
 <div class="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-4">
-	<StatCard
-		label="Нагрузка ЦПУ, %"
-		value={`${stats.cpuPercent}%`}
-		icon={Cpu}
-		progress={stats.cpuPercent}
-		progressColor={stats.cpuPercent >= 90 ? 'bg-[color:var(--ui-danger)]' : undefined}
-	/>
+	{#if $tileVisibility.cpuStat}
+		<StatCard
+			label="Нагрузка ЦПУ, %"
+			value={`${stats.cpuPercent}%`}
+			icon={Cpu}
+			progress={stats.cpuPercent}
+			progressColor={stats.cpuPercent >= 90 ? 'bg-[color:var(--ui-danger)]' : undefined}
+		/>
+	{/if}
 
-	<StatCard
-		label="ОЗУ, ГБ"
-		value={formatBytes(stats.memoryUsed, 1)}
-		icon={HardDrive}
-		progress={memPercent}
-		progressColor={memPercent >= 90 ? 'bg-[color:var(--ui-danger)]' : undefined}
-	>
-		<span class="block text-4xl font-thin">{formatBytes(stats.memoryUsed, 1)}</span>
-		<span class="text-xs text-[color:var(--ui-muted)]">/ {formatBytes(stats.memoryTotal, 1)}</span>
-	</StatCard>
+	{#if $tileVisibility.ramStat}
+		<StatCard
+			label="ОЗУ, ГБ"
+			value={formatBytes(stats.memoryUsed, 1)}
+			icon={HardDrive}
+			progress={memPercent}
+			progressColor={memPercent >= 90 ? 'bg-[color:var(--ui-danger)]' : undefined}
+		>
+			<span class="block text-4xl font-thin">{formatBytes(stats.memoryUsed, 1)}</span>
+			<span class="text-xs text-[color:var(--ui-muted)]">/ {formatBytes(stats.memoryTotal, 1)}</span>
+		</StatCard>
+	{/if}
 
-	<StatCard
-		label="Нагрузка IOWait, %"
-		value={`${stats.iowaitPercent}%`}
-		icon={Activity}
-		progress={stats.iowaitPercent}
-		progressColor={stats.iowaitPercent >= 90 ? 'bg-[color:var(--ui-danger)]' : undefined}
-	/>
+	{#if $tileVisibility.iowaitStat}
+		<StatCard
+			label="Нагрузка IOWait, %"
+			value={`${stats.iowaitPercent}%`}
+			icon={Activity}
+			progress={stats.iowaitPercent}
+			progressColor={stats.iowaitPercent >= 90 ? 'bg-[color:var(--ui-danger)]' : undefined}
+		/>
+	{/if}
 
-	<StatCard label="Сеть" value="" icon={ArrowDownUp}>
-		<div class="mt-2 flex flex-col gap-1">
-			<div class="flex justify-between text-sm">
-				<span class="text-[color:var(--ui-muted)]">Rx</span>
-				<span class="font-normal">{formatBytes(stats.networkRxSec)}/s</span>
+	{#if $tileVisibility.networkStat}
+		<StatCard label="Сеть" value="" icon={ArrowDownUp}>
+			<div class="mt-2 flex flex-col gap-1">
+				<div class="flex justify-between text-sm">
+					<span class="text-[color:var(--ui-muted)]">Rx</span>
+					<span class="font-normal">{formatBytes(stats.networkRxSec)}/s</span>
+				</div>
+				<div class="flex justify-between text-sm">
+					<span class="text-[color:var(--ui-muted)]">Tx</span>
+					<span class="font-normal">{formatBytes(stats.networkTxSec)}/s</span>
+				</div>
 			</div>
-			<div class="flex justify-between text-sm">
-				<span class="text-[color:var(--ui-muted)]">Tx</span>
-				<span class="font-normal">{formatBytes(stats.networkTxSec)}/s</span>
-			</div>
-		</div>
-	</StatCard>
+		</StatCard>
+	{/if}
 </div>

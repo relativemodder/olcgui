@@ -13,13 +13,7 @@
 		type ParsedOlcrtcUri
 	} from '$lib/wizard/utils';
 	import { Sliders, RefreshCw, Info } from 'lucide-svelte';
-	import FormField from '$lib/components/ui/FormField.svelte';
-	import SelectField from '$lib/components/ui/SelectField.svelte';
-	import Panel from '$lib/components/ui/Panel.svelte';
-	import ErrorAlert from '$lib/components/ui/ErrorAlert.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import { metroIntro } from '$lib/motion/metro';
+	import { FormField, SelectField, Panel, ErrorAlert, PageHeader, Button, intro } from '$lib';
 
 	let { form, data } = $props();
 
@@ -245,7 +239,7 @@
 
 					{#if mode === 'cnc'}
 						<div
-							use:metroIntro={{ rotation: 58, x: -16, z: -30 }}
+							use:intro={{ rotation: 58, x: -16, z: -30 }}
 							class="ui-metro-surface space-y-4 border border-[color:var(--ui-border)] bg-[color:var(--ui-surface-2)] p-4"
 						>
 							<h3

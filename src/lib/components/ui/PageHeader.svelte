@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { metroIntro } from '$lib/motion/metro';
+	import { intro } from '$lib/motion/intro';
 
 	let {
 		title,
@@ -14,7 +14,7 @@
 </script>
 
 <div
-	use:metroIntro={{ duration: 460, rotation: 48, x: -16 }}
+	use:intro={{ duration: 460, rotation: 48, x: -16 }}
 	class="mb-6 flex flex-col items-start justify-between gap-4 border-b border-[color:var(--ui-border)] pb-4 sm:flex-row sm:items-end"
 >
 	<div>

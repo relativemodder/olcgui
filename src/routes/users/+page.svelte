@@ -1,12 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { Users, UserPlus, Loader2 } from 'lucide-svelte';
-	import AdminCard from '$lib/components/AdminCard.svelte';
-	import FormField from '$lib/components/ui/FormField.svelte';
-	import Panel from '$lib/components/ui/Panel.svelte';
-	import ErrorAlert from '$lib/components/ui/ErrorAlert.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import { AdminCard, FormField, Panel, ErrorAlert, Button, PageHeader } from '$lib';
 
 	let { data, form } = $props();
 

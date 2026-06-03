@@ -5,6 +5,29 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
 		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+		<style>
+			::-webkit-scrollbar {
+				width: 10px;
+				height: 10px;
+			}
+			::-webkit-scrollbar-track {
+				background: var(--ui-bg, #232629);
+			}
+			::-webkit-scrollbar-thumb {
+				background: var(--ui-surface-strong, #4b5359);
+				border-radius: 0;
+			}
+			::-webkit-scrollbar-thumb:hover {
+				background: var(--ui-muted, #bdc3c7);
+			}
+			::-webkit-scrollbar-corner {
+				background: var(--ui-bg, #232629);
+			}
+			* {
+				scrollbar-width: thin;
+				scrollbar-color: var(--ui-surface-strong, #4b5359) var(--ui-bg, #232629);
+			}
+		</style>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="tap">

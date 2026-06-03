@@ -16,7 +16,9 @@
 			await navigator.clipboard.writeText(text);
 			copied = true;
 			setTimeout(() => (copied = false), 2000);
-		} catch {}
+		} catch {
+			console.error('Failed to copy text to clipboard');
+		}
 	}
 </script>
 

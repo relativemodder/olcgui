@@ -2,12 +2,12 @@
 	import { enhance } from '$app/forms';
 	import { Users, Trash2 } from 'lucide-svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
-	import { metroIntro } from '$lib/motion/metro';
+	import { intro } from '$lib/motion/intro';
 
 	let { user, currentUser = null } = $props();
 </script>
 
-<div use:metroIntro class="ui-panel ui-metro-surface flex items-center justify-between p-5">
+<div use:intro class="ui-panel ui-metro-surface flex items-center justify-between p-5">
 	<div class="flex items-center gap-3.5">
 		<div
 			class="flex h-10 w-10 items-center justify-center border border-[color:var(--ui-border-strong)] bg-[color:var(--ui-surface-2)] text-[color:var(--ui-muted)]"

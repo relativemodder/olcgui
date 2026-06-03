@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ComponentType, Snippet, SvelteComponent } from 'svelte';
 	import type { IconProps } from 'lucide-svelte';
-	import { metroIntro } from '$lib/motion/metro';
+	import { intro } from '$lib/motion/intro';
 
 	let {
 		label,
@@ -10,6 +10,7 @@
 		progress = -1,
 		progressColor = undefined as string | undefined,
 		motionDelay = 'auto' as number | 'auto',
+		interactive = false,
 		class: className = '',
 		children = undefined as Snippet | undefined
 	}: {
@@ -19,6 +20,7 @@
 		progress?: number;
 		progressColor?: string;
 		motionDelay?: number | 'auto';
+		interactive?: boolean;
 		class?: string;
 		children?: Snippet;
 	} = $props();
@@ -30,8 +32,9 @@
 </script>
 
 <div
-	use:metroIntro={{ delay: motionDelay }}
+	use:intro={{ delay: motionDelay }}
 	class="ui-card ui-metro-surface flex items-center justify-between p-5 {className}"
+	data-ui-interactive={interactive ? '' : undefined}
 >
 	<div class="flex w-full flex-col">
 		<div class="flex items-center justify-between">

@@ -9,8 +9,8 @@
 		'[role="link"]',
 		'summary',
 		'[tabindex]:not([tabindex="-1"])',
-		'.ui-card',
-		'.ui-panel'
+		'.ui-card[data-ui-interactive]',
+		'.ui-panel[data-ui-interactive]'
 	].join(',');
 
 	const excludedSelector =

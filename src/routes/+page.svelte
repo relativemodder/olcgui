@@ -1,17 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { onMount, onDestroy } from 'svelte';
-	import { Sliders, Globe, Wifi, ShieldAlert } from 'lucide-svelte';
+	import { Sliders, Globe, Wifi, ShieldAlert, Settings } from 'lucide-svelte';
 	import { RefreshCw, Activity } from 'lucide-svelte';
 	import { canPollNow, createSerialPoller } from '$lib/client/serialPoller';
-	import TunnelCard from '$lib/components/TunnelCard.svelte';
-	import Terminal from '$lib/components/Terminal.svelte';
-	import SystemMonitor from '$lib/components/dashboard/SystemMonitor.svelte';
-	import PageHeader from '$lib/components/ui/PageHeader.svelte';
-	import StatCard from '$lib/components/ui/StatCard.svelte';
-	import { metroIntro } from '$lib/motion/metro';
+	import { CustomizationPopup, TunnelCard, Terminal, SystemMonitor, PageHeader, StatCard, intro, tileVisibility } from '$lib';
 
 	let { data } = $props();
+
+	let showCustomization = $state(false);
 
 	let polledStatuses = $state<Record<number, { status: string; autoRestart: boolean }>>({});
 	let activeLogId = $state<number | null>(null);
@@ -184,30 +181,52 @@
 		description="Мониторинг, перезапуски и управление SOCKS5 WebRTC туннелями"
 	>
 		{#snippet actions()}
-			<a
-				href="/wizard"
-				class="ui-button ui-button-primary cursor-pointer px-4 py-2.5 text-sm font-normal"
-			>
-				<Sliders class="h-4 w-4" />
-				<span>Создать туннель</span>
-			</a>
+			<div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+				<a
+					href="/wizard"
+					class="ui-button ui-button-primary w-full cursor-pointer px-4 py-2.5 text-sm font-normal sm:w-auto"
+				>
+					<Sliders class="h-4 w-4" />
+					<span>Создать туннель</span>
+				</a>
+				<button
+					type="button"
+					class="ui-button w-full cursor-pointer px-4 py-2.5 text-sm font-normal sm:w-auto"
+					onclick={() => (showCustomization = true)}
+				>
+					<Settings class="h-4 w-4" />
+					<span>Кастомизация</span>
+				</button>
+			</div>
 		{/snippet}
 	</PageHeader>
 
-	<SystemMonitor />
+	{#if $tileVisibility.systemMonitor}
+		<SystemMonitor />
+	{/if}
 
-	<div class="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-4">
-		<StatCard label="Всего туннелей" value={String(totalCount)} icon={Globe} />
-		<StatCard label="Активно" value={String(runningCount)} icon={Wifi} />
-		<StatCard label="В процессе перезапуска" value={String(restartingCount)} icon={RefreshCw} />
-		<StatCard label="Ошибки" value={String(errorCount)} icon={ShieldAlert} />
-	</div>
+	{#if $tileVisibility.statCards}
+		<div class="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-4">
+			{#if $tileVisibility.totalTunnelsStat}
+				<StatCard label="Всего туннелей" value={String(totalCount)} icon={Globe} />
+			{/if}
+			{#if $tileVisibility.activeStat}
+				<StatCard label="Активно" value={String(runningCount)} icon={Wifi} />
+			{/if}
+			{#if $tileVisibility.restartingStat}
+				<StatCard label="В процессе перезапуска" value={String(restartingCount)} icon={RefreshCw} />
+			{/if}
+			{#if $tileVisibility.errorStat}
+				<StatCard label="Ошибки" value={String(errorCount)} icon={ShieldAlert} />
+			{/if}
+		</div>
+	{/if}
 
 	<hr class="mb-8 text-[color:var(--ui-border)]" />
 
 	{#if data.instances.length === 0}
 		<div
-			use:metroIntro
+			use:intro
 			class="ui-panel ui-metro-surface ui-empty flex w-full flex-col items-center justify-center p-12 text-center"
 		>
 			<div
@@ -231,8 +250,9 @@
 		<div class="grid grid-cols-1 gap-6">
 			{#each data.instances as inst (inst.id)}
 				<div
-					use:metroIntro
+					use:intro
 					class="ui-panel ui-metro-surface ui-instance-card group flex cursor-pointer flex-col overflow-hidden"
+					data-ui-interactive
 					role="link"
 					tabindex="0"
 					aria-label="Открыть настройки туннеля {inst.name}"
@@ -295,3 +315,5 @@
 		</div>
 	{/if}
 </div>
+
+<CustomizationPopup open={showCustomization} onclose={() => (showCustomization = false)} />
