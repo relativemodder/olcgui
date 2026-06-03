@@ -1,0 +1,45 @@
+import type { ColorScheme } from './types';
+
+const catppuccinMacchiato = {
+	id: 'catppuccin-macchiato',
+	label: 'Catppuccin Macchiato',
+	variables: {
+		'--ui-bg': '#24273a',
+		'--ui-surface': '#363a4f',
+		'--ui-surface-2': '#494d64',
+		'--ui-surface-strong': '#5b6078',
+		'--ui-border': '#494d64',
+		'--ui-border-strong': '#181926',
+		'--ui-border-subtle': 'rgba(202, 211, 245, 0.08)',
+		'--ui-text': '#cad3f5',
+		'--ui-muted': '#939ab7',
+		'--ui-accent': '#8aadf4',
+		'--ui-accent-strong': '#7dc4e4',
+		'--ui-accent-border': '#8aadf4',
+		'--ui-success': '#a6da95',
+		'--ui-success-bg': 'rgba(166, 218, 149, 0.12)',
+		'--ui-success-border': '#a6da95',
+		'--ui-success-text': '#a6da95',
+		'--ui-warning': '#eed49f',
+		'--ui-warning-bg': 'rgba(238, 212, 159, 0.12)',
+		'--ui-warning-border': '#eed49f',
+		'--ui-warning-text': '#eed49f',
+		'--ui-danger': '#ed8796',
+		'--ui-danger-strong': '#ee99a0',
+		'--ui-danger-bg': 'rgba(237, 135, 150, 0.12)',
+		'--ui-danger-border': '#ed8796',
+		'--ui-danger-text': '#ed8796',
+		'--ui-code-bg': '#1e2030',
+		'--ui-code-text': '#cad3f5',
+		'--ui-hover': '#404459',
+		'--ui-empty-bg': 'rgba(202, 211, 245, 0.04)',
+		'--ui-overlay': 'rgba(24, 25, 38, 0.9)',
+		'--ui-glow': 'rgba(202, 211, 245, 0.92)',
+		'--ui-glow-muted': 'rgba(147, 154, 183, 0.46)',
+		'--ui-glow-dim': 'rgba(147, 154, 183, 0.16)',
+		'--ui-selection-text': '#24273a',
+		'color-scheme': 'dark'
+	}
+} as const satisfies ColorScheme;
+
+export default catppuccinMacchiato;

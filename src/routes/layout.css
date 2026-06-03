@@ -224,7 +224,7 @@ textarea::selection,
 	}
 
 	.ui-instance-card:hover {
-		--ui-reveal-fill: var(--ui-surface-2);
+		--ui-reveal-fill: var(--ui-hover);
 	}
 
 	.ui-toggle-card {

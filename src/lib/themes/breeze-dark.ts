@@ -31,6 +31,7 @@ const breezeDark = {
 		'--ui-danger-text': '#ffb3ba',
 		'--ui-code-bg': '#1b1f22',
 		'--ui-code-text': '#eff0f1',
+		'--ui-hover': '#3b4045',
 		'--ui-empty-bg': 'rgba(239, 240, 241, 0.04)',
 		'--ui-overlay': 'rgba(10, 10, 10, 0.9)',
 		'--ui-glow': 'rgba(239, 240, 241, 0.92)',

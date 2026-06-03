@@ -31,6 +31,7 @@ const nord = {
 		'--ui-danger-text': '#e8a0a8',
 		'--ui-code-bg': '#2e3440',
 		'--ui-code-text': '#eceff4',
+		'--ui-hover': '#434c5e',
 		'--ui-empty-bg': 'rgba(216, 222, 233, 0.04)',
 		'--ui-overlay': 'rgba(0, 0, 0, 0.7)',
 		'--ui-glow': 'rgba(236, 239, 244, 0.88)',

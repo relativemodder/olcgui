@@ -31,6 +31,7 @@ const dracula = {
 		'--ui-danger-text': '#ff8888',
 		'--ui-code-bg': '#21222c',
 		'--ui-code-text': '#f8f8f2',
+		'--ui-hover': '#3d4050',
 		'--ui-empty-bg': 'rgba(248, 248, 242, 0.04)',
 		'--ui-overlay': 'rgba(0, 0, 0, 0.8)',
 		'--ui-glow': 'rgba(248, 248, 242, 0.88)',

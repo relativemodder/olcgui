@@ -26,6 +26,7 @@ export const CSS_VARIABLE_KEYS = [
 	'--ui-danger-text',
 	'--ui-code-bg',
 	'--ui-code-text',
+	'--ui-hover',
 	'--ui-empty-bg',
 	'--ui-overlay',
 	'--ui-glow',

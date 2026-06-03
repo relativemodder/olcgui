@@ -31,6 +31,7 @@ const breezeLight = {
 		'--ui-danger-text': '#922b36',
 		'--ui-code-bg': '#f5f5f5',
 		'--ui-code-text': '#232629',
+		'--ui-hover': '#f0f0f0',
 		'--ui-empty-bg': 'rgba(0, 0, 0, 0.04)',
 		'--ui-overlay': 'rgba(0, 0, 0, 0.5)',
 		'--ui-glow': 'rgba(0, 38, 41, 0.6)',
