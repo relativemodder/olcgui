@@ -14,9 +14,6 @@ export const POST: RequestHandler = async ({ locals }) => {
 		await startBuild();
 		return json({ success: true });
 	} catch (error) {
-		return json(
-			{ error: normalizeError(error, 'Failed to start compilation.') },
-			{ status: 500 }
-		);
+		return json({ error: normalizeError(error, 'Failed to start compilation.') }, { status: 500 });
 	}
 };

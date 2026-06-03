@@ -26,9 +26,10 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 	}
 
 	try {
-		const allInstances = user.role === 'admin'
-			? await db.select().from(instances)
-			: await db.select().from(instances).where(eq(instances.userId, user.userId));
+		const allInstances =
+			user.role === 'admin'
+				? await db.select().from(instances)
+				: await db.select().from(instances).where(eq(instances.userId, user.userId));
 
 		const statusList = allInstances.map((inst) => ({
 			id: inst.id,
@@ -40,9 +41,6 @@ export const GET: RequestHandler = async ({ url, locals }) => {
 			instances: statusList
 		});
 	} catch (error) {
-		return json(
-			{ error: normalizeError(error, 'Database error') },
-			{ status: 500 }
-		);
+		return json({ error: normalizeError(error, 'Database error') }, { status: 500 });
 	}
 };

@@ -8,9 +8,10 @@ import { requireAuth, canAccessInstance, normalizeError } from '$lib/server/auth
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = locals.user;
-	const dbInstances = user?.role === 'admin'
-		? await db.select().from(instances)
-		: await db.select().from(instances).where(eq(instances.userId, user!.userId));
+	const dbInstances =
+		user?.role === 'admin'
+			? await db.select().from(instances)
+			: await db.select().from(instances).where(eq(instances.userId, user!.userId));
 
 	return {
 		instances: dbInstances,

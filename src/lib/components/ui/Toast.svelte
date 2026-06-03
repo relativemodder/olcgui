@@ -10,7 +10,9 @@
 </script>
 
 {#if visible.length > 0}
-	<div class="fixed bottom-16 left-4 right-4 z-[100] flex flex-col gap-2 md:bottom-4 md:left-4 md:right-auto md:w-80">
+	<div
+		class="fixed right-4 bottom-16 left-4 z-[100] flex flex-col gap-2 md:right-auto md:bottom-4 md:left-4 md:w-80"
+	>
 		{#each visible as toast (toast.id)}
 			<div
 				transition:fly={{ y: 16, duration: 200 }}

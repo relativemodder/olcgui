@@ -1,7 +1,16 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { Users, UserPlus, KeyRound, UserCog } from 'lucide-svelte';
-	import { AdminCard, FormField, Panel, ErrorAlert, Button, PageHeader, UserEditModal, UserCreateModal } from '$lib';
+	import {
+		AdminCard,
+		FormField,
+		Panel,
+		ErrorAlert,
+		Button,
+		PageHeader,
+		UserEditModal,
+		UserCreateModal
+	} from '$lib';
 	import Badge from '$lib/components/ui/Badge.svelte';
 
 	let { data, form } = $props();
@@ -40,7 +49,7 @@
 
 	<div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
 		{#if isAdmin}
-			<div class="space-y-4 order-2 lg:order-none lg:col-span-2">
+			<div class="order-2 space-y-4 lg:order-none lg:col-span-2">
 				<Panel title="Список пользователей ({data.allUsers.length})" icon={Users}>
 					{#snippet actions()}
 						<button
@@ -74,7 +83,9 @@
 								<span class="text-base leading-none font-medium">{data.currentUser.username}</span>
 								<Badge variant="emerald">ВЫ</Badge>
 							</div>
-							<span class="mt-1.5 text-xs font-medium tracking-wide text-[color:var(--ui-muted)] uppercase">
+							<span
+								class="mt-1.5 text-xs font-medium tracking-wide text-[color:var(--ui-muted)] uppercase"
+							>
 								{data.currentUser.role === 'admin' ? 'Администратор' : 'Пользователь'}
 							</span>
 						</div>
@@ -200,5 +211,9 @@
 	</div>
 </div>
 
-<UserEditModal open={editingUser !== null} user={editingUser} onclose={() => (editingUser = null)} />
+<UserEditModal
+	open={editingUser !== null}
+	user={editingUser}
+	onclose={() => (editingUser = null)}
+/>
 <UserCreateModal open={creatingUser} onclose={() => (creatingUser = false)} />

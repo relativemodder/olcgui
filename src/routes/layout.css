@@ -152,15 +152,15 @@ textarea::selection,
 		background: var(--ui-accent);
 	}
 
-.ui-button-danger {
-	border-color: var(--ui-danger-border);
-	background: var(--ui-danger-strong);
-	color: var(--ui-selection-text);
-}
+	.ui-button-danger {
+		border-color: var(--ui-danger-border);
+		background: var(--ui-danger-strong);
+		color: var(--ui-selection-text);
+	}
 
-.ui-button-danger:hover {
-	background: var(--ui-danger);
-}
+	.ui-button-danger:hover {
+		background: var(--ui-danger);
+	}
 
 	.ui-button-icon {
 		height: 2.15rem;

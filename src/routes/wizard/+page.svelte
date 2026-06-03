@@ -22,7 +22,9 @@
 
 	let name = $state(initial?.name ?? '');
 	let mode = $state<'cnc' | 'srv'>(initial?.mode ?? 'srv');
-	let selectedUserId = $state<number>(initial?.userId ?? data.currentUserId ?? data.allUsers[0]?.id ?? 0);
+	let selectedUserId = $state<number>(
+		initial?.userId ?? data.currentUserId ?? data.allUsers[0]?.id ?? 0
+	);
 	let provider = $state<'jitsi' | 'wbstream' | 'telemost'>(initial?.provider ?? 'jitsi');
 	let roomUrl = $state(initial?.roomUrl ?? '');
 	let cryptoKey = $state(initial?.cryptoKey ?? generateCryptoKey());
@@ -153,7 +155,10 @@
 
 					{#if data.isAdmin && data.allUsers.length > 0}
 						<div>
-							<label for="ownerUser" class="mb-2 flex items-center gap-2 text-sm font-medium tracking-wide text-[color:var(--ui-muted)] uppercase">
+							<label
+								for="ownerUser"
+								class="mb-2 flex items-center gap-2 text-sm font-medium tracking-wide text-[color:var(--ui-muted)] uppercase"
+							>
 								<Users class="h-3.5 w-3.5" />
 								<span>Владелец</span>
 							</label>

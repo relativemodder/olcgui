@@ -9,16 +9,17 @@ import { requireAuth, requireAdmin, normalizeError } from '$lib/server/auth/guar
 
 export const load: PageServerLoad = async ({ locals }) => {
 	try {
-		const allUsers = locals.user?.role === 'admin'
-			? await db
-					.select({
-						id: users.id,
-						username: users.username,
-						role: users.role,
-						createdAt: users.createdAt
-					})
-					.from(users)
-			: [];
+		const allUsers =
+			locals.user?.role === 'admin'
+				? await db
+						.select({
+							id: users.id,
+							username: users.username,
+							role: users.role,
+							createdAt: users.createdAt
+						})
+						.from(users)
+				: [];
 
 		return {
 			allUsers,
@@ -133,11 +134,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			const [existing] = await db
-				.select()
-				.from(users)
-				.where(eq(users.username, username))
-				.limit(1);
+			const [existing] = await db.select().from(users).where(eq(users.username, username)).limit(1);
 
 			if (existing && existing.id !== id) {
 				return fail(400, { error: 'Имя пользователя занято.' });
@@ -184,11 +181,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			const [user] = await db
-				.select()
-				.from(users)
-				.where(eq(users.id, locals.user.userId))
-				.limit(1);
+			const [user] = await db.select().from(users).where(eq(users.id, locals.user.userId)).limit(1);
 
 			if (!user) return fail(400, { error: 'Пользователь не найден.' });
 
@@ -217,22 +210,14 @@ export const actions: Actions = {
 		}
 
 		try {
-			const [user] = await db
-				.select()
-				.from(users)
-				.where(eq(users.id, locals.user.userId))
-				.limit(1);
+			const [user] = await db.select().from(users).where(eq(users.id, locals.user.userId)).limit(1);
 
 			if (!user) return fail(400, { error: 'Пользователь не найден.' });
 
 			const valid = await verifyPassword(currentPassword, user.passwordHash);
 			if (!valid) return fail(400, { error: 'Неверный текущий пароль.' });
 
-			const [existing] = await db
-				.select()
-				.from(users)
-				.where(eq(users.username, username))
-				.limit(1);
+			const [existing] = await db.select().from(users).where(eq(users.username, username)).limit(1);
 
 			if (existing && existing.id !== locals.user.userId) {
 				return fail(400, { error: 'Имя пользователя занято.' });

@@ -50,10 +50,7 @@
 			ontoggle();
 		}}
 	>
-		<div
-			class="ui-switch-track {small ? 'ui-switch-small' : ''}"
-			class:ui-switch-on={value}
-		>
+		<div class="ui-switch-track {small ? 'ui-switch-small' : ''}" class:ui-switch-on={value}>
 			<div class="ui-switch-thumb" class:ui-switch-on={value} />
 		</div>
 	</button>

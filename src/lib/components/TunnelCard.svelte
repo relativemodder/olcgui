@@ -10,7 +10,8 @@
 		X as XIcon,
 		Settings,
 		Terminal as TerminalIcon,
-		Trash2
+		Trash2,
+		Square
 	} from 'lucide-svelte';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import StatusIndicator from '$lib/components/ui/StatusIndicator.svelte';
