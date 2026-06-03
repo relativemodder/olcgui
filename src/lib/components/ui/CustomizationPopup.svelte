@@ -2,7 +2,9 @@
 	import { X, RotateCcw } from 'lucide-svelte';
 	import { fly } from 'svelte/transition';
 	import { animationMode } from '$lib/stores/animation';
+	import { colorScheme } from '$lib/stores/colorScheme';
 	import { tileVisibility, type TileVisibility } from '$lib/stores/tileVisibility';
+	import { colorSchemes } from '$lib/themes/schemes';
 	import ToggleCard from '$lib/components/ui/ToggleCard.svelte';
 
 	let {
@@ -133,6 +135,19 @@
 							<option value="metro">Metro</option>
 							<option value="fade">Fade</option>
 							<option value="none">Без анимации</option>
+						</select>
+					</div>
+
+					<div>
+						<label for="color-scheme" class="ui-label">Цветовая схема</label>
+						<select
+							id="color-scheme"
+							class="ui-select w-full cursor-pointer px-4 py-2.5 text-base font-normal focus:outline-none"
+							bind:value={$colorScheme}
+						>
+							{#each colorSchemes as scheme (scheme.id)}
+								<option value={scheme.id}>{scheme.label}</option>
+							{/each}
 						</select>
 					</div>
 

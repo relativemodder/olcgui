@@ -12,8 +12,20 @@
 	import { enhance } from '$app/forms';
 	import { LayoutDashboard, Sliders, Cpu, Users, LogOut, Terminal } from 'lucide-svelte';
 	import { NavItem, MetroAlertHost, PressFeedback, RevealBorder } from '$lib';
+	import { colorScheme } from '$lib/stores/colorScheme';
+	import { getColorScheme } from '$lib/themes/schemes';
 
 	let { data, children } = $props();
+
+	$effect(() => {
+		const scheme = getColorScheme($colorScheme);
+		if (typeof document !== 'undefined') {
+			const root = document.documentElement;
+			for (const [key, value] of Object.entries(scheme.variables)) {
+				root.style.setProperty(key, value);
+			}
+		}
+	});
 
 	let currentPath = $derived(page.url.pathname);
 

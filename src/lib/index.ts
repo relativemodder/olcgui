@@ -40,11 +40,17 @@ export type { IntroParams } from './motion/intro';
 // Stores
 export { animationMode } from './stores/animation';
 export type { AnimationMode } from './stores/animation';
+export { colorScheme } from './stores/colorScheme';
+export type { ColorSchemeId } from './stores/colorScheme';
 export { tileVisibility } from './stores/tileVisibility';
 export type { TileVisibility } from './stores/tileVisibility';
 export { metroAlerts } from './stores/metroAlert';
 export type { MetroAlert, MetroAlertTone } from './stores/metroAlert';
 export { persistedWritable } from './stores/persisted';
+
+// Themes
+export { colorSchemes, getColorScheme } from './themes/schemes';
+export type { ColorScheme } from './themes/schemes';
 
 // Alert utilities
 export { showMetroAlert, showMetroConfirm, dismissMetroAlert } from './metroAlert';

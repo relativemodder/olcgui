@@ -245,10 +245,10 @@ textarea::selection,
 				linear-gradient(var(--ui-reveal-fill), var(--ui-reveal-fill)) padding-box,
 				radial-gradient(
 						circle 18rem at var(--ui-reveal-x) var(--ui-reveal-y),
-						rgba(239, 240, 241, 0.92),
-						rgba(189, 195, 199, 0.46) 28%,
-						rgba(189, 195, 199, 0.16) 48%,
-						rgba(189, 195, 199, 0) 72%
+						var(--ui-glow),
+						var(--ui-glow-muted) 28%,
+						var(--ui-glow-dim) 48%,
+						transparent 72%
 					)
 					border-box,
 				linear-gradient(var(--ui-border), var(--ui-border)) border-box;
