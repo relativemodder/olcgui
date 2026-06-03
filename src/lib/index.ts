@@ -4,6 +4,7 @@ export { default as Button } from './components/ui/Button.svelte';
 export { default as CodeBlock } from './components/ui/CodeBlock.svelte';
 export { default as CopyButton } from './components/ui/CopyButton.svelte';
 export { default as CustomizationPopup } from './components/ui/CustomizationPopup.svelte';
+export { default as DotProgress } from './components/ui/DotProgress.svelte';
 export { default as ErrorAlert } from './components/ui/ErrorAlert.svelte';
 export { default as FormField } from './components/ui/FormField.svelte';
 export { default as MetroAlertHost } from './components/ui/MetroAlertHost.svelte';

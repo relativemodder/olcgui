@@ -8,15 +8,26 @@
 	import '@fontsource/noto-sans/cyrillic-400.css';
 	import '@fontsource/noto-sans/cyrillic-500.css';
 	import './layout.css';
+	import { beforeNavigate, afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { enhance } from '$app/forms';
 	import { LayoutDashboard, Sliders, Cpu, Users, LogOut, Terminal } from 'lucide-svelte';
-	import { NavItem, MetroAlertHost, PressFeedback, RevealBorder } from '$lib';
+	import { DotProgress, NavItem, MetroAlertHost, PressFeedback, RevealBorder } from '$lib';
 	import Toast from '$lib/components/ui/Toast.svelte';
 	import { colorScheme } from '$lib/stores/colorScheme';
 	import { getColorScheme, applyTheme } from '$lib/themes';
 
 	let { data, children } = $props();
+
+	let navigating = $state(false);
+
+	beforeNavigate(() => {
+		navigating = true;
+	});
+
+	afterNavigate(() => {
+		navigating = false;
+	});
 
 	$effect(() => {
 		applyTheme(getColorScheme($colorScheme));
@@ -71,6 +82,8 @@
 				</div>
 			</div>
 		</header>
+
+		<DotProgress active={navigating} />
 
 		<nav
 			class="fixed bottom-0 z-40 flex w-full items-center justify-around border-t border-[color:var(--ui-border-strong)] bg-[color:var(--ui-surface)] px-2 py-2 md:hidden"

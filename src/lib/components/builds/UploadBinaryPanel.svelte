@@ -54,9 +54,9 @@
 	</div>
 
 	<div class="flex flex-col gap-4">
-		<div class="flex items-center gap-4">
+		<div class="flex items-center gap-4 max-sm:flex-col">
 			<label
-				class="ui-button ui-button-primary flex cursor-pointer items-center gap-2 px-6 py-2.5 text-xs font-normal"
+				class="ui-button ui-button-primary flex cursor-pointer items-center justify-center gap-2 px-6 py-2.5 text-xs font-normal max-sm:w-full"
 				class:opacity-50={isUploading}
 				class:cursor-not-allowed={isUploading}
 			>

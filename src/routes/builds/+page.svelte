@@ -177,12 +177,12 @@
 	<div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
 		<div class="space-y-6 lg:col-span-2">
 			{#if isAdmin}
-				{#snippet repoActions()}
+				{#snippet repoButton()}
 					<button
 						type="button"
 						onclick={triggerRepoPull}
 						disabled={repoPullInFlight || repoSyncing}
-						class="ui-button ui-button-primary cursor-pointer px-6 py-2.5 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50"
+						class="ui-button ui-button-primary cursor-pointer px-6 py-2.5 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50 max-sm:w-full"
 					>
 						{#if repoPullInFlight || repoSyncing}
 							<Loader2 class="h-4 w-4 animate-spin" />
@@ -193,8 +193,16 @@
 						{/if}
 					</button>
 				{/snippet}
+				{#snippet repoActions()}
+					<div class="hidden sm:block">
+						{@render repoButton()}
+					</div>
+				{/snippet}
 				<Panel title="Репозиторий (olcrtc)" icon={RefreshCw} actions={repoActions}>
 					<p class="text-xs text-[color:var(--ui-muted)]">Pull выполняется только по кнопке.</p>
+					<div class="max-sm:mt-4 sm:hidden">
+						{@render repoButton()}
+					</div>
 				</Panel>
 			{/if}
 
@@ -202,7 +210,8 @@
 				<Panel title="Текущий коммит исходного кода" icon={GitCommit}>
 					<div class="space-y-4">
 						<div class="border border-[color:var(--ui-border)] bg-[color:var(--ui-surface-2)] p-4">
-							<span class="font-mono text-sm font-normal text-[color:var(--ui-muted)]"
+							<span
+								class="block max-w-full truncate font-mono text-sm font-normal text-[color:var(--ui-muted)]"
 								>{data.currentCommit.hash}</span
 							>
 							<p class="mt-1.5 text-base leading-snug font-normal">
@@ -233,24 +242,28 @@
 			{/if}
 
 			{#if isAdmin}
-				<Panel title="Компилятор (Mage compiler)" icon={Cpu}>
-					{#snippet actions()}
-						<button
-							type="button"
-							onclick={triggerBuild}
-							disabled={buildStartInFlight || isBuilding || repoSyncing}
-							class="ui-button ui-button-primary cursor-pointer px-6 py-2.5 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							{#if buildStartInFlight || isBuilding}
-								<Loader2 class="h-4 w-4 animate-spin" />
-								<span>Идет сборка...</span>
-							{:else}
-								<RefreshCw class="h-4 w-4" />
-								<span>Запустить сборку (Mage build)</span>
-							{/if}
-						</button>
-					{/snippet}
-
+				{#snippet buildButton()}
+					<button
+						type="button"
+						onclick={triggerBuild}
+						disabled={buildStartInFlight || isBuilding || repoSyncing}
+						class="ui-button ui-button-primary cursor-pointer px-6 py-2.5 text-xs font-normal disabled:cursor-not-allowed disabled:opacity-50 max-sm:w-full"
+					>
+						{#if buildStartInFlight || isBuilding}
+							<Loader2 class="h-4 w-4 animate-spin" />
+							<span>Идет сборка...</span>
+						{:else}
+							<RefreshCw class="h-4 w-4" />
+							<span>Запустить сборку (Mage build)</span>
+						{/if}
+					</button>
+				{/snippet}
+				{#snippet buildActions()}
+					<div class="hidden sm:block">
+						{@render buildButton()}
+					</div>
+				{/snippet}
+				<Panel title="Компилятор (Mage compiler)" icon={Cpu} actions={buildActions}>
 					<Terminal
 						logs={buildLogs}
 						title="Журнал компиляции"
@@ -271,6 +284,10 @@
 						emptyText="Журнал пуст."
 						heightClass="h-80"
 					/>
+
+					<div class="max-sm:mt-4 sm:hidden">
+						{@render buildButton()}
+					</div>
 				</Panel>
 
 				<UploadBinaryPanel />
