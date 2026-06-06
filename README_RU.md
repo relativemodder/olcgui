@@ -13,24 +13,24 @@
 - SQLite
 - Tailwind CSS v4
 
-## Запуск через Docker
+## Развёртывание на VPS
+
+Запустите интерактивный менеджер деплоя одной строкой из корня репозитория:
+
+```bash
+python3 <(curl -fsSL https://raw.githubusercontent.com/relativemodder/olcgui/main/install.py)
+```
+
+Если `curl` недоступен, используйте `wget`:
+
+```bash
+python3 <(wget -qO- https://raw.githubusercontent.com/relativemodder/olcgui/main/install.py)
+```
+
+Скрипт сам спросит язык, директорию установки, порты и префикс registry, после чего создаст `compose.yml`, `.env`, `data/` и `olcrtc/`.
 
 - `web` отдаёт фронтенд SvelteKit по адресу `http://localhost:5173`
 - `api` остаётся внутри сети Compose и доступен только через `web`
-
-Перед запуском, особенно на системах с SELinux вроде Fedora/Bazzite, создайте папки для bind-mount:
-
-```bash
-mkdir data olcrtc
-docker compose up -d --build
-```
-
-Если используете Podman:
-
-```bash
-mkdir data olcrtc
-podman compose up -d --build
-```
 
 Контейнер `api` монтирует репозиторий `olcrtc` и базу данных, поэтому данные сохраняются между перезапусками. Контейнер `web` проксирует `/api/*` во внутренний backend через `API_BACKEND_URL=http://api:3001`.
 

@@ -15,26 +15,26 @@ Web interface for managing [olcrtc](https://github.com/openlibrecommunity/olcrtc
 - SQLite
 - Tailwind CSS v4
 
-## Running with Docker
+## Deploy on VPS
 
-The deployment is split into two containers:
+Run the interactive deployment manager from the repository root with a single line:
+
+```bash
+python3 <(curl -fsSL https://raw.githubusercontent.com/relativemodder/olcgui/main/install.py)
+```
+
+If `curl` is not available, use `wget` instead:
+
+```bash
+python3 <(wget -qO- https://raw.githubusercontent.com/relativemodder/olcgui/main/install.py)
+```
+
+The script will ask for language, install directory, ports, and registry prefix, then create `compose.yml`, `.env`, `data/`, and `olcrtc/` for you.
+
+The stack is split into two containers:
 
 - `web` serves the SvelteKit frontend on `http://localhost:5173`
 - `api` stays private inside the Compose network and is only reached through `web`
-
-Before running, create the bind-mount directories first, especially on systems with SELinux like Fedora/Bazzite:
-
-```bash
-mkdir data olcrtc
-docker compose up -d --build
-```
-
-If you prefer Podman:
-
-```bash
-mkdir data olcrtc
-podman compose up -d --build
-```
 
 The `api` container mounts the `olcrtc` repository and database so they survive restarts. The `web` container proxies `/api/*` to the internal backend at `API_BACKEND_URL=http://api:3001`.
 

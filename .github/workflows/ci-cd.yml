@@ -41,12 +41,6 @@ jobs:
       - name: Build project
         run: bun run build
 
-      - name: Build web image
-        run: docker build --target web -t olcgui-web .
-
-      - name: Build api image
-        run: docker build --target api -t olcgui-api .
-
   publish-images:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest

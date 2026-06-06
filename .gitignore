@@ -38,3 +38,5 @@ sqlite.db-wal
 
 # Drizzle migration snapshots
 # Note: Drizzle requires the meta/_journal.json for migrations to run at startup.
+
+**/__pycache__
