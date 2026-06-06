@@ -227,13 +227,6 @@
 								class="ui-input w-full px-4 py-2.5 text-base font-normal"
 							/>
 						</div>
-						{#if restartInterval && restartInterval > 0}
-							<div
-								class="mt-6 shrink-0 rounded border border-[color:var(--ui-border)] bg-[color:var(--ui-surface-2)] px-3 py-2 text-xs text-[color:var(--ui-muted)]"
-							>
-								каждые {restartInterval} мин.
-							</div>
-						{/if}
 					</div>
 
 					<div>
