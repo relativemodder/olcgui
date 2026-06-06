@@ -8,14 +8,14 @@
 	import '@fontsource/noto-sans/cyrillic-400.css';
 	import '@fontsource/noto-sans/cyrillic-500.css';
 	import './layout.css';
-	import { beforeNavigate, afterNavigate } from '$app/navigation';
+	import { beforeNavigate, afterNavigate, goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/state';
-	import { enhance } from '$app/forms';
 	import { LayoutDashboard, Sliders, Cpu, Users, LogOut, Terminal } from 'lucide-svelte';
 	import { DotProgress, NavItem, MetroAlertHost, PressFeedback, RevealBorder } from '$lib';
 	import Toast from '$lib/components/ui/Toast.svelte';
 	import { colorScheme } from '$lib/stores/colorScheme';
 	import { getColorScheme, applyTheme } from '$lib/themes';
+	import { apiFetch, clearAuthToken } from '$lib/api';
 
 	let { data, children } = $props();
 
@@ -41,6 +41,13 @@
 		{ href: '/builds', icon: Cpu, label: 'Сборки' },
 		{ href: '/users', icon: Users, label: 'Доступ' }
 	]);
+
+	async function logout() {
+		await apiFetch('/api/auth/logout', { method: 'POST' });
+		clearAuthToken();
+		await invalidateAll();
+		await goto('/login');
+	}
 </script>
 
 <svelte:head></svelte:head>
@@ -70,15 +77,14 @@
 					<div class="hidden flex-col items-end text-right sm:flex">
 						<span class="text-sm font-normal">{data.user.username}</span>
 					</div>
-					<form action="/login?/logout" method="POST" use:enhance>
-						<button
-							type="submit"
-							title="Выйти из системы"
-							class="ui-button ui-button-icon text-[color:var(--ui-muted)] hover:text-[color:var(--ui-danger)]"
-						>
-							<LogOut class="h-4 w-4" />
-						</button>
-					</form>
+					<button
+						type="button"
+						title="Выйти из системы"
+						class="ui-button ui-button-icon text-[color:var(--ui-muted)] hover:text-[color:var(--ui-danger)]"
+						onclick={logout}
+					>
+						<LogOut class="h-4 w-4" />
+					</button>
 				</div>
 			</div>
 		</header>

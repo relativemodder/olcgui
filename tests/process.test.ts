@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { evaluateRestart } from '../src/lib/server/process/restartPolicy';
+import { evaluateRestart } from '../src/server/process/restartPolicy';
 
 describe('Process Supervisor & Restart Policy Unit Tests', () => {
 	it('should calculate exponential backoff delay correctly on consecutive failures', () => {

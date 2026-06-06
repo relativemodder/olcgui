@@ -15,23 +15,24 @@
 
 ## Запуск через Docker
 
-**Запуск через Podman Compose:**
+- `web` отдаёт фронтенд SvelteKit по адресу `http://localhost:5173`
+- `api` остаётся внутри сети Compose и доступен только через `web`
 
-Перед запуском (особенно на системах с SELinux, таких как Fedora/Bazzite) необходимо вручную создать папки для монтирования, чтобы избежать проблем с правами доступа:
-
-```bash
-mkdir data olcrtc
-podman-compose up -d --build
-```
-
-**Альтернативный запуск через Podman (без Compose):**
+Перед запуском, особенно на системах с SELinux вроде Fedora/Bazzite, создайте папки для bind-mount:
 
 ```bash
 mkdir data olcrtc
-podman build -t olcgui . --no-cache && podman rm -f olcgui && podman run -d --name olcgui -p 5173:5173 -v ./data:/app/data:Z -v ./olcrtc:/app/olcrtc:Z olcgui
+docker compose up -d --build
 ```
 
-Репозиторий `olcrtc` и база данных монтируются как volumes, поэтому данные сохраняются между перезапусками контейнера. Интерфейс доступен по адресу `http://localhost:5173`.
+Если используете Podman:
+
+```bash
+mkdir data olcrtc
+podman compose up -d --build
+```
+
+Контейнер `api` монтирует репозиторий `olcrtc` и базу данных, поэтому данные сохраняются между перезапусками. Контейнер `web` проксирует `/api/*` во внутренний backend через `API_BACKEND_URL=http://api:3001`.
 
 ## Локальный запуск
 
@@ -49,6 +50,7 @@ OLCRTC_BUILD_DIR=./olcrtc
 OLCRTC_BINARY_PATH=./olcrtc/build/olcrtc-linux-amd64
 OLCRTC_DATA_DIR=./data/instances
 MAGE_CMD=~/go/bin/mage
+API_BACKEND_URL=http://localhost:3001
 ```
 
 Без `.env` всё разрешается относительно `process.cwd()`, так что после стандартного клона всё работает

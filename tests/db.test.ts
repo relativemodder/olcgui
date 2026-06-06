@@ -2,7 +2,7 @@ import { describe, expect, it } from 'bun:test';
 import { Database } from 'bun:sqlite';
 import { drizzle } from 'drizzle-orm/bun-sqlite';
 import { migrate } from 'drizzle-orm/bun-sqlite/migrator';
-import * as schema from '../src/lib/server/db/schema';
+import * as schema from '../src/server/db/schema';
 import { eq } from 'drizzle-orm';
 
 describe('Database Schema & Integration Tests', () => {

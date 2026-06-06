@@ -1,40 +1,23 @@
-import { db } from '$lib/server/db/client';
-import { setupDatabase } from '$lib/server/db/setup';
-import { initProcessManager } from '$lib/server/process/manager';
-import { users } from '$lib/server/db/schema';
-import { getSession } from '$lib/server/auth/session';
-import { ensureOlcrtcRepo, isOlcrtcRepoReady } from '$lib/server/git/repo';
 import { redirect, type Handle } from '@sveltejs/kit';
-
-let dbInitialized = false;
+import { apiJson, authHeadersFromCookie } from '$server/http';
+import type { AuthMeResponse, ApiUser, SetupStatusResponse } from '$shared/api/types';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	if (!dbInitialized) {
-		try {
-			await setupDatabase();
+	const cookie = event.request.headers.get('cookie');
+	let activeSession: ApiUser | null = null;
+	let isSetupNeeded = false;
 
-			const repoReady = isOlcrtcRepoReady();
-			console.log('[Hooks] init check:', {
-				pathname: event.url.pathname,
-				processCwd: process.cwd(),
-				olcrtcRepoReady: repoReady
-			});
-
-			if (!repoReady) {
-				console.log('[Hooks] ensureOlcrtcRepo() about to run (repo not ready).');
-				await ensureOlcrtcRepo();
-				console.log('[Hooks] ensureOlcrtcRepo() finished.');
-			}
-
-			await initProcessManager();
-			dbInitialized = true;
-		} catch (error) {
-			console.error('[Hooks] Startup DB setup failed:', error);
-		}
+	try {
+		const authHeaders = authHeadersFromCookie(cookie);
+		const [auth, setup] = await Promise.all([
+			apiJson<AuthMeResponse>('/api/auth/me', { headers: authHeaders }),
+			apiJson<SetupStatusResponse>('/api/setup/status', { headers: authHeaders })
+		]);
+		activeSession = auth.user;
+		isSetupNeeded = setup.setupNeeded;
+	} catch (error) {
+		console.error('[Hooks] API auth/setup check failed:', error);
 	}
-
-	const sessionToken = event.cookies.get('session');
-	const activeSession = getSession(sessionToken);
 
 	event.locals.user = activeSession
 		? {
@@ -44,14 +27,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 			}
 		: null;
 
-	let isSetupNeeded: boolean;
-	try {
-		const existingUsers = await db.select().from(users).limit(1);
-		isSetupNeeded = existingUsers.length === 0;
-	} catch (err) {
-		console.error('[Hooks] User check failed, assuming setup NOT needed to prevent loops:', err);
-		isSetupNeeded = false;
-	}
 	event.locals.setupNeeded = isSetupNeeded;
 
 	const { pathname } = event.url;

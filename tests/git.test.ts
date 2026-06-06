@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
-import { getBranches, getCurrentBranchName, getCurrentCommit } from '../src/lib/server/git/client';
-import { getBuildStatus, startBuild } from '../src/lib/server/git/build';
+import { getBranches, getCurrentBranchName, getCurrentCommit } from '../src/server/git/client';
+import { getBuildStatus, startBuild } from '../src/server/git/build';
 
 describe('Git & Build Service Unit Tests', () => {
 	it('should verify local git workspace and retrieve branch metadata', () => {

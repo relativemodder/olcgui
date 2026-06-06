@@ -2,56 +2,52 @@
 	import { UploadCloud, AlertTriangle, Loader2, Check, XCircle } from 'lucide-svelte';
 	import { onDestroy } from 'svelte';
 	import Panel from '$lib/components/ui/Panel.svelte';
+	import { apiFetch, authHeaders } from '$lib/api';
+	import { createSerialPoller } from '$lib/client/serialPoller';
+	import type { UploadStartResponse, UploadStatusResponse } from '$shared/api/types';
 
 	let isUploading = $state(false);
 	let uploadProgress = $state(0);
 	let status = $state<'idle' | 'uploading' | 'validating' | 'success' | 'error'>('idle');
 	let message = $state('');
-	let polling = $state(false);
 	let uploadId: string | null = null;
-	let pollTimer: ReturnType<typeof setInterval> | undefined;
 	let xhr: XMLHttpRequest | null = null;
+
+	const uploadPoller = createSerialPoller({
+		intervalMs: 1000,
+		timeoutMs: 60000,
+		async run() {
+			if (!uploadId) return false;
+
+			const res = await apiFetch(`/api/builds/upload?uploadId=${uploadId}`);
+			if (!res.ok) {
+				status = 'error';
+				message = 'Ошибка проверки статуса загрузки.';
+				return false;
+			}
+			const data = (await res.json()) as UploadStatusResponse;
+			if (data.status === 'success') {
+				status = 'success';
+				message = data.message || 'Бинарный файл успешно загружен.';
+				uploadId = null;
+				return false;
+			}
+			if (data.status === 'error') {
+				status = 'error';
+				message = data.message || 'Ошибка проверки бинарного файла.';
+				uploadId = null;
+				return false;
+			}
+		},
+		onError() {
+			// retry on network error
+		}
+	});
 
 	onDestroy(() => {
 		xhr?.abort();
-		clearInterval(pollTimer);
+		uploadPoller.stop();
 	});
-
-	function stopPolling() {
-		polling = false;
-		clearInterval(pollTimer);
-		pollTimer = undefined;
-	}
-
-	async function pollStatus() {
-		while (uploadId && polling) {
-			try {
-				const res = await fetch(`/api/builds/upload?uploadId=${uploadId}`);
-				if (!res.ok) {
-					status = 'error';
-					message = 'Ошибка проверки статуса загрузки.';
-					stopPolling();
-					return;
-				}
-				const data = await res.json();
-				if (data.status === 'success') {
-					status = 'success';
-					message = data.message || 'Бинарный файл успешно загружен.';
-					stopPolling();
-					return;
-				}
-				if (data.status === 'error') {
-					status = 'error';
-					message = data.message || 'Ошибка проверки бинарного файла.';
-					stopPolling();
-					return;
-				}
-			} catch {
-				// retry on network error
-			}
-			await new Promise((r) => setTimeout(r, 1000));
-		}
-	}
 
 	function handleFileUpload(event: Event) {
 		const input = event.target as HTMLInputElement;
@@ -82,11 +78,10 @@
 
 			if (req.status >= 200 && req.status < 300) {
 				try {
-					const data = JSON.parse(req.responseText);
+					const data = JSON.parse(req.responseText) as UploadStartResponse;
 					uploadId = data.uploadId;
 					status = 'validating';
-					polling = true;
-					pollStatus();
+					uploadPoller.trigger();
 				} catch {
 					status = 'error';
 					message = 'Не удалось обработать ответ сервера.';
@@ -118,6 +113,8 @@
 		};
 
 		req.open('POST', '/api/builds/upload');
+		const authorization = authHeaders().get('authorization');
+		if (authorization) req.setRequestHeader('Authorization', authorization);
 		req.send(formData);
 	}
 </script>

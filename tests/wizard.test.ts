@@ -6,8 +6,8 @@ import {
 	generateOlcrtcUri,
 	parseOlcrtcUri,
 	type WizardConfig
-} from '../src/lib/wizard/utils';
-import { PROVIDER_CONFIG } from '../src/lib/wizard/constants';
+} from '../src/shared/wizard/utils';
+import { PROVIDER_CONFIG } from '../src/shared/wizard/constants';
 
 describe('Wizard & Configuration Core Unit Tests', () => {
 	it('should generate a cryptographically secure 64-character hex crypto key', () => {

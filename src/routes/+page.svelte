@@ -3,7 +3,8 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { Sliders, Globe, Wifi, ShieldAlert, Settings } from 'lucide-svelte';
 	import { RefreshCw, Activity } from 'lucide-svelte';
-	import { canPollNow, createSerialPoller } from '$lib/client/serialPoller';
+	import { apiFetch } from '$lib/api';
+	import { connectEvents } from '$lib/client/events';
 	import {
 		CustomizationPopup,
 		TunnelCard,
@@ -36,109 +37,68 @@
 		data.instances.filter((i) => (polledStatuses[i.id]?.status ?? i.status) === 'error').length
 	);
 
-	const statusPoller = createSerialPoller({
-		intervalMs: 3000,
-		failureIntervalMs: 8000,
-		shouldRun: canPollNow,
-		async run(signal) {
-			if (data.instances.length === 0) return;
+	let events = $state<ReturnType<typeof connectEvents> | null>(null);
 
-			const res = await fetch(`/api/instances?_t=${Date.now()}`, { signal });
-			if (!res.ok) {
-				throw new Error(`Instance status request failed with ${res.status}`);
-			}
-
-			const resData = await res.json();
-			if (resData.instances) {
-				let nextStatuses = { ...polledStatuses };
-				let changed = false;
-				for (const entry of resData.instances) {
-					const current = nextStatuses[entry.id];
-					if (
-						!current ||
-						current.status !== entry.status ||
-						current.autoRestart !== entry.autoRestart
-					) {
-						nextStatuses[entry.id] = {
-							status: entry.status,
-							autoRestart: entry.autoRestart
-						};
-						changed = true;
-					}
-				}
-				if (changed) {
-					polledStatuses = nextStatuses;
-				}
-			}
-		},
-		onError(error) {
-			console.error('Failed to poll statuses:', error);
+	function getTopics(): string[] {
+		if (activeLogId !== null) {
+			return ['instance:*', `instance:${activeLogId}:log`];
 		}
-	});
+		return ['instance:*'];
+	}
 
-	const logPoller = createSerialPoller({
-		intervalMs: 1500,
-		failureIntervalMs: 6000,
-		shouldRun: () => activeLogId !== null && canPollNow(),
-		async run(signal) {
-			const id = activeLogId;
-			if (id === null) {
-				return;
+	function connectSse() {
+		events?.close();
+
+		events = connectEvents(getTopics());
+		events.on('instance:*:status', (d) => {
+			const data = d as { id: number; status: string; autoRestart: boolean };
+			const existing = polledStatuses[data.id];
+			if (
+				!existing ||
+				existing.status !== data.status ||
+				existing.autoRestart !== data.autoRestart
+			) {
+				polledStatuses = {
+					...polledStatuses,
+					[data.id]: { status: data.status, autoRestart: data.autoRestart }
+				};
 			}
-
-			const res = await fetch(`/api/instances?id=${id}&_t=${Date.now()}`, { signal });
-			if (!res.ok) {
-				throw new Error(`Instance logs request failed with ${res.status}`);
+		});
+		events.on(`instance:${activeLogId || 0}:log`, (d) => {
+			const data = d as { instanceId: number; logLine: string };
+			if (data.instanceId === activeLogId) {
+				activeLogs = [...activeLogs, data.logLine];
 			}
+		});
+	}
 
-			const resData = await res.json();
-			if (activeLogId !== id) return;
-
-			if (resData.logs) {
-				activeLogs = resData.logs;
-				if (resData.status) {
-					const existing = polledStatuses[id];
-					const inst = data.instances.find((i) => i.id === id);
-					const autoRestart = existing ? existing.autoRestart : inst ? inst.autoRestart : false;
-					if (
-						!existing ||
-						existing.status !== resData.status ||
-						existing.autoRestart !== autoRestart
-					) {
+	async function toggleLogDrawer(id: number) {
+		if (activeLogId === id) {
+			activeLogId = null;
+			activeLogs = [];
+			connectSse();
+		} else {
+			activeLogId = id;
+			activeLogs = [];
+			try {
+				const res = await apiFetch(`/api/instances?id=${id}`);
+				if (res.ok) {
+					const resData = await res.json();
+					activeLogs = resData.logs || [];
+					if (resData.status) {
 						polledStatuses = {
 							...polledStatuses,
 							[id]: {
 								status: resData.status,
-								autoRestart
+								autoRestart: polledStatuses[id]?.autoRestart ?? false
 							}
 						};
 					}
 				}
+			} catch (e) {
+				console.error('Failed to fetch initial logs:', e);
 			}
-		},
-		onError(error) {
-			console.error('Failed to poll logs:', error);
-		}
-	});
-
-	function triggerVisiblePoll() {
-		if (canPollNow()) {
-			statusPoller.trigger();
-			if (activeLogId !== null) {
-				logPoller.trigger();
-			}
-		}
-	}
-
-	function toggleLogDrawer(id: number) {
-		if (activeLogId === id) {
-			activeLogId = null;
-			activeLogs = [];
-			logPoller.stop();
-		} else {
-			activeLogId = id;
-			activeLogs = [];
-			logPoller.trigger();
+			connectSse();
 		}
 	}
 
@@ -163,20 +123,11 @@
 	}
 
 	onMount(() => {
-		statusPoller.start();
-		document.addEventListener('visibilitychange', triggerVisiblePoll);
-		window.addEventListener('online', triggerVisiblePoll);
+		connectSse();
 	});
 
 	onDestroy(() => {
-		statusPoller.stop();
-		logPoller.stop();
-		if (typeof document !== 'undefined') {
-			document.removeEventListener('visibilitychange', triggerVisiblePoll);
-		}
-		if (typeof window !== 'undefined') {
-			window.removeEventListener('online', triggerVisiblePoll);
-		}
+		events?.close();
 	});
 </script>
 

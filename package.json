@@ -4,7 +4,12 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "bun --bun vite dev",
+		"dev": "API_BACKEND_URL=http://localhost:3001 sh -c 'bun --bun src/server/api.ts & api_pid=$!; trap \"kill $api_pid 2>/dev/null\" EXIT INT TERM; bun --bun vite dev'",
+		"dev:container": "HOST=0.0.0.0 API_HOST=0.0.0.0 VITE_HOST=0.0.0.0 API_BACKEND_URL=http://127.0.0.1:3001 sh -c 'bun --bun src/server/api.ts & api_pid=$!; trap \"kill $api_pid 2>/dev/null\" EXIT INT TERM; bun --bun vite dev --host 0.0.0.0'",
+		"dev:web": "API_BACKEND_URL=http://localhost:3001 bun --bun vite dev",
+		"dev:api": "bun --bun src/server/api.ts",
+		"start:web": "bun ./build/index.js",
+		"start:api": "bun --bun src/server/api.ts",
 		"build": "bun --bun vite build",
 		"preview": "bun --bun vite preview",
 		"prepare": "svelte-kit sync || echo ''",
@@ -43,6 +48,7 @@
 	"dependencies": {
 		"@fontsource/noto-sans": "^5.2.10",
 		"drizzle-orm": "^0.45.2",
+		"hono": "^4.12.23",
 		"lucide-svelte": "^1.0.1"
 	}
 }

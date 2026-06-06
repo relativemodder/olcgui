@@ -1,16 +1,18 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import { X, UserPlus, Loader2 } from 'lucide-svelte';
 	import { fly } from 'svelte/transition';
 	import { showToast } from '$lib/stores/toast';
 	import FormField from '$lib/components/ui/FormField.svelte';
+	import { apiFetch, readApiError } from '$lib/api';
 
 	let {
 		open,
-		onclose = () => {}
+		onclose = () => {},
+		oncreated = async () => {}
 	}: {
 		open: boolean;
 		onclose?: () => void;
+		oncreated?: () => Promise<void> | void;
 	} = $props();
 
 	let username = $state('');
@@ -35,6 +37,24 @@
 		confirmPassword = '';
 		loading = false;
 		onclose();
+	}
+
+	async function handleSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		loading = true;
+		const res = await apiFetch('/api/users', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ username, role, password, confirmPassword })
+		});
+		loading = false;
+		if (!res.ok) {
+			showToast(await readApiError(res, 'Не удалось создать пользователя.'));
+			return;
+		}
+		showToast('Пользователь создан');
+		await oncreated();
+		handleClose();
 	}
 </script>
 
@@ -74,24 +94,7 @@
 				</div>
 
 				<div class="mt-4 flex flex-col gap-4">
-					<form
-						method="POST"
-						action="?/create"
-						use:enhance={() => {
-							loading = true;
-							return async ({ update, result }) => {
-								loading = false;
-								if (result.type === 'success') {
-									await update();
-									showToast('Пользователь создан');
-									onclose();
-									return;
-								}
-								await update();
-							};
-						}}
-						class="space-y-4"
-					>
+					<form method="POST" onsubmit={handleSubmit} class="space-y-4">
 						<FormField id="create-username" label="Имя пользователя" required>
 							<input
 								type="text"

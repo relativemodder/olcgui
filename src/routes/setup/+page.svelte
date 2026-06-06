@@ -1,14 +1,36 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { ShieldCheck, Loader2 } from 'lucide-svelte';
 	import { FormField, ErrorAlert, Button, intro } from '$lib';
-
-	let { form } = $props();
+	import { readApiError, setAuthToken } from '$lib/api';
+	import type { SetupCreateResponse } from '$shared/api/types';
 
 	let username = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
 	let loading = $state(false);
+	let error = $state('');
+
+	async function handleSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		if (loading) return;
+		loading = true;
+		error = '';
+		const res = await fetch('/api/setup', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ username, password, confirmPassword })
+		});
+		loading = false;
+		if (!res.ok) {
+			error = await readApiError(res, 'Ошибка настройки. Попробуйте ещё раз.');
+			return;
+		}
+		const data = (await res.json()) as SetupCreateResponse;
+		setAuthToken(data.token);
+		await invalidateAll();
+		await goto('/');
+	}
 </script>
 
 <svelte:head>
@@ -29,19 +51,9 @@
 			</p>
 		</div>
 
-		<ErrorAlert message={form?.error ?? ''} />
+		<ErrorAlert message={error} />
 
-		<form
-			method="POST"
-			use:enhance={() => {
-				loading = true;
-				return async ({ update }) => {
-					loading = false;
-					await update();
-				};
-			}}
-			class="space-y-5"
-		>
+		<form method="POST" onsubmit={handleSubmit} class="space-y-5">
 			<FormField id="username" label="Имя администратора" required>
 				<input
 					type="text"

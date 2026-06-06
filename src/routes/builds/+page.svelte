@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import { onMount, onDestroy } from 'svelte';
 	import {
 		Cpu,
@@ -11,7 +11,8 @@
 		Loader2,
 		ChevronRight
 	} from 'lucide-svelte';
-	import { canPollNow, createSerialPoller } from '$lib/client/serialPoller';
+	import { apiFetch } from '$lib/api';
+	import { connectEvents } from '$lib/client/events';
 	import {
 		Terminal,
 		UploadBinaryPanel,
@@ -21,7 +22,7 @@
 		StatusIndicator
 	} from '$lib';
 
-	let { data, form } = $props();
+	let { data } = $props();
 
 	let isAdmin = $derived(data.isAdmin);
 	let isBuilding = $state(false);
@@ -32,62 +33,25 @@
 	let repoSyncing = $state<boolean>(false);
 	let repoPullInFlight = $state(false);
 
-	const repoPoller = createSerialPoller({
-		intervalMs: 800,
-		failureIntervalMs: 5000,
-		shouldRun: canPollNow,
-		async run(signal) {
-			const res = await fetch('/api/repo', { signal });
-			if (!res.ok) {
-				throw new Error(`Repo status request failed with ${res.status}`);
-			}
+	let events = $state<ReturnType<typeof connectEvents> | null>(null);
 
-			const info = await res.json();
-			repoSyncing = !!info.repoSyncing;
-
-			if (!repoSyncing) {
-				return false;
-			}
-		},
-		onError(error) {
-			console.error('Failed to poll repo sync status:', error);
-		}
-	});
-
-	const buildPoller = createSerialPoller({
-		intervalMs: 1000,
-		failureIntervalMs: 5000,
-		shouldRun: canPollNow,
-		async run(signal) {
-			const res = await fetch('/api/builds', { signal });
-			if (!res.ok) {
-				throw new Error(`Build status request failed with ${res.status}`);
-			}
-
-			const info = await res.json();
-			isBuilding = info.isBuilding;
-			buildLogs = info.logs;
-			buildSuccess = info.success;
-
-			if (!isBuilding) {
-				return false;
-			}
-		},
-		onError(error) {
-			console.error('Failed to poll compile status:', error);
-		}
-	});
-
-	function triggerVisiblePoll() {
-		if (!canPollNow() || !isAdmin) return;
-
-		if (repoSyncing || repoPoller.isActive()) {
-			repoPoller.trigger();
-		}
-
-		if (isBuilding || buildPoller.isActive()) {
-			buildPoller.trigger();
-		}
+	function connectSse() {
+		events?.close();
+		events = connectEvents(['build:*', 'repo:status']);
+		events.on('build:status', (d) => {
+			const s = d as { isBuilding: boolean; logs: string[]; success: boolean | null };
+			isBuilding = s.isBuilding;
+			buildLogs = s.logs;
+			buildSuccess = s.success;
+		});
+		events.on('build:log', (d) => {
+			const s = d as { logLine: string };
+			buildLogs = [...buildLogs, s.logLine];
+		});
+		events.on('repo:status', (d) => {
+			const s = d as { repoSyncing: boolean };
+			repoSyncing = s.repoSyncing;
+		});
 	}
 
 	async function triggerBuild() {
@@ -95,12 +59,11 @@
 
 		buildStartInFlight = true;
 		try {
-			const res = await fetch('/api/builds', { method: 'POST' });
+			const res = await apiFetch('/api/builds', { method: 'POST' });
 			if (res.ok) {
 				isBuilding = true;
 				buildLogs = ['[Build] Triggering compilation...'];
 				buildSuccess = null;
-				buildPoller.trigger();
 			}
 		} catch (e) {
 			console.error('Failed to start build:', e);
@@ -114,10 +77,9 @@
 
 		repoPullInFlight = true;
 		try {
-			const res = await fetch('/api/repo/pull', { method: 'POST' });
+			const res = await apiFetch('/api/repo/pull', { method: 'POST' });
 			if (res.ok) {
 				repoSyncing = true;
-				repoPoller.trigger();
 			}
 		} catch (e) {
 			console.error('Failed to start repo pull:', e);
@@ -126,24 +88,23 @@
 		}
 	}
 
-	onMount(async () => {
+	async function checkoutBranch(name: string) {
+		const res = await apiFetch('/api/repo/checkout', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ name })
+		});
+		if (res.ok) await invalidateAll();
+	}
+
+	onMount(() => {
 		if (isAdmin) {
-			repoPoller.trigger();
-			buildPoller.trigger();
+			connectSse();
 		}
-		document.addEventListener('visibilitychange', triggerVisiblePoll);
-		window.addEventListener('online', triggerVisiblePoll);
 	});
 
 	onDestroy(() => {
-		buildPoller.stop();
-		repoPoller.stop();
-		if (typeof document !== 'undefined') {
-			document.removeEventListener('visibilitychange', triggerVisiblePoll);
-		}
-		if (typeof window !== 'undefined') {
-			window.removeEventListener('online', triggerVisiblePoll);
-		}
+		events?.close();
 	});
 </script>
 
@@ -172,7 +133,7 @@
 
 	<PageHeader title="Сборка проекта" description="Ветки и компиляция бинарника olcrtc" />
 
-	<ErrorAlert message={form?.error ?? ''} />
+	<ErrorAlert message="" />
 
 	<div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
 		<div class="space-y-6 lg:col-span-2">
@@ -319,16 +280,15 @@
 								<span>Активная</span>
 							</span>
 						{:else if isAdmin}
-							<form action="?/checkout&name={branch.name}" method="POST" use:enhance>
-								<button
-									type="submit"
-									disabled={buildStartInFlight || isBuilding || repoPullInFlight || repoSyncing}
-									class="ui-button cursor-pointer items-center gap-1 px-3 py-1.5 text-xs font-normal uppercase disabled:cursor-not-allowed disabled:opacity-50"
-								>
-									<span>Выбрать</span>
-									<ChevronRight class="h-3.5 w-3.5" />
-								</button>
-							</form>
+							<button
+								type="button"
+								disabled={buildStartInFlight || isBuilding || repoPullInFlight || repoSyncing}
+								class="ui-button cursor-pointer items-center gap-1 px-3 py-1.5 text-xs font-normal uppercase disabled:cursor-not-allowed disabled:opacity-50"
+								onclick={() => checkoutBranch(branch.name)}
+							>
+								<span>Выбрать</span>
+								<ChevronRight class="h-3.5 w-3.5" />
+							</button>
 						{/if}
 					</div>
 				{/each}

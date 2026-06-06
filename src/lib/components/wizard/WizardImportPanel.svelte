@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { parseOlcrtcUri, resolveImportUrl, type ParsedOlcrtcUri } from '$lib/wizard/utils';
+	import { parseOlcrtcUri, resolveImportUrl, type ParsedOlcrtcUri } from '$shared/wizard/utils';
 	import { ArrowDownToLine, Check, AlertCircle } from 'lucide-svelte';
 	import Panel from '$lib/components/ui/Panel.svelte';
 

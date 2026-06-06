@@ -1,9 +1,16 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
 	import WizardImportPanel from '$lib/components/wizard/WizardImportPanel.svelte';
 	import WizardExportPanel from '$lib/components/wizard/WizardExportPanel.svelte';
 	import WizardJitsiDirectory from '$lib/components/wizard/WizardJitsiDirectory.svelte';
-	import { PROVIDER_CONFIG } from '$lib/wizard/constants';
+	import {
+		PROVIDER_CONFIG,
+		VALID_MODES,
+		VALID_PROVIDERS,
+		type Mode,
+		type Provider,
+		type Transport
+	} from '$shared/wizard/constants';
 	import {
 		generateCryptoKey,
 		parseRoomUrl,
@@ -11,28 +18,28 @@
 		generateOlcrtcUri,
 		replaceJitsiServer,
 		type ParsedOlcrtcUri
-	} from '$lib/wizard/utils';
+	} from '$shared/wizard/utils';
 	import { Sliders, RefreshCw, Info, Users } from 'lucide-svelte';
 	import { FormField, SelectField, Panel, ErrorAlert, PageHeader, Button, intro } from '$lib';
+	import { apiFetch, formToJson, readApiError } from '$lib/api';
 
-	let { form, data } = $props();
+	let { data } = $props();
+	let error = $state('');
+	let saving = $state(false);
 
 	/* svelte-ignore state_referenced_locally */
 	const initial = $state.snapshot(data.editInstance);
 
 	let name = $state(initial?.name ?? '');
-	let mode = $state<'cnc' | 'srv'>(initial?.mode ?? 'srv');
+	let mode = $state<Mode>(initial?.mode ?? 'srv');
 	/* svelte-ignore state_referenced_locally */
 	let selectedUserId = $state<number>(
 		initial?.userId ?? data.currentUserId ?? data.allUsers[0]?.id ?? 0
 	);
-	let provider = $state<'jitsi' | 'wbstream' | 'telemost'>(initial?.provider ?? 'jitsi');
+	let provider = $state<Provider>(initial?.provider ?? 'jitsi');
 	let roomUrl = $state(initial?.roomUrl ?? '');
 	let cryptoKey = $state(initial?.cryptoKey ?? generateCryptoKey());
-	let transport = $state<'datachannel' | 'vp8channel' | 'seichannel' | 'videochannel'>(
-		(initial?.transport as 'datachannel' | 'vp8channel' | 'seichannel' | 'videochannel') ??
-			'datachannel'
-	);
+	let transport = $state<Transport>(initial?.transport ?? 'datachannel');
 	let dns = $state(initial?.dns ?? '8.8.8.8:53');
 	let socksHost = $state(initial?.socksHost ?? '127.0.0.1');
 	let socksPort = $state(initial?.socksPort ?? 8808);
@@ -53,7 +60,7 @@
 			lastProvider = provider;
 			const config = PROVIDER_CONFIG[provider];
 
-			transport = config.transport as typeof transport;
+			transport = config.transport;
 			socksPort = config.socksPort;
 
 			const isOtherProvider = Object.keys(PROVIDER_CONFIG)
@@ -108,6 +115,40 @@
 		name = data.name;
 		roomUrl = data.resolvedUrl;
 	}
+
+	function modeLabel(value: Mode) {
+		return value === 'cnc' ? 'Клиент' : 'Сервер';
+	}
+
+	function transportLabel(value: Transport) {
+		return value === PROVIDER_CONFIG[provider].transport ? `${value} (Рекомендуется)` : value;
+	}
+
+	async function handleSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		if (saving) return;
+
+		saving = true;
+		error = '';
+		const form = event.currentTarget as HTMLFormElement;
+		const body = formToJson(form);
+		body.debug = debug;
+
+		const id = data.editInstance?.id;
+		const res = await apiFetch(id ? `/api/instances/${id}` : '/api/instances', {
+			method: id ? 'PATCH' : 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify(body)
+		});
+
+		saving = false;
+		if (!res.ok) {
+			error = await readApiError(res, 'Ошибка сохранения конфигурации.');
+			return;
+		}
+
+		await goto('/');
+	}
 </script>
 
 <svelte:head>
@@ -122,14 +163,14 @@
 			: 'Настройте параметры и сохраните туннель'}
 	/>
 
-	<ErrorAlert message={form?.error ?? ''} />
+	<ErrorAlert message={error} />
 
 	<div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
 		<div class="space-y-6">
 			<WizardImportPanel onImport={handleImportData} />
 
 			<Panel title="Параметры инстанса" icon={Sliders}>
-				<form method="POST" action="?/save" use:enhance class="space-y-5">
+				<form method="POST" onsubmit={handleSubmit} class="space-y-5">
 					{#if data.editInstance}
 						<input type="hidden" name="id" value={data.editInstance.id} />
 					{/if}
@@ -150,8 +191,9 @@
 						</FormField>
 
 						<SelectField id="mode" label="Режим работы" bind:value={mode} required>
-							<option value="cnc">Клиент</option>
-							<option value="srv">Сервер</option>
+							{#each VALID_MODES as modeOption (modeOption)}
+								<option value={modeOption}>{modeLabel(modeOption)}</option>
+							{/each}
 						</SelectField>
 					</div>
 
@@ -180,9 +222,9 @@
 
 					<div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
 						<SelectField id="provider" label="Сервис-провайдер" bind:value={provider} required>
-							<option value="jitsi">Инстанс Jitsi Meet</option>
-							<option value="wbstream">WB Stream</option>
-							<option value="telemost">Яндекс.Телемост</option>
+							{#each VALID_PROVIDERS as providerOption (providerOption)}
+								<option value={providerOption}>{PROVIDER_CONFIG[providerOption].label}</option>
+							{/each}
 						</SelectField>
 
 						<SelectField
@@ -191,16 +233,9 @@
 							bind:value={transport}
 							required
 						>
-							{#if provider === 'jitsi'}
-								<option value="datachannel">datachannel (Рекомендуется)</option>
-								<option value="vp8channel">vp8channel</option>
-							{:else if provider === 'wbstream'}
-								<option value="vp8channel">vp8channel (Рекомендуется)</option>
-								<option value="seichannel">seichannel</option>
-							{:else}
-								<option value="videochannel">videochannel (Рекомендуется)</option>
-								<option value="vp8channel">vp8channel</option>
-							{/if}
+							{#each PROVIDER_CONFIG[provider].allowedTransports as transportOption (transportOption)}
+								<option value={transportOption}>{transportLabel(transportOption)}</option>
+							{/each}
 						</SelectField>
 					</div>
 
@@ -361,6 +396,7 @@
 					<Button
 						type="submit"
 						variant="primary"
+						loading={saving}
 						class="mt-8 flex w-full cursor-pointer items-center justify-center gap-2 px-4 py-3"
 					>
 						<Sliders class="h-5 w-5" />

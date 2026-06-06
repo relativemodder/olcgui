@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Search, Info, BookOpen } from 'lucide-svelte';
-	import { JITSI_SERVERS } from '$lib/wizard/constants';
+	import { JITSI_SERVERS } from '$shared/wizard/constants';
 	import { intro } from '$lib/motion/intro';
 
 	let { onSelect } = $props<{

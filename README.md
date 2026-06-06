@@ -17,23 +17,26 @@ Web interface for managing [olcrtc](https://github.com/openlibrecommunity/olcrtc
 
 ## Running with Docker
 
-**Running with Podman Compose:**
+The deployment is split into two containers:
 
-Before running (especially on systems with SELinux like Fedora/Bazzite), you must manually create the volume directories to avoid permission issues:
+- `web` serves the SvelteKit frontend on `http://localhost:5173`
+- `api` stays private inside the Compose network and is only reached through `web`
 
-```bash
-mkdir data olcrtc
-podman-compose up -d --build
-```
-
-**Alternative using Podman (without Compose):**
+Before running, create the bind-mount directories first, especially on systems with SELinux like Fedora/Bazzite:
 
 ```bash
 mkdir data olcrtc
-podman build -t olcgui . --no-cache && podman rm -f olcgui && podman run -d --name olcgui -p 5173:5173 -v ./data:/app/data:Z -v ./olcrtc:/app/olcrtc:Z olcgui
+docker compose up -d --build
 ```
 
-The `olcrtc` repository and database are mounted as volumes so they survive container restarts. App is available at `http://localhost:5173`.
+If you prefer Podman:
+
+```bash
+mkdir data olcrtc
+podman compose up -d --build
+```
+
+The `api` container mounts the `olcrtc` repository and database so they survive restarts. The `web` container proxies `/api/*` to the internal backend at `API_BACKEND_URL=http://api:3001`.
 
 ## Local setup
 
@@ -51,6 +54,7 @@ OLCRTC_BUILD_DIR=./olcrtc
 OLCRTC_BINARY_PATH=./olcrtc/build/olcrtc-linux-amd64
 OLCRTC_DATA_DIR=./data/instances
 MAGE_CMD=~/go/bin/mage
+API_BACKEND_URL=http://localhost:3001
 ```
 
 Without a `.env`, everything defaults to paths relative to `process.cwd()`, so it works out of the box for a standard clone.

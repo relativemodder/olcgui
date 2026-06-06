@@ -1,43 +1,71 @@
-FROM oven/bun:1-debian
-
-RUN echo "deb http://deb.debian.org/debian trixie main" > /etc/apt/sources.list && \
-    echo "deb http://deb.debian.org/debian-security trixie-security main" >> /etc/apt/sources.list
-
-# Install git and go
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    ca-certificates \
-    golang-go \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install mage
-ENV GOPATH=/go
-ENV PATH=$GOPATH/bin:$PATH
-RUN mkdir -p /go/bin /go/src \
-    && git config --global http.sslVerify false \
-    && git clone https://github.com/magefile/mage /tmp/mage \
-    && cd /tmp/mage \
-    && go run bootstrap.go \
-    && rm -rf /tmp/mage
+FROM oven/bun:1-debian AS deps
 
 WORKDIR /app
 
 COPY package.json bun.lock* ./
-RUN bun install
+RUN bun install --frozen-lockfile
+
+FROM deps AS web-build
 
 COPY . .
 
-ENV OLCRTC_DATA_DIR=/app/data/instances
-ENV OLCRTC_GIT_DIR=/app/olcrtc
-ENV OLCRTC_BUILD_DIR=/app/olcrtc
-ENV MAGE_CMD=mage
-ENV DATABASE_URL=/app/data/sqlite.db
-ENV BODY_SIZE_LIMIT=Infinity
-
-RUN mkdir -p /app/data/instances
+ENV DATABASE_URL=/app/data/sqlite.db \
+    OLCRTC_DATA_DIR=/app/data/instances \
+    OLCRTC_GIT_DIR=/app/olcrtc \
+    OLCRTC_BUILD_DIR=/app/olcrtc \
+    MAGE_CMD=mage \
+    BODY_SIZE_LIMIT=Infinity
 
 RUN bun run build
-ENV PORT=5173
+
+FROM oven/bun:1-debian AS web
+
+WORKDIR /app
+
+ENV HOST=0.0.0.0 \
+    PORT=5173 \
+    API_BACKEND_URL=http://api:3001
+
+COPY --from=web-build /app/package.json ./package.json
+COPY --from=web-build /app/node_modules ./node_modules
+COPY --from=web-build /app/build ./build
+
 EXPOSE 5173
 
 CMD ["bun", "./build/index.js"]
+
+FROM oven/bun:1-debian AS api
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    git \
+    golang-go \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV GOPATH=/go \
+    PATH=/go/bin:$PATH
+
+RUN go install github.com/magefile/mage@latest
+
+COPY package.json bun.lock* ./
+RUN bun install --frozen-lockfile
+
+COPY . .
+
+ENV DATABASE_URL=/app/data/sqlite.db \
+    OLCRTC_DATA_DIR=/app/data/instances \
+    OLCRTC_GIT_DIR=/app/olcrtc \
+    OLCRTC_BUILD_DIR=/app/olcrtc \
+    OLCRTC_GIT_REMOTE_URL=https://github.com/openlibrecommunity/olcrtc \
+    MAGE_CMD=mage \
+    BODY_SIZE_LIMIT=Infinity \
+    API_HOST=0.0.0.0 \
+    API_PORT=3001
+
+RUN mkdir -p /app/data/instances
+
+EXPOSE 3001
+
+CMD ["bun", "--bun", "src/server/api.ts"]

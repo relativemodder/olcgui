@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import { Users, UserPlus, KeyRound, UserCog } from 'lucide-svelte';
 	import {
 		AdminCard,
@@ -12,8 +12,10 @@
 		UserCreateModal
 	} from '$lib';
 	import Badge from '$lib/components/ui/Badge.svelte';
+	import { apiFetch, readApiError } from '$lib/api';
+	import { showToast } from '$lib/stores/toast';
 
-	let { data, form } = $props();
+	let { data } = $props();
 
 	let creatingUser = $state(false);
 
@@ -36,6 +38,59 @@
 	let editingUser = $state<{ id: number; username: string; role: string } | null>(null);
 
 	let isAdmin = $derived(data.currentUser?.role === 'admin');
+
+	async function updateSelf(event: SubmitEvent) {
+		event.preventDefault();
+		if (selfUsernameLoading) return;
+		selfUsernameLoading = true;
+		const res = await apiFetch('/api/users/self', {
+			method: 'PATCH',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ username: selfUsername, currentPassword: selfCurrentPassword })
+		});
+		selfUsernameLoading = false;
+		if (!res.ok) {
+			showToast(await readApiError(res, 'Не удалось обновить имя пользователя.'));
+			return;
+		}
+		selfCurrentPassword = '';
+		showToast('Имя пользователя обновлено');
+		await invalidateAll();
+	}
+
+	async function updateSelfPassword(event: SubmitEvent) {
+		event.preventDefault();
+		if (selfPasswordLoading) return;
+		selfPasswordLoading = true;
+		const res = await apiFetch('/api/users/self-password', {
+			method: 'PATCH',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({
+				currentPassword: selfCurrentPassword,
+				newPassword: selfNewPassword,
+				confirmPassword: selfConfirmNewPassword
+			})
+		});
+		selfPasswordLoading = false;
+		if (!res.ok) {
+			showToast(await readApiError(res, 'Не удалось изменить пароль.'));
+			return;
+		}
+		selfCurrentPassword = '';
+		selfNewPassword = '';
+		selfConfirmNewPassword = '';
+		showToast('Пароль изменён');
+	}
+
+	async function deleteUser(id: number) {
+		const res = await apiFetch(`/api/users/${id}`, { method: 'DELETE' });
+		if (!res.ok) {
+			showToast(await readApiError(res, 'Не удалось удалить пользователя.'));
+			return;
+		}
+		showToast('Пользователь удалён');
+		await invalidateAll();
+	}
 </script>
 
 <svelte:head>
@@ -45,7 +100,7 @@
 <div class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
 	<PageHeader title="Доступ в панель" description="Управление пользователями и сессиями" />
 
-	<ErrorAlert message={form?.error ?? ''} />
+	<ErrorAlert message="" />
 
 	<div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
 		{#if isAdmin}
@@ -63,7 +118,12 @@
 					{/snippet}
 					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 						{#each data.allUsers as user (user.id)}
-							<AdminCard {user} currentUser={data.currentUser} onedit={(u) => (editingUser = u)} />
+							<AdminCard
+								{user}
+								currentUser={data.currentUser}
+								onedit={(u) => (editingUser = u)}
+								ondelete={deleteUser}
+							/>
 						{/each}
 					</div>
 				</Panel>
@@ -91,19 +151,7 @@
 						</div>
 					</div>
 
-					<form
-						method="POST"
-						action="?/updateSelf"
-						use:enhance={() => {
-							selfUsernameLoading = true;
-							return async ({ update }) => {
-								selfUsernameLoading = false;
-								selfCurrentPassword = '';
-								await update();
-							};
-						}}
-						class="space-y-3"
-					>
+					<form method="POST" onsubmit={updateSelf} class="space-y-3">
 						<FormField id="selfUsername" label="Имя пользователя" required>
 							<input
 								type="text"
@@ -142,20 +190,7 @@
 
 					<hr class="my-4 border-[color:var(--ui-border-subtle)]" />
 
-					<form
-						method="POST"
-						action="?/updateSelfPassword"
-						use:enhance={() => {
-							selfPasswordLoading = true;
-							return async ({ update }) => {
-								selfPasswordLoading = false;
-								selfNewPassword = '';
-								selfConfirmNewPassword = '';
-								await update();
-							};
-						}}
-						class="space-y-3"
-					>
+					<form method="POST" onsubmit={updateSelfPassword} class="space-y-3">
 						<FormField id="currentPassword" label="Текущий пароль" required>
 							<input
 								type="password"
@@ -215,5 +250,10 @@
 	open={editingUser !== null}
 	user={editingUser}
 	onclose={() => (editingUser = null)}
+	onupdated={invalidateAll}
 />
-<UserCreateModal open={creatingUser} onclose={() => (creatingUser = false)} />
+<UserCreateModal
+	open={creatingUser}
+	onclose={() => (creatingUser = false)}
+	oncreated={invalidateAll}
+/>

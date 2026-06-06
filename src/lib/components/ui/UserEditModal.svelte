@@ -1,17 +1,19 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import { X, Check, Loader2 } from 'lucide-svelte';
 	import { fly } from 'svelte/transition';
 	import { showToast } from '$lib/stores/toast';
+	import { apiFetch, readApiError } from '$lib/api';
 
 	let {
 		open,
 		user,
-		onclose = () => {}
+		onclose = () => {},
+		onupdated = async () => {}
 	}: {
 		open: boolean;
 		user: { id: number; username: string; role: string } | null;
 		onclose?: () => void;
+		onupdated?: () => Promise<void> | void;
 	} = $props();
 
 	let editUsername = $state('');
@@ -32,6 +34,25 @@
 		confirmPassword = '';
 		loading = false;
 		onclose();
+	}
+
+	async function handleSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		if (!user) return;
+		loading = true;
+		const res = await apiFetch(`/api/users/${user.id}`, {
+			method: 'PATCH',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ username: editUsername, role: editRole, password, confirmPassword })
+		});
+		loading = false;
+		if (!res.ok) {
+			showToast(await readApiError(res, 'Не удалось обновить пользователя.'));
+			return;
+		}
+		showToast('Пользователь обновлён');
+		await onupdated();
+		handleClose();
 	}
 </script>
 
@@ -71,24 +92,7 @@
 				</div>
 
 				<div class="mt-4 flex flex-col gap-4">
-					<form
-						method="POST"
-						action="?/updateUser&id={user.id}"
-						use:enhance={() => {
-							loading = true;
-							return async ({ update, result }) => {
-								loading = false;
-								if (result.type === 'success') {
-									await update();
-									showToast('Пользователь обновлён');
-									handleClose();
-									return;
-								}
-								await update();
-							};
-						}}
-						class="space-y-4"
-					>
+					<form method="POST" onsubmit={handleSubmit} class="space-y-4">
 						<input type="hidden" name="id" value={user.id} />
 
 						<div>

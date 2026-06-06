@@ -4,17 +4,10 @@
 	import { canPollNow, createSerialPoller } from '$lib/client/serialPoller';
 	import StatCard from '$lib/components/ui/StatCard.svelte';
 	import { tileVisibility } from '$lib/stores/tileVisibility';
+	import { apiFetch } from '$lib/api';
+	import type { SystemStatsDto } from '$shared/api/types';
 
-	interface SystemStats {
-		cpuPercent: number;
-		iowaitPercent: number;
-		memoryTotal: number;
-		memoryUsed: number;
-		networkRxSec: number;
-		networkTxSec: number;
-	}
-
-	let stats = $state<SystemStats>({
+	let stats = $state<SystemStatsDto>({
 		cpuPercent: 0,
 		iowaitPercent: 0,
 		memoryTotal: 0,
@@ -24,13 +17,13 @@
 	});
 
 	const statsPoller = createSerialPoller({
-		intervalMs: 2000,
-		failureIntervalMs: 6000,
+		intervalMs: 5000,
+		failureIntervalMs: 10000,
 		shouldRun: canPollNow,
 		async run(signal) {
-			const res = await fetch('/api/system/stats', { signal });
+			const res = await apiFetch('/api/system/stats', { signal });
 			if (res.ok) {
-				stats = await res.json();
+				stats = (await res.json()) as SystemStatsDto;
 			} else {
 				throw new Error(`System stats request failed with ${res.status}`);
 			}

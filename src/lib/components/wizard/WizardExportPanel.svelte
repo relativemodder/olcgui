@@ -2,12 +2,13 @@
 	import { Link, Key, Terminal as TerminalIcon } from 'lucide-svelte';
 	import CopyButton from '$lib/components/ui/CopyButton.svelte';
 	import { intro } from '$lib/motion/intro';
+	import type { Mode } from '$shared/wizard/constants';
 
 	let { liveShareUrl, liveYaml, liveClientRunCommand, mode } = $props<{
 		liveShareUrl: string;
 		liveYaml: string;
 		liveClientRunCommand: string;
-		mode: 'srv' | 'cnc';
+		mode: Mode;
 	}>();
 </script>
 
