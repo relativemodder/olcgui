@@ -20,9 +20,11 @@ beforeAll(async () => {
 
 	const { db: clientDb } = await import('../src/server/db/client');
 	const { hashPassword: hp, verifyPassword: vp } = await import('../src/server/auth/password');
-	const { createSession: cs, getSession: gs, destroySession: ds } = await import(
-		'../src/server/auth/session'
-	);
+	const {
+		createSession: cs,
+		getSession: gs,
+		destroySession: ds
+	} = await import('../src/server/auth/session');
 	const { migrate: runMigrations } = await import('drizzle-orm/bun-sqlite/migrator');
 
 	db = clientDb;
