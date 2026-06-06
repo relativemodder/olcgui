@@ -1,17 +1,16 @@
 FROM oven/bun:1-debian
 
 RUN echo "deb http://deb.debian.org/debian trixie main" > /etc/apt/sources.list && \
-    echo "deb http://deb.debian.org/debian-security trixie-security main" >> /etc/apt/sources.list && \
-    echo "nameserver 8.8.8.8" > /etc/resolv.conf
+    echo "deb http://deb.debian.org/debian-security trixie-security main" >> /etc/apt/sources.list
 
-# Install git and Go (required for olcrtc compilation)
+# Install git and go
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     ca-certificates \
     golang-go \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Mage build tool
+# Install mage
 ENV GOPATH=/go
 ENV PATH=$GOPATH/bin:$PATH
 RUN mkdir -p /go/bin /go/src \
