@@ -44,6 +44,7 @@
 	<button
 		type="button"
 		class="shrink-0 cursor-pointer"
+		aria-label={label}
 		data-ui-press-exclude
 		onclick={(e) => {
 			e.stopPropagation();
@@ -51,7 +52,7 @@
 		}}
 	>
 		<div class="ui-switch-track {small ? 'ui-switch-small' : ''}" class:ui-switch-on={value}>
-			<div class="ui-switch-thumb" class:ui-switch-on={value} />
+			<div class="ui-switch-thumb" class:ui-switch-on={value}></div>
 		</div>
 	</button>
 	<div class="flex flex-1 flex-col">

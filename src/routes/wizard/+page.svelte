@@ -22,6 +22,7 @@
 
 	let name = $state(initial?.name ?? '');
 	let mode = $state<'cnc' | 'srv'>(initial?.mode ?? 'srv');
+	/* svelte-ignore state_referenced_locally */
 	let selectedUserId = $state<number>(
 		initial?.userId ?? data.currentUserId ?? data.allUsers[0]?.id ?? 0
 	);
