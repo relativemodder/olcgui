@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import shutil
-import subprocess
-import socket
 import re
+import shutil
+import socket
+import subprocess
 from pathlib import Path
-
 
 DEFAULT_IMAGE_PREFIX = "ghcr.io/relativemodder/olcgui"
 DEFAULT_IMAGE_TAG = "latest"
@@ -319,6 +318,7 @@ def render_compose(selinux: bool) -> str:
       HOST: 0.0.0.0
       PORT: 5173
       API_BACKEND_URL: http://api:3001
+      BODY_SIZE_LIMIT: Infinity
     depends_on:
       - api
     restart: unless-stopped
