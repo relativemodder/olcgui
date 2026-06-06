@@ -1,6 +1,6 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 import type { Config } from '@sveltejs/kit';
-import { saveUploadedBinary } from '$lib/server/process/manager';
+import { startBinaryUpload, getUploadStatus } from '$lib/server/process/manager';
 import { requireAdmin, normalizeError } from '$lib/server/auth/guards';
 
 export const config: Config = {
@@ -21,9 +21,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const arrayBuffer = await file.arrayBuffer();
 		const buffer = Buffer.from(arrayBuffer);
 
-		await saveUploadedBinary(buffer);
+		const { uploadId } = startBinaryUpload(buffer, file.name);
 
-		return json({ success: true, message: 'Бинарный файл успешно загружен и сохранен.' });
+		return json({ uploadId });
 	} catch (error) {
 		console.error('[UploadBuild] Error:', error);
 		return json(
@@ -31,4 +31,20 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			{ status: 500 }
 		);
 	}
+};
+
+export const GET: RequestHandler = async ({ url, locals }) => {
+	requireAdmin(locals.user);
+
+	const uploadId = url.searchParams.get('uploadId');
+	if (!uploadId) {
+		return json({ error: 'uploadId parameter required.' }, { status: 400 });
+	}
+
+	const state = getUploadStatus(uploadId);
+	if (!state) {
+		return json({ error: 'Upload not found.' }, { status: 404 });
+	}
+
+	return json(state);
 };

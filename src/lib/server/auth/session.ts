@@ -38,6 +38,21 @@ export function updateSessionUsername(token: string, newUsername: string): void 
 	}
 }
 
+export function updateSessionRole(token: string, newRole: 'admin' | 'user'): void {
+	const session = sessionsStore.get(token);
+	if (session) {
+		sessionsStore.set(token, { ...session, role: newRole });
+	}
+}
+
+export function updateSessionsByUserId(userId: number, updates: Partial<Pick<Session, 'username' | 'role'>>): void {
+	for (const [token, session] of sessionsStore.entries()) {
+		if (session.userId === userId) {
+			sessionsStore.set(token, { ...session, ...updates });
+		}
+	}
+}
+
 export function destroySession(token: string | null | undefined): void {
 	if (token) {
 		sessionsStore.delete(token);

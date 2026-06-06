@@ -41,6 +41,10 @@ export function parseRoomUrl(url: string, provider: 'jitsi' | 'wbstream' | 'tele
 	return trimmed;
 }
 
+function escapeYamlValue(value: string): string {
+	return value.replaceAll('\\', '\\\\').replaceAll('"', '\\"').replaceAll('\n', '\\n').replaceAll('\r', '');
+}
+
 /**
  * Generates the formal config YAML content for both Server (srv) and Client (cnc) configurations.
  */
@@ -51,22 +55,22 @@ export function generateYaml(config: WizardConfig, mode: 'srv' | 'cnc'): string 
 	lines.push(`auth:`);
 	lines.push(` provider: ${config.provider}`);
 	lines.push(`room:`);
-	lines.push(` id: "${parseRoomUrl(config.roomUrl, config.provider)}"`);
+	lines.push(` id: "${escapeYamlValue(parseRoomUrl(config.roomUrl, config.provider))}"`);
 	lines.push(`crypto:`);
-	lines.push(` key: "${config.cryptoKey}"`);
+	lines.push(` key: "${escapeYamlValue(config.cryptoKey)}"`);
 	lines.push(`net:`);
 	lines.push(` transport: ${config.transport}`);
-	lines.push(` dns: "${config.dns}"`);
+	lines.push(` dns: "${escapeYamlValue(config.dns)}"`);
 
 	if (mode === 'cnc') {
 		lines.push(`socks:`);
-		lines.push(` host: "${config.socksHost}"`);
+		lines.push(` host: "${escapeYamlValue(config.socksHost)}"`);
 		lines.push(` port: ${config.socksPort}`);
 		if (config.socksUser?.trim()) {
-			lines.push(` user: "${config.socksUser.trim()}"`);
+			lines.push(` user: "${escapeYamlValue(config.socksUser.trim())}"`);
 		}
 		if (config.socksPass?.trim()) {
-			lines.push(` pass: "${config.socksPass.trim()}"`);
+			lines.push(` pass: "${escapeYamlValue(config.socksPass.trim())}"`);
 		}
 	}
 

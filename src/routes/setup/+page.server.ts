@@ -1,7 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 import { db } from '$lib/server/db/client';
-import { users } from '$lib/server/db/schema';
+import { users, settings } from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
 import { hashPassword } from '$lib/server/auth/password';
 import { createSession, setSessionCookie } from '$lib/server/auth/session';
 
@@ -29,11 +30,6 @@ export const actions: Actions = {
 		}
 
 		try {
-			const existingUsers = await db.select().from(users).limit(1);
-			if (existingUsers.length > 0) {
-				return fail(400, { error: 'Администратор уже создан.' });
-			}
-
 			const passwordHash = await hashPassword(password);
 
 			const [newAdmin] = await db
@@ -44,6 +40,13 @@ export const actions: Actions = {
 					role: 'admin'
 				})
 				.returning();
+
+			try {
+				await db.insert(settings).values({ key: 'setup_done', value: '1' });
+			} catch {
+				await db.delete(users).where(eq(users.id, newAdmin.id));
+				return fail(400, { error: 'Администратор уже создан.' });
+			}
 
 			const sessionToken = createSession(newAdmin.id, newAdmin.username, newAdmin.role);
 			setSessionCookie(cookies, sessionToken);

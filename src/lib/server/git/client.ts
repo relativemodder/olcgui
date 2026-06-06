@@ -99,7 +99,13 @@ export function checkoutBranch(branchName: string): { success: boolean; error?: 
 		};
 	}
 
-	runGitCommand(['pull', 'origin', branchName]);
+	const pullResult = runGitCommand(['pull', 'origin', branchName]);
+	if (!pullResult.success) {
+		return {
+			success: false,
+			error: pullResult.stderr || `Не удалось выполнить pull для ветки "${branchName}"`
+		};
+	}
 
 	return { success: true };
 }

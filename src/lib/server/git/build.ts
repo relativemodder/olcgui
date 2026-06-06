@@ -45,8 +45,8 @@ export function startBuild(): void {
 
 	console.log(`[BuildService] Initiating build on branch "${branch}"`);
 
-	const mageCmd = env.MAGE_CMD || '~/go/bin/mage';
-	const childProcess = Bun.spawn(['bash', '-c', `${mageCmd} build`], {
+	const mageCmd = env.MAGE_CMD || 'mage';
+	const childProcess = Bun.spawn(['bash', '-c', `exec ${mageCmd} build`], {
 		cwd: BUILD_DIR,
 		stdout: 'pipe',
 		stderr: 'pipe'

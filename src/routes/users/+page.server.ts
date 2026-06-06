@@ -3,7 +3,7 @@ import { db } from '$lib/server/db/client';
 import { users } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { hashPassword, verifyPassword } from '$lib/server/auth/password';
-import { updateSessionUsername } from '$lib/server/auth/session';
+import { updateSessionUsername, updateSessionsByUserId } from '$lib/server/auth/session';
 import { fail } from '@sveltejs/kit';
 import { requireAuth, requireAdmin, normalizeError } from '$lib/server/auth/guards';
 
@@ -147,6 +147,8 @@ export const actions: Actions = {
 			}
 
 			await db.update(users).set(updateData).where(eq(users.id, id));
+
+			updateSessionsByUserId(id, { username, role });
 
 			if (id === locals.user.userId) {
 				const token = cookies.get('session');

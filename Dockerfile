@@ -1,7 +1,7 @@
 FROM oven/bun:1-debian
 
 RUN echo "deb http://deb.debian.org/debian trixie main" > /etc/apt/sources.list && \
-    echo "deb http://deb.debian.org/debian-security trixie-security main" >> /etc/apt/sources.list \
+    echo "deb http://deb.debian.org/debian-security trixie-security main" >> /etc/apt/sources.list && \
     echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
 # Install git and Go (required for olcrtc compilation)

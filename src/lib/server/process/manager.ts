@@ -6,6 +6,78 @@ import { evaluateRestart, type RestartMetrics } from './restartPolicy';
 import { mkdirSync, writeFileSync, unlinkSync, existsSync, chmodSync, renameSync } from 'fs';
 import { join, dirname } from 'path';
 import { env } from '$env/dynamic/private';
+import { randomBytes } from 'crypto';
+
+export type UploadStatusCode = 'writing' | 'validating' | 'success' | 'error';
+export interface UploadState {
+	status: UploadStatusCode;
+	message: string;
+	fileName: string;
+}
+
+const uploads = new Map<string, UploadState>();
+
+const VALIDATION_TIMEOUT_MS = 60_000;
+
+export function getUploadStatus(uploadId: string): UploadState | null {
+	return uploads.get(uploadId) ?? null;
+}
+
+export function startBinaryUpload(
+	buffer: Buffer,
+	fileName: string
+): { uploadId: string } {
+	const uploadId = randomBytes(16).toString('hex');
+	const dir = dirname(BINARY_PATH);
+	mkdirSync(dir, { recursive: true });
+
+	const tempPath = `${BINARY_PATH}.tmp.${uploadId}`;
+	writeFileSync(tempPath, buffer);
+	chmodSync(tempPath, 0o755);
+
+	uploads.set(uploadId, { status: 'validating', message: 'Проверка бинарного файла…', fileName });
+
+	validateBinary(uploadId, tempPath);
+
+	return { uploadId };
+}
+
+async function validateBinary(uploadId: string, tempPath: string): Promise<void> {
+	try {
+		const proc = Bun.spawn([tempPath], { stdout: 'pipe', stderr: 'pipe' });
+
+		const killTimer = setTimeout(() => {
+			try { proc.kill(9); } catch { /* ignore */ }
+		}, VALIDATION_TIMEOUT_MS);
+
+		try {
+			const [stderrText, stdoutText] = await Promise.all([
+				new Response(proc.stderr).text(),
+				new Response(proc.stdout).text(),
+			]);
+			await proc.exited;
+			clearTimeout(killTimer);
+
+			const output = stderrText + stdoutText;
+			if (!output.includes('usage: olcrtc <config.yaml>')) {
+				failUpload(uploadId, tempPath, 'Файл не является корректным исполняемым файлом ядра olcrtc для данной архитектуры.');
+				return;
+			}
+		} finally {
+			clearTimeout(killTimer);
+		}
+
+		renameSync(tempPath, BINARY_PATH);
+		uploads.set(uploadId, { status: 'success', message: 'Бинарный файл успешно загружен и сохранён.', fileName: '' });
+	} catch (err) {
+		failUpload(uploadId, tempPath, err instanceof Error ? err.message : 'Ошибка проверки бинарного файла.');
+	}
+}
+
+function failUpload(uploadId: string, tempPath: string, message: string): void {
+	try { unlinkSync(tempPath); } catch { /* ignore */ }
+	uploads.set(uploadId, { status: 'error', message, fileName: '' });
+}
 
 export interface ActiveInstance {
 	id: number;
@@ -30,50 +102,6 @@ try {
 	mkdirSync(DATA_DIR, { recursive: true });
 } catch (e) {
 	console.error('[ProcessManager] Failed to create data directory:', e);
-}
-
-export async function saveUploadedBinary(buffer: Buffer): Promise<void> {
-	const dir = dirname(BINARY_PATH);
-	mkdirSync(dir, { recursive: true });
-
-	const tempPath = `${BINARY_PATH}.tmp`;
-	writeFileSync(tempPath, buffer);
-	chmodSync(tempPath, 0o755);
-
-	try {
-		const proc = Bun.spawn([tempPath], {
-			stdout: 'pipe',
-			stderr: 'pipe'
-		});
-
-		const stderrText = await new Response(proc.stderr).text();
-		const stdoutText = await new Response(proc.stdout).text();
-
-		await proc.exited;
-
-		const output = stderrText + stdoutText;
-		if (!output.includes('usage: olcrtc <config.yaml>')) {
-			throw new Error(
-				'Файл не является корректным исполняемым файлом ядра olcrtc для данной архитектуры.'
-			);
-		}
-
-		renameSync(tempPath, BINARY_PATH);
-	} catch (err) {
-		try {
-			unlinkSync(tempPath);
-		} catch (_e) {
-			// ignore cleanup errors
-		}
-
-		if (err instanceof Error && err.message.includes('Файл не является')) {
-			throw err;
-		}
-		throw new Error(
-			'Файл не является корректным исполняемым файлом для данной архитектуры (ошибка выполнения).',
-			{ cause: err }
-		);
-	}
 }
 
 export function getInstanceLogs(id: number): string[] {
