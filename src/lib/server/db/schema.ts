@@ -29,6 +29,7 @@ export const instances = sqliteTable('instances', {
 	socksPass: text('socks_pass'),
 	debug: integer('debug', { mode: 'boolean' }).notNull().default(false),
 	autoRestart: integer('auto_restart', { mode: 'boolean' }).notNull().default(true),
+	restartInterval: integer('restart_interval'), // minutes between periodic restarts (null = disabled)
 	status: text('status')
 		.notNull()
 		.$type<'stopped' | 'running' | 'restarting' | 'error'>()

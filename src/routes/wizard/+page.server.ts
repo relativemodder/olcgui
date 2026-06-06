@@ -67,6 +67,9 @@ export const actions: Actions = {
 		const socksUser = data.get('socksUser')?.toString().trim() || null;
 		const socksPass = data.get('socksPass')?.toString().trim() || null;
 		const debug = data.get('debug') === 'true';
+		const restartIntervalStr = data.get('restartInterval');
+		const restartIntervalVal = restartIntervalStr ? Number(restartIntervalStr) : null;
+		const restartInterval = restartIntervalVal && restartIntervalVal > 0 ? restartIntervalVal : null;
 		const ownerIdStr = data.get('userId');
 		const ownerId = ownerIdStr ? Number(ownerIdStr) : null;
 
@@ -85,6 +88,12 @@ export const actions: Actions = {
 		}
 		if (socksPortStr && (!Number.isFinite(socksPort) || socksPort < 1 || socksPort > 65535)) {
 			return fail(400, { error: 'Порт SOCKS5 должен быть числом от 1 до 65535.' });
+		}
+		if (
+			restartIntervalStr &&
+			(restartIntervalVal === null || !Number.isFinite(restartIntervalVal) || restartIntervalVal < 0 || restartIntervalVal > 525600)
+		) {
+			return fail(400, { error: 'Интервал автоперезапуска должен быть от 0 до 525600 минут (1 год).' });
 		}
 		if (locals.user.role === 'admin' && ownerId) {
 			const [owner] = await db
@@ -120,6 +129,7 @@ export const actions: Actions = {
 						socksUser: mode === 'cnc' ? socksUser : null,
 						socksPass: mode === 'cnc' ? socksPass : null,
 						debug,
+						restartInterval,
 						...(locals.user.role === 'admin' && ownerId ? { userId: ownerId } : {})
 					})
 					.where(eq(instances.id, id));
@@ -138,6 +148,7 @@ export const actions: Actions = {
 					socksUser: mode === 'cnc' ? socksUser : null,
 					socksPass: mode === 'cnc' ? socksPass : null,
 					debug,
+					restartInterval,
 					status: 'stopped'
 				});
 			}

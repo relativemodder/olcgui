@@ -106,6 +106,7 @@ export interface ActiveInstance {
 	configPath: string;
 	restartTimer?: Timer;
 	expectedExit?: boolean;
+	periodicRestartTimer?: Timer;
 }
 
 const activeInstances = new Map<number, ActiveInstance>();
@@ -139,6 +140,7 @@ export async function startInstance(id: number): Promise<void> {
 		if (existing.restartTimer) {
 			clearTimeout(existing.restartTimer);
 		}
+		clearPeriodicRestartTimer(existing);
 	}
 
 	const [instance] = await db.select().from(instances).where(eq(instances.id, id)).limit(1);
@@ -196,6 +198,19 @@ export async function startInstance(id: number): Promise<void> {
 	};
 
 	activeInstances.set(id, activeBlock);
+
+	if (instance.restartInterval && instance.restartInterval > 0) {
+		const intervalMs = instance.restartInterval * 60 * 1000;
+		activeBlock.periodicRestartTimer = setInterval(() => {
+			internalPeriodicRestart(id).catch((e) =>
+				console.error(`[ProcessManager] Periodic restart failed for instance ${id}:`, e)
+			);
+		}, intervalMs);
+		await logInstanceLine(
+			id,
+			`[Manager] Periodic restart scheduled every ${instance.restartInterval} minute(s).`
+		);
+	}
 
 	await db.update(instances).set({ status: 'running' }).where(eq(instances.id, id));
 	await logInstanceLine(id, `[Manager] Process spawned successfully. PID: ${childProcess.pid}`);
@@ -305,6 +320,8 @@ export async function stopInstance(id: number): Promise<void> {
 		block.restartTimer = undefined;
 	}
 
+	clearPeriodicRestartTimer(block);
+
 	try {
 		block.process.kill(15);
 		setTimeout(() => {
@@ -322,6 +339,25 @@ export async function stopInstance(id: number): Promise<void> {
 
 	await logInstanceLine(id, '[Manager] Process terminated manually.');
 	await db.update(instances).set({ status: 'stopped' }).where(eq(instances.id, id));
+}
+
+function clearPeriodicRestartTimer(block: ActiveInstance): void {
+	if (block.periodicRestartTimer) {
+		clearInterval(block.periodicRestartTimer);
+		block.periodicRestartTimer = undefined;
+	}
+}
+
+async function internalPeriodicRestart(id: number): Promise<void> {
+	const block = activeInstances.get(id);
+	if (!block || block.status === 'stopped') return;
+
+	clearPeriodicRestartTimer(block);
+
+	const [latestConfig] = await db.select().from(instances).where(eq(instances.id, id)).limit(1);
+	if (!latestConfig || !latestConfig.restartInterval || latestConfig.restartInterval <= 0) return;
+
+	await restartInstance(id);
 }
 
 export async function restartInstance(id: number): Promise<void> {
@@ -343,6 +379,8 @@ export async function restartInstance(id: number): Promise<void> {
 		clearTimeout(block.restartTimer);
 		block.restartTimer = undefined;
 	}
+
+	clearPeriodicRestartTimer(block);
 
 	await logInstanceLine(id, '[Manager] Manual restart requested.');
 

@@ -39,6 +39,7 @@
 	let socksUser = $state(initial?.socksUser ?? '');
 	let socksPass = $state(initial?.socksPass ?? '');
 	let debug = $state(initial?.debug ?? false);
+	let restartInterval = $state<number | null>(initial?.restartInterval ?? null);
 
 	function handleRegenKey() {
 		cryptoKey = generateCryptoKey();
@@ -201,6 +202,38 @@
 								<option value="vp8channel">vp8channel</option>
 							{/if}
 						</SelectField>
+					</div>
+
+					<div class="flex items-center gap-4">
+						<div class="flex-1">
+							<label
+								for="restartInterval"
+								class="mb-2 block text-sm font-medium tracking-wide text-[color:var(--ui-muted)] uppercase"
+							>
+								Автоперезапуск каждые N минут
+							</label>
+							<input
+								type="number"
+								id="restartInterval"
+								name="restartInterval"
+								value={restartInterval ?? ''}
+								oninput={(e) => {
+									const val = e.currentTarget.value;
+									restartInterval = val === '' ? null : Number(val);
+								}}
+								placeholder="0 — отключено"
+								min="0"
+								max="525600"
+								class="ui-input w-full px-4 py-2.5 text-base font-normal"
+							/>
+						</div>
+						{#if restartInterval && restartInterval > 0}
+							<div
+								class="mt-6 shrink-0 rounded border border-[color:var(--ui-border)] bg-[color:var(--ui-surface-2)] px-3 py-2 text-xs text-[color:var(--ui-muted)]"
+							>
+								каждые {restartInterval} мин.
+							</div>
+						{/if}
 					</div>
 
 					<div>
