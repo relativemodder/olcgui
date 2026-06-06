@@ -1,7 +1,5 @@
 import { describe, expect, it, beforeAll } from 'bun:test';
-import { Database } from 'bun:sqlite';
-import { drizzle } from 'drizzle-orm/bun-sqlite';
-import { migrate } from 'drizzle-orm/bun-sqlite/migrator';
+import type { drizzle } from 'drizzle-orm/bun-sqlite';
 
 let db: ReturnType<typeof drizzle>;
 let createSession: (userId: number, username: string, role: 'admin' | 'user') => Promise<string>;
