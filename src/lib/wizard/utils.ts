@@ -42,7 +42,11 @@ export function parseRoomUrl(url: string, provider: 'jitsi' | 'wbstream' | 'tele
 }
 
 function escapeYamlValue(value: string): string {
-	return value.replaceAll('\\', '\\\\').replaceAll('"', '\\"').replaceAll('\n', '\\n').replaceAll('\r', '');
+	return value
+		.replaceAll('\\', '\\\\')
+		.replaceAll('"', '\\"')
+		.replaceAll('\n', '\\n')
+		.replaceAll('\r', '');
 }
 
 /**

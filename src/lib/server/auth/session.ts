@@ -45,7 +45,10 @@ export function updateSessionRole(token: string, newRole: 'admin' | 'user'): voi
 	}
 }
 
-export function updateSessionsByUserId(userId: number, updates: Partial<Pick<Session, 'username' | 'role'>>): void {
+export function updateSessionsByUserId(
+	userId: number,
+	updates: Partial<Pick<Session, 'username' | 'role'>>
+): void {
 	for (const [token, session] of sessionsStore.entries()) {
 		if (session.userId === userId) {
 			sessionsStore.set(token, { ...session, ...updates });

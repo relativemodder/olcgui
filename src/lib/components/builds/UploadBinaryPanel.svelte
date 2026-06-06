@@ -167,7 +167,9 @@
 						style="width: {uploadProgress}%"
 					></div>
 				</div>
-				<span class="shrink-0 text-xs tabular-nums text-[color:var(--ui-muted)]">{uploadProgress}%</span>
+				<span class="shrink-0 text-xs text-[color:var(--ui-muted)] tabular-nums"
+					>{uploadProgress}%</span
+				>
 			</div>
 		{:else if status === 'validating'}
 			<div class="flex items-center gap-2 text-sm text-[color:var(--ui-muted)]">

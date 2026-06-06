@@ -87,7 +87,11 @@ export const actions: Actions = {
 			return fail(400, { error: 'Порт SOCKS5 должен быть числом от 1 до 65535.' });
 		}
 		if (locals.user.role === 'admin' && ownerId) {
-			const [owner] = await db.select({ id: users.id }).from(users).where(eq(users.id, ownerId)).limit(1);
+			const [owner] = await db
+				.select({ id: users.id })
+				.from(users)
+				.where(eq(users.id, ownerId))
+				.limit(1);
 			if (!owner) {
 				return fail(400, { error: 'Указанный пользователь-владелец не найден.' });
 			}

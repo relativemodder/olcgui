@@ -23,10 +23,7 @@ export function getUploadStatus(uploadId: string): UploadState | null {
 	return uploads.get(uploadId) ?? null;
 }
 
-export function startBinaryUpload(
-	buffer: Buffer,
-	fileName: string
-): { uploadId: string } {
+export function startBinaryUpload(buffer: Buffer, fileName: string): { uploadId: string } {
 	const uploadId = randomBytes(16).toString('hex');
 	const dir = dirname(BINARY_PATH);
 	mkdirSync(dir, { recursive: true });
@@ -47,20 +44,28 @@ async function validateBinary(uploadId: string, tempPath: string): Promise<void>
 		const proc = Bun.spawn([tempPath], { stdout: 'pipe', stderr: 'pipe' });
 
 		const killTimer = setTimeout(() => {
-			try { proc.kill(9); } catch { /* ignore */ }
+			try {
+				proc.kill(9);
+			} catch {
+				/* ignore */
+			}
 		}, VALIDATION_TIMEOUT_MS);
 
 		try {
 			const [stderrText, stdoutText] = await Promise.all([
 				new Response(proc.stderr).text(),
-				new Response(proc.stdout).text(),
+				new Response(proc.stdout).text()
 			]);
 			await proc.exited;
 			clearTimeout(killTimer);
 
 			const output = stderrText + stdoutText;
 			if (!output.includes('usage: olcrtc <config.yaml>')) {
-				failUpload(uploadId, tempPath, 'Файл не является корректным исполняемым файлом ядра olcrtc для данной архитектуры.');
+				failUpload(
+					uploadId,
+					tempPath,
+					'Файл не является корректным исполняемым файлом ядра olcrtc для данной архитектуры.'
+				);
 				return;
 			}
 		} finally {
@@ -68,14 +73,26 @@ async function validateBinary(uploadId: string, tempPath: string): Promise<void>
 		}
 
 		renameSync(tempPath, BINARY_PATH);
-		uploads.set(uploadId, { status: 'success', message: 'Бинарный файл успешно загружен и сохранён.', fileName: '' });
+		uploads.set(uploadId, {
+			status: 'success',
+			message: 'Бинарный файл успешно загружен и сохранён.',
+			fileName: ''
+		});
 	} catch (err) {
-		failUpload(uploadId, tempPath, err instanceof Error ? err.message : 'Ошибка проверки бинарного файла.');
+		failUpload(
+			uploadId,
+			tempPath,
+			err instanceof Error ? err.message : 'Ошибка проверки бинарного файла.'
+		);
 	}
 }
 
 function failUpload(uploadId: string, tempPath: string, message: string): void {
-	try { unlinkSync(tempPath); } catch { /* ignore */ }
+	try {
+		unlinkSync(tempPath);
+	} catch {
+		/* ignore */
+	}
 	uploads.set(uploadId, { status: 'error', message, fileName: '' });
 }
 
