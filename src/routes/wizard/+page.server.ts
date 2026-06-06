@@ -69,7 +69,8 @@ export const actions: Actions = {
 		const debug = data.get('debug') === 'true';
 		const restartIntervalStr = data.get('restartInterval');
 		const restartIntervalVal = restartIntervalStr ? Number(restartIntervalStr) : null;
-		const restartInterval = restartIntervalVal && restartIntervalVal > 0 ? restartIntervalVal : null;
+		const restartInterval =
+			restartIntervalVal && restartIntervalVal > 0 ? restartIntervalVal : null;
 		const ownerIdStr = data.get('userId');
 		const ownerId = ownerIdStr ? Number(ownerIdStr) : null;
 
@@ -91,9 +92,14 @@ export const actions: Actions = {
 		}
 		if (
 			restartIntervalStr &&
-			(restartIntervalVal === null || !Number.isFinite(restartIntervalVal) || restartIntervalVal < 0 || restartIntervalVal > 525600)
+			(restartIntervalVal === null ||
+				!Number.isFinite(restartIntervalVal) ||
+				restartIntervalVal < 0 ||
+				restartIntervalVal > 525600)
 		) {
-			return fail(400, { error: 'Интервал автоперезапуска должен быть от 0 до 525600 минут (1 год).' });
+			return fail(400, {
+				error: 'Интервал автоперезапуска должен быть от 0 до 525600 минут (1 год).'
+			});
 		}
 		if (locals.user.role === 'admin' && ownerId) {
 			const [owner] = await db
