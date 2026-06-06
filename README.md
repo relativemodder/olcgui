@@ -1,6 +1,6 @@
 # olcgui
 
-Web interface for managing [olcrtc](https://github.com/olcrtc) tunnel instances.
+Web interface for managing [olcrtc](https://github.com/openlibrecommunity/olcrtc) tunnel instances.
 
 [Читать на русском](README_RU.md)
 

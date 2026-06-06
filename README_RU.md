@@ -1,6 +1,6 @@
 # olcgui
 
-Веб-интерфейс для управления инстансами туннелей [olcrtc](https://github.com/olcrtc).
+Веб-интерфейс для управления инстансами туннелей [olcrtc](https://github.com/openlibrecommunity/olcrtc).
 
 <img src="/assets/mainpage.png">
 <img src="/assets/buildpage.png">
