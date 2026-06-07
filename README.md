@@ -21,14 +21,12 @@ Download and run the interactive deployer:
 
 ```bash
 sh <(curl -fsSL https://raw.githubusercontent.com/relativemodder/olcgui/main/get-deployer.sh)
-./deployer-x86_64-unknown-linux-musl
 ```
 
 If `curl` is not available, use `wget`:
 
 ```bash
 sh <(wget -qO- https://raw.githubusercontent.com/relativemodder/olcgui/main/get-deployer.sh)
-./deployer-x86_64-unknown-linux-musl
 ```
 
 The deployer will ask for language, install directory, ports, and registry prefix, then create `compose.yml`, `.env`, `data/`, and `olcrtc/` for you.

@@ -19,14 +19,12 @@
 
 ```bash
 sh <(curl -fsSL https://raw.githubusercontent.com/relativemodder/olcgui/main/get-deployer.sh)
-./deployer-x86_64-unknown-linux-musl
 ```
 
 Если `curl` недоступен, используйте `wget`:
 
 ```bash
 sh <(wget -qO- https://raw.githubusercontent.com/relativemodder/olcgui/main/get-deployer.sh)
-./deployer-x86_64-unknown-linux-musl
 ```
 
 Скрипт скачает последнюю версию бинарника, а деплоер сам спросит язык, директорию установки, порты и префикс registry, после чего создаст `compose.yml`, `.env`, `data/` и `olcrtc/`.
