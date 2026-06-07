@@ -22,7 +22,8 @@
 		statCards: false
 	});
 
-	const { colorScheme, animationMode, tileVisibility } = getContext<AppSettingsStores>(APP_SETTINGS_CONTEXT);
+	const { colorScheme, animationMode, tileVisibility } =
+		getContext<AppSettingsStores>(APP_SETTINGS_CONTEXT);
 
 	function toggleGroup(key: string) {
 		expandedGroups[key] = !expandedGroups[key];

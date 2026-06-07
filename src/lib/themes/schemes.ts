@@ -10,7 +10,11 @@ export const colorSchemes: ColorScheme[] = [
 	{ id: 'breeze-light', label: 'Breeze Light', href: '/themes/breeze-light.css' },
 	{ id: 'catppuccin-frappe', label: 'Catppuccin Frappe', href: '/themes/catppuccin-frappe.css' },
 	{ id: 'catppuccin-latte', label: 'Catppuccin Latte', href: '/themes/catppuccin-latte.css' },
-	{ id: 'catppuccin-macchiato', label: 'Catppuccin Macchiato', href: '/themes/catppuccin-macchiato.css' },
+	{
+		id: 'catppuccin-macchiato',
+		label: 'Catppuccin Macchiato',
+		href: '/themes/catppuccin-macchiato.css'
+	},
 	{ id: 'catppuccin-mocha', label: 'Catppuccin Mocha', href: '/themes/catppuccin-mocha.css' },
 	{ id: 'dracula', label: 'Dracula', href: '/themes/dracula.css' },
 	{ id: 'github-dark', label: 'GitHub Dark', href: '/themes/github-dark.css' },

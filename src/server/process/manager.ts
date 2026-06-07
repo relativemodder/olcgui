@@ -24,7 +24,10 @@ export function getUploadStatus(uploadId: string): UploadState | null {
 	return uploads.get(uploadId) ?? null;
 }
 
-export async function startBinaryUpload(buffer: Uint8Array, fileName: string): Promise<{ uploadId: string }> {
+export async function startBinaryUpload(
+	buffer: Uint8Array,
+	fileName: string
+): Promise<{ uploadId: string }> {
 	const bytes = new Uint8Array(16);
 	crypto.getRandomValues(bytes);
 	const uploadId = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');

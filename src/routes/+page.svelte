@@ -13,7 +13,7 @@
 		SystemMonitor,
 		PageHeader,
 		StatCard,
-		intro,
+		intro
 	} from '$lib';
 	import { APP_SETTINGS_CONTEXT, type AppSettingsStores } from '$lib/stores/appSettings';
 

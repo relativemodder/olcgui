@@ -39,7 +39,9 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
 	}
 };
 
-export function normalizeAppSettings(partial: Partial<AppSettings> | null | undefined): AppSettings {
+export function normalizeAppSettings(
+	partial: Partial<AppSettings> | null | undefined
+): AppSettings {
 	const colorScheme =
 		partial?.colorScheme && colorSchemes.some((scheme) => scheme.id === partial.colorScheme)
 			? partial.colorScheme
@@ -61,7 +63,9 @@ export function normalizeAppSettings(partial: Partial<AppSettings> | null | unde
 	};
 }
 
-export function readAppSettingsCookie(value: string | null | undefined): Partial<AppSettings> | null {
+export function readAppSettingsCookie(
+	value: string | null | undefined
+): Partial<AppSettings> | null {
 	if (!value) return null;
 
 	try {

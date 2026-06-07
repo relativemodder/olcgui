@@ -16,7 +16,9 @@ export async function createSession(
 	username: string,
 	role: 'admin' | 'user'
 ): Promise<string> {
-	const token = Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, '0')).join('');
+	const token = Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) =>
+		b.toString(16).padStart(2, '0')
+	).join('');
 	const expiresAt = Date.now() + SESSION_DURATION_MS;
 	await db.insert(sessions).values({ token, userId, username, role, expiresAt });
 	return token;

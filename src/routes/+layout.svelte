@@ -13,7 +13,14 @@
 	import { page } from '$app/state';
 	import { onMount, setContext } from 'svelte';
 	import { LayoutDashboard, Sliders, Cpu, Users, LogOut, Terminal } from 'lucide-svelte';
-	import { AppBootstrapOverlay, DotProgress, NavItem, MetroAlertHost, PressFeedback, RevealBorder } from '$lib';
+	import {
+		AppBootstrapOverlay,
+		DotProgress,
+		NavItem,
+		MetroAlertHost,
+		PressFeedback,
+		RevealBorder
+	} from '$lib';
 	import Toast from '$lib/components/ui/Toast.svelte';
 	import {
 		APP_SETTINGS_CONTEXT,
@@ -90,9 +97,13 @@
 	<link rel="stylesheet" href={themeHref} />
 </svelte:head>
 
-	<AppBootstrapOverlay visible={!$appShellVisible} />
+<AppBootstrapOverlay visible={!$appShellVisible} />
 
-	<div class:opacity-0={!$appShellVisible} class:invisible={!$appShellVisible} class="ui-app-shell relative flex min-h-screen flex-col transition-opacity duration-150">
+<div
+	class:opacity-0={!$appShellVisible}
+	class:invisible={!$appShellVisible}
+	class="ui-app-shell relative flex min-h-screen flex-col transition-opacity duration-150"
+>
 	{#if data.user}
 		<header class="ui-header sticky top-0 z-50 w-full">
 			<div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
