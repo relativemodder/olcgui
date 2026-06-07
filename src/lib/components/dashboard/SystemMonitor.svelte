@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import { getContext } from 'svelte';
 	import { Cpu, HardDrive, ArrowDownUp, Activity } from 'lucide-svelte';
 	import { canPollNow, createSerialPoller } from '$lib/client/serialPoller';
 	import StatCard from '$lib/components/ui/StatCard.svelte';
-	import { tileVisibility } from '$lib/stores/tileVisibility';
+	import { APP_SETTINGS_CONTEXT, type AppSettingsStores } from '$lib/stores/appSettings';
 	import { apiFetch } from '$lib/api';
 	import type { SystemStatsDto } from '$shared/api/types';
+
+	const { tileVisibility } = getContext<AppSettingsStores>(APP_SETTINGS_CONTEXT);
 
 	let stats = $state<SystemStatsDto>({
 		cpuPercent: 0,

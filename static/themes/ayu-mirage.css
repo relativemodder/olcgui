@@ -1,0 +1,37 @@
+html[data-theme='ayu-mirage'] {
+	--ui-bg: #1f2430;
+	--ui-surface: #2a3040;
+	--ui-surface-2: #334151;
+	--ui-surface-strong: #3d4f63;
+	--ui-border: #3d4f63;
+	--ui-border-strong: #171c26;
+	--ui-border-subtle: rgba(203, 204, 198, 0.08);
+	--ui-text: #cbccc6;
+	--ui-muted: #84868c;
+	--ui-accent: #5ccfe6;
+	--ui-accent-strong: #73d0ff;
+	--ui-accent-border: #5ccfe6;
+	--ui-success: #bae67e;
+	--ui-success-bg: rgba(186, 230, 126, 0.12);
+	--ui-success-border: #bae67e;
+	--ui-success-text: #bae67e;
+	--ui-warning: #ffd173;
+	--ui-warning-bg: rgba(255, 209, 115, 0.12);
+	--ui-warning-border: #ffd173;
+	--ui-warning-text: #ffd173;
+	--ui-danger: #f28779;
+	--ui-danger-strong: #ff8f40;
+	--ui-danger-bg: rgba(242, 135, 121, 0.12);
+	--ui-danger-border: #f28779;
+	--ui-danger-text: #f28779;
+	--ui-code-bg: #171c26;
+	--ui-code-text: #cbccc6;
+	--ui-hover: #2e3649;
+	--ui-empty-bg: rgba(203, 204, 198, 0.04);
+	--ui-overlay: rgba(23, 28, 38, 0.9);
+	--ui-glow: rgba(203, 204, 198, 0.92);
+	--ui-glow-muted: rgba(132, 134, 140, 0.46);
+	--ui-glow-dim: rgba(132, 134, 140, 0.16);
+	--ui-selection-text: #1f2430;
+	color-scheme: dark;
+}

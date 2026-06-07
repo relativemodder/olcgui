@@ -1,5 +1,3 @@
-import { randomBytes } from 'crypto';
-import type { Cookies } from '@sveltejs/kit';
 import { db } from '../db/client';
 import { sessions } from '../db/schema';
 import { eq, lt } from 'drizzle-orm';
@@ -18,7 +16,7 @@ export async function createSession(
 	username: string,
 	role: 'admin' | 'user'
 ): Promise<string> {
-	const token = randomBytes(32).toString('hex');
+	const token = Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, '0')).join('');
 	const expiresAt = Date.now() + SESSION_DURATION_MS;
 	await db.insert(sessions).values({ token, userId, username, role, expiresAt });
 	return token;
@@ -60,16 +58,6 @@ export async function destroySession(token: string | null | undefined): Promise<
 	if (token) {
 		await db.delete(sessions).where(eq(sessions.token, token));
 	}
-}
-
-export function setSessionCookie(cookies: Cookies, token: string): void {
-	cookies.set('session', token, {
-		path: '/',
-		httpOnly: true,
-		sameSite: 'lax',
-		secure: false,
-		maxAge: 60 * 60 * 24
-	});
 }
 
 if (typeof globalThis !== 'undefined') {

@@ -1,7 +1,7 @@
 import { getCurrentBranchName } from './client';
-import { join } from 'path';
 import { broker } from '../events/broker';
 import { BUILD_STATUS_TOPIC, BUILD_LOG_TOPIC } from '../events/topics';
+import { forEachLine } from '../utils';
 
 export interface BuildState {
 	isBuilding: boolean;
@@ -21,7 +21,7 @@ let activeBuildState: BuildState = {
 	branch: null
 };
 
-const BUILD_DIR = process.env.OLCRTC_BUILD_DIR || join(process.cwd(), 'olcrtc');
+const BUILD_DIR = Bun.env.OLCRTC_BUILD_DIR || `${process.cwd()}/olcrtc`;
 
 export function getBuildStatus(): BuildState {
 	return { ...activeBuildState };
@@ -51,7 +51,7 @@ export function startBuild(): void {
 
 	console.log(`[BuildService] Initiating build on branch "${branch}"`);
 
-	const mageCmd = process.env.MAGE_CMD || 'mage';
+	const mageCmd = Bun.env.MAGE_CMD || 'mage';
 	const childProcess = Bun.spawn(['bash', '-c', `exec ${mageCmd} build`], {
 		cwd: BUILD_DIR,
 		stdout: 'pipe',
@@ -59,33 +59,16 @@ export function startBuild(): void {
 	});
 
 	async function streamOutput(stream: ReadableStream<Uint8Array>, type: 'STDOUT' | 'STDERR') {
-		const reader = stream.getReader();
-		const decoder = new TextDecoder();
-		let buffer = '';
-
 		try {
-			while (true) {
-				const { done, value } = await reader.read();
-				if (done) break;
-
-				buffer += decoder.decode(value, { stream: true });
-				const lines = buffer.split('\n');
-				buffer = lines.pop() || '';
-
-				for (const line of lines) {
-					if (line.trim()) {
-						const formatted = `[${type}] ${line}`;
-						activeBuildState.logs.push(formatted);
-						broker.publish(BUILD_LOG_TOPIC, { logLine: formatted });
-					}
-				}
-			}
+			await forEachLine(stream, (line) => {
+				const formatted = `[${type}] ${line}`;
+				activeBuildState.logs.push(formatted);
+				broker.publish(BUILD_LOG_TOPIC, { logLine: formatted });
+			});
 		} catch (error) {
 			const errLine = `[Error] Failed reading stream: ${error instanceof Error ? error.message : String(error)}`;
 			activeBuildState.logs.push(errLine);
 			broker.publish(BUILD_LOG_TOPIC, { logLine: errLine });
-		} finally {
-			reader.releaseLock();
 		}
 	}
 

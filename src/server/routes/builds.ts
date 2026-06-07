@@ -32,6 +32,6 @@ buildsRouter.post('/upload', async (c) => {
 	const file = formData.get('file');
 	if (!(file instanceof File)) throw new ApiError(400, 'Файл не был загружен.');
 
-	const buffer = Buffer.from(await file.arrayBuffer());
-	return json(startBinaryUpload(buffer, file.name));
+	const buffer = new Uint8Array(await file.arrayBuffer());
+	return json(await startBinaryUpload(buffer, file.name));
 });

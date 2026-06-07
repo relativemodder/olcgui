@@ -1,12 +1,12 @@
 import { existsSync, readdirSync } from 'fs';
-import { join } from 'path';
 import { broker } from '../events/broker';
 import { REPO_STATUS_TOPIC } from '../events/topics';
+import { readStreamToString } from '../utils';
 
-const DEFAULT_REPO_DIR = join(process.cwd(), 'olcrtc');
-const GIT_DIR = process.env.OLCRTC_GIT_DIR || DEFAULT_REPO_DIR;
+const DEFAULT_REPO_DIR = `${process.cwd()}/olcrtc`;
+const GIT_DIR = Bun.env.OLCRTC_GIT_DIR || DEFAULT_REPO_DIR;
 const GIT_REMOTE_URL =
-	process.env.OLCRTC_GIT_REMOTE_URL || 'https://github.com/openlibrecommunity/olcrtc';
+	Bun.env.OLCRTC_GIT_REMOTE_URL || 'https://github.com/openlibrecommunity/olcrtc';
 
 let ensurePromise: Promise<void> | null = null;
 
@@ -17,33 +17,11 @@ export function getRepoSyncing(): boolean {
 }
 
 function isGitRepoDir(dir: string): boolean {
-	return existsSync(join(dir, '.git'));
+	return existsSync(`${dir}/.git`);
 }
 
 export function isOlcrtcRepoReady(): boolean {
 	return existsSync(GIT_DIR) && isGitRepoDir(GIT_DIR);
-}
-
-export async function readStreamToString(stream: ReadableStream<Uint8Array>): Promise<string> {
-	const reader = stream.getReader();
-	const chunks: Uint8Array[] = [];
-	try {
-		while (true) {
-			const { done, value } = await reader.read();
-			if (done) break;
-			if (value) chunks.push(value);
-		}
-	} finally {
-		reader.releaseLock();
-	}
-	const totalLen = chunks.reduce((sum, c) => sum + c.length, 0);
-	const merged = new Uint8Array(totalLen);
-	let offset = 0;
-	for (const c of chunks) {
-		merged.set(c, offset);
-		offset += c.length;
-	}
-	return new TextDecoder().decode(merged);
 }
 
 async function run(cmd: string[], cwd: string): Promise<{ stdout: string; stderr: string }> {
@@ -85,7 +63,7 @@ export async function ensureOlcrtcRepo(): Promise<void> {
 			}
 
 			if (!existsSync(GIT_DIR) || !isGitRepoDir(GIT_DIR)) {
-				const parentDir = join(GIT_DIR, '..');
+				const parentDir = `${GIT_DIR}/..`;
 				if (!existsSync(parentDir)) {
 					throw new Error(
 						`[GitRepo] Parent directory does not exist for OLCRTC_GIT_DIR: ${parentDir}`

@@ -5,6 +5,7 @@
 	import { RefreshCw, Activity } from 'lucide-svelte';
 	import { apiFetch } from '$lib/api';
 	import { connectEvents } from '$lib/client/events';
+	import { getContext } from 'svelte';
 	import {
 		CustomizationPopup,
 		TunnelCard,
@@ -13,10 +14,11 @@
 		PageHeader,
 		StatCard,
 		intro,
-		tileVisibility
 	} from '$lib';
+	import { APP_SETTINGS_CONTEXT, type AppSettingsStores } from '$lib/stores/appSettings';
 
 	let { data } = $props();
+	const { tileVisibility } = getContext<AppSettingsStores>(APP_SETTINGS_CONTEXT);
 
 	let showCustomization = $state(false);
 

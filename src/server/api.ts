@@ -1,7 +1,7 @@
 import { createApp } from './app';
 
-const port = Number(process.env.API_PORT || 3001);
-const hostname = process.env.API_HOST || process.env.HOST || 'localhost';
+const port = Number(Bun.env.API_PORT || 3001);
+const hostname = Bun.env.API_HOST || Bun.env.HOST || 'localhost';
 
 const app = await createApp();
 

@@ -29,14 +29,14 @@ If `curl` is not available, use `wget`:
 sh <(wget -qO- https://raw.githubusercontent.com/relativemodder/olcgui/main/get-deployer.sh)
 ```
 
-The deployer will ask for language, install directory, ports, and registry prefix, then create `compose.yml`, `.env`, `data/`, and `olcrtc/` for you.
+The deployer will prompt you for a language, install directory, ports, and registry prefix, then create `compose.yml`, `.env`, `data/`, and `olcrtc/`.
 
-The stack is split into two containers:
+The stack consists of two containers:
 
-- `web` serves the SvelteKit frontend on `http://localhost:5173`
-- `api` stays private inside the Compose network and is only reached through `web`
+- `web` serves the SvelteKit frontend at `http://localhost:5173`
+- `api` stays private inside the Compose network and is only accessible through `web`
 
-The `api` container mounts the `olcrtc` repository and database so they survive restarts. The `web` container proxies `/api/*` to the internal backend at `API_BACKEND_URL=http://api:3001`.
+The `api` container mounts the `olcrtc` repo and database on volumes so data persists across restarts. The `web` container proxies `/api/*` to the internal backend running at `API_BACKEND_URL=http://api:3001`.
 
 ## Local setup
 
@@ -57,6 +57,6 @@ MAGE_CMD=~/go/bin/mage
 API_BACKEND_URL=http://localhost:3001
 ```
 
-Without a `.env`, everything defaults to paths relative to `process.cwd()`, so it works out of the box for a standard clone.
+Without a `.env`, everything resolves relative to `process.cwd()`, so a standard clone works with no extra configuration.
 
-To compile `olcrtc`, you need Go and [Mage](https://magefile.org/) use the Builds tab in the UI.
+To compile `olcrtc`, you need Go and [Mage](https://magefile.org/). Use the Builds tab in the UI to start a build.

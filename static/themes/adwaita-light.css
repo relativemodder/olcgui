@@ -1,0 +1,37 @@
+html[data-theme='adwaita-light'] {
+	--ui-bg: #fafafa;
+	--ui-surface: #f6f5f4;
+	--ui-surface-2: #ebebeb;
+	--ui-surface-strong: #deddda;
+	--ui-border: #c0bfbc;
+	--ui-border-strong: #b0afac;
+	--ui-border-subtle: rgba(30, 30, 30, 0.10);
+	--ui-text: #1a1a1a;
+	--ui-muted: #777777;
+	--ui-accent: #3584e4;
+	--ui-accent-strong: #62a0ea;
+	--ui-accent-border: #3584e4;
+	--ui-success: #2ec27e;
+	--ui-success-bg: rgba(46, 194, 126, 0.10);
+	--ui-success-border: #2ec27e;
+	--ui-success-text: #2ec27e;
+	--ui-warning: #e66100;
+	--ui-warning-bg: rgba(230, 97, 0, 0.10);
+	--ui-warning-border: #e66100;
+	--ui-warning-text: #e66100;
+	--ui-danger: #e01b24;
+	--ui-danger-strong: #c0141c;
+	--ui-danger-bg: rgba(224, 27, 36, 0.10);
+	--ui-danger-border: #e01b24;
+	--ui-danger-text: #e01b24;
+	--ui-code-bg: #f6f5f4;
+	--ui-code-text: #1a1a1a;
+	--ui-hover: #efeeec;
+	--ui-empty-bg: rgba(30, 30, 30, 0.04);
+	--ui-overlay: rgba(192, 191, 188, 0.9);
+	--ui-glow: rgba(26, 26, 26, 0.88);
+	--ui-glow-muted: rgba(119, 119, 119, 0.40);
+	--ui-glow-dim: rgba(119, 119, 119, 0.14);
+	--ui-selection-text: #ffffff;
+	color-scheme: light;
+}

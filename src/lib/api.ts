@@ -1,21 +1,12 @@
-const AUTH_COOKIE_NAME = 'olcgui_token';
+import { ApiError } from '../shared/errors';
+export { ApiError } from '../shared/errors';
+import { parseCookie } from '../shared/utils';
 
-export class ApiError extends Error {
-	constructor(
-		public status: number,
-		message: string
-	) {
-		super(message);
-	}
-}
+const AUTH_COOKIE_NAME = 'olcgui_token';
 
 function getCookie(name: string): string | null {
 	if (typeof document === 'undefined') return null;
-	for (const part of document.cookie.split(';')) {
-		const [key, ...value] = part.trim().split('=');
-		if (decodeURIComponent(key) === name) return decodeURIComponent(value.join('='));
-	}
-	return null;
+	return parseCookie(document.cookie, name);
 }
 
 export function setAuthToken(token: string): void {

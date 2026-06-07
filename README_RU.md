@@ -15,7 +15,7 @@
 
 ## Развёртывание на VPS
 
-Скачайте и запустите интерактивный менеджер деплоя панели:
+Скачайте и запустите интерактивный деплоер:
 
 ```bash
 sh <(curl -fsSL https://raw.githubusercontent.com/relativemodder/olcgui/main/get-deployer.sh)
@@ -32,7 +32,7 @@ sh <(wget -qO- https://raw.githubusercontent.com/relativemodder/olcgui/main/get-
 - `web` отдаёт фронтенд SvelteKit по адресу `http://localhost:5173`
 - `api` остаётся внутри сети Compose и доступен только через `web`
 
-Контейнер `api` монтирует репозиторий `olcrtc` и базу данных, поэтому данные сохраняются между перезапусками. Контейнер `web` проксирует `/api/*` во внутренний backend через `API_BACKEND_URL=http://api:3001`.
+Контейнер `api` монтирует репозиторий `olcrtc` и базу данных, поэтому данные сохраняются между перезапусками. Контейнер `web` проксирует `/api/*` во внутренний backend по адресу `API_BACKEND_URL=http://api:3001`.
 
 ## Локальный запуск
 

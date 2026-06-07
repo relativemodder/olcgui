@@ -1,5 +1,6 @@
 import { cubicOut } from 'svelte/easing';
 import type { TransitionConfig } from 'svelte/transition';
+import { getAutoDelay, prefersReducedMotion } from './delay';
 
 export type MetroTileParams = {
 	delay?: number | 'auto';
@@ -18,64 +19,56 @@ export type MetroTileParams = {
 export const metroMotionEnabled = true;
 
 const mobileMotionQuery = '(max-width: 767px), (pointer: coarse)';
-const desktopMotionSpeed = 0.88;
-const delayCache = new Map<Element, Element[]>();
-let delayCacheResetScheduled = false;
 
-function prefersReducedMotion() {
-	return (
-		typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-	);
-}
+const DEFAULT_DURATION = 520;
+const DEFAULT_ROTATION_DEG = 78;
+const DEFAULT_X_OFFSET_PX = -22;
+const DEFAULT_Z_OFFSET_PX = -42;
+const DEFAULT_SCALE = 0.985;
+const DEFAULT_PERSPECTIVE_PX = 900;
+const DEFAULT_STAGGER_MS = 48;
+const DEFAULT_MAX_DELAY_MS = 280;
+
+const DURATION_MOBILE_MULTIPLIER = 0.58;
+const DURATION_DESKTOP_MULTIPLIER = 0.88;
+const STAGGER_MOBILE_MULTIPLIER = 0.42;
+const STAGGER_DESKTOP_MULTIPLIER = 0.84;
+const MAX_DELAY_MOBILE_MULTIPLIER = 0.45;
+const MAX_DELAY_DESKTOP_MULTIPLIER = 0.82;
+
+const MOBILE_MIN_DURATION = 180;
+const DESKTOP_MIN_DURATION = 220;
+const MOBILE_MIN_STAGGER = 12;
+const MOBILE_MIN_MAX_DELAY = 120;
 
 function prefersMobileMotion() {
 	return typeof window !== 'undefined' && window.matchMedia(mobileMotionQuery).matches;
 }
 
-function getAutoDelay(node: Element, stagger: number, maxDelay: number) {
-	if (typeof document === 'undefined') return 0;
-
-	const scope = node.closest('[data-metro-stagger-scope]') ?? document.body;
-	let surfaces = delayCache.get(scope);
-
-	if (!surfaces) {
-		surfaces = Array.from(scope.querySelectorAll('.ui-metro-surface'));
-		delayCache.set(scope, surfaces);
-	}
-
-	if (!delayCacheResetScheduled && typeof requestAnimationFrame !== 'undefined') {
-		delayCacheResetScheduled = true;
-		requestAnimationFrame(() => {
-			delayCache.clear();
-			delayCacheResetScheduled = false;
-		});
-	}
-
-	const index = Math.max(0, surfaces.indexOf(node));
-
-	return Math.min(index * stagger, maxDelay);
-}
-
 function resolveMetroMotion(params: MetroTileParams) {
 	const mobile = prefersMobileMotion();
-	const duration = params.duration ?? 520;
-	const stagger = params.stagger ?? 48;
-	const maxDelay = params.maxDelay ?? 280;
+	const duration = params.duration ?? DEFAULT_DURATION;
+	const stagger = params.stagger ?? DEFAULT_STAGGER_MS;
+	const maxDelay = params.maxDelay ?? DEFAULT_MAX_DELAY_MS;
 
 	return {
 		delay: params.delay ?? 'auto',
 		duration: mobile
-			? Math.max(180, Math.round(duration * 0.58))
-			: Math.max(220, Math.round(duration * desktopMotionSpeed)),
-		rotation: params.rotation ?? 78,
-		x: params.x ?? -22,
+			? Math.max(MOBILE_MIN_DURATION, Math.round(duration * DURATION_MOBILE_MULTIPLIER))
+			: Math.max(DESKTOP_MIN_DURATION, Math.round(duration * DURATION_DESKTOP_MULTIPLIER)),
+		rotation: params.rotation ?? DEFAULT_ROTATION_DEG,
+		x: params.x ?? DEFAULT_X_OFFSET_PX,
 		y: params.y ?? 0,
-		z: params.z ?? -42,
+		z: params.z ?? DEFAULT_Z_OFFSET_PX,
 		opacity: params.opacity ?? 0,
-		scale: params.scale ?? 0.985,
-		perspective: params.perspective ?? 900,
-		stagger: mobile ? Math.max(12, Math.round(stagger * 0.42)) : Math.round(stagger * 0.84),
-		maxDelay: mobile ? Math.min(120, Math.round(maxDelay * 0.45)) : Math.round(maxDelay * 0.82)
+		scale: params.scale ?? DEFAULT_SCALE,
+		perspective: params.perspective ?? DEFAULT_PERSPECTIVE_PX,
+		stagger: mobile
+			? Math.max(MOBILE_MIN_STAGGER, Math.round(stagger * STAGGER_MOBILE_MULTIPLIER))
+			: Math.round(stagger * STAGGER_DESKTOP_MULTIPLIER),
+		maxDelay: mobile
+			? Math.min(MOBILE_MIN_MAX_DELAY, Math.round(maxDelay * MAX_DELAY_MOBILE_MULTIPLIER))
+			: Math.round(maxDelay * MAX_DELAY_DESKTOP_MULTIPLIER)
 	};
 }
 

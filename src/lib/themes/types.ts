@@ -25,5 +25,5 @@ export type ColorSchemeId =
 export interface ColorScheme {
 	id: ColorSchemeId;
 	label: string;
-	variables: Record<string, string>;
+	href: string;
 }

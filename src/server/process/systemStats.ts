@@ -1,4 +1,4 @@
-const PROC_DIR = process.env.HOST_PROC || '/proc';
+const PROC_DIR = Bun.env.HOST_PROC || '/proc';
 
 interface CpuReading {
 	user: number;

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
+	import { getContext } from 'svelte';
 	import {
 		Globe,
 		Wifi,
@@ -17,8 +18,10 @@
 	import StatusIndicator from '$lib/components/ui/StatusIndicator.svelte';
 	import { intro } from '$lib/motion/intro';
 	import { showMetroAlert, showMetroConfirm } from '$lib/metroAlert';
-	import { tileVisibility } from '$lib/stores/tileVisibility';
+	import { APP_SETTINGS_CONTEXT, type AppSettingsStores } from '$lib/stores/appSettings';
 	import { apiFetch } from '$lib/api';
+
+	const { tileVisibility } = getContext<AppSettingsStores>(APP_SETTINGS_CONTEXT);
 
 	let {
 		inst,

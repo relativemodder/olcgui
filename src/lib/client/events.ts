@@ -1,21 +1,7 @@
+import { matchTopic } from '../../shared/utils';
+import { canPollNow } from './serialPoller';
+
 type EventHandler = (data: unknown) => void;
-
-function matchTopic(topic: string, pattern: string): boolean {
-	if (pattern === '*') return true;
-	if (pattern.endsWith(':*')) {
-		return topic.startsWith(pattern.slice(0, -1));
-	}
-	if (pattern.endsWith('*')) {
-		return topic.startsWith(pattern.slice(0, -1));
-	}
-	return topic === pattern;
-}
-
-function canPollNow() {
-	if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return false;
-	if (typeof navigator !== 'undefined' && navigator.onLine === false) return false;
-	return true;
-}
 
 export interface EventConnection {
 	close: () => void;

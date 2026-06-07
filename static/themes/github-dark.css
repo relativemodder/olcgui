@@ -1,0 +1,37 @@
+html[data-theme='github-dark'] {
+	--ui-bg: #0d1117;
+	--ui-surface: #161b22;
+	--ui-surface-2: #21262d;
+	--ui-surface-strong: #30363d;
+	--ui-border: #30363d;
+	--ui-border-strong: #0d1117;
+	--ui-border-subtle: rgba(230, 237, 243, 0.08);
+	--ui-text: #e6edf3;
+	--ui-muted: #8b949e;
+	--ui-accent: #58a6ff;
+	--ui-accent-strong: #79c0ff;
+	--ui-accent-border: #58a6ff;
+	--ui-success: #3fb950;
+	--ui-success-bg: rgba(63, 185, 80, 0.12);
+	--ui-success-border: #3fb950;
+	--ui-success-text: #3fb950;
+	--ui-warning: #d29922;
+	--ui-warning-bg: rgba(210, 153, 34, 0.12);
+	--ui-warning-border: #d29922;
+	--ui-warning-text: #d29922;
+	--ui-danger: #f85149;
+	--ui-danger-strong: #da3633;
+	--ui-danger-bg: rgba(248, 81, 73, 0.12);
+	--ui-danger-border: #f85149;
+	--ui-danger-text: #f85149;
+	--ui-code-bg: #0d1117;
+	--ui-code-text: #e6edf3;
+	--ui-hover: #1c2128;
+	--ui-empty-bg: rgba(230, 237, 243, 0.04);
+	--ui-overlay: rgba(8, 10, 14, 0.9);
+	--ui-glow: rgba(230, 237, 243, 0.92);
+	--ui-glow-muted: rgba(139, 148, 158, 0.46);
+	--ui-glow-dim: rgba(139, 148, 158, 0.16);
+	--ui-selection-text: #0d1117;
+	color-scheme: dark;
+}

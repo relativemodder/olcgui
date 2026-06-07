@@ -1,4 +1,6 @@
-const API_BACKEND_URL = process.env.API_BACKEND_URL || 'http://localhost:3001';
+import { parseCookie } from '../shared/utils';
+
+const API_BACKEND_URL = Bun.env.API_BACKEND_URL || 'http://localhost:3001';
 export const AUTH_COOKIE_NAME = 'olcgui_token';
 
 export function apiUrl(path: string): string {
@@ -24,16 +26,7 @@ export async function apiJson<T>(path: string, init: RequestInit = {}): Promise<
 	return (await res.json()) as T;
 }
 
-function readCookie(rawCookie: string | null, name: string): string | null {
-	if (!rawCookie) return null;
-	for (const part of rawCookie.split(';')) {
-		const [key, ...value] = part.trim().split('=');
-		if (decodeURIComponent(key) === name) return decodeURIComponent(value.join('='));
-	}
-	return null;
-}
-
 export function authHeadersFromCookie(cookie: string | null): HeadersInit {
-	const token = readCookie(cookie, AUTH_COOKIE_NAME);
+	const token = cookie ? parseCookie(cookie, AUTH_COOKIE_NAME) : null;
 	return token ? { authorization: `Bearer ${token}` } : {};
 }

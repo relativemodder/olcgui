@@ -1,8 +1,6 @@
-import { spawnSync } from 'child_process';
-import { join } from 'path';
 import { isOlcrtcRepoReady } from './repo';
 
-const GIT_DIR = process.env.OLCRTC_GIT_DIR || join(process.cwd(), 'olcrtc');
+const GIT_DIR = Bun.env.OLCRTC_GIT_DIR || `${process.cwd()}/olcrtc`;
 
 export interface BranchInfo {
 	name: string;
@@ -31,11 +29,11 @@ function runGitCommand(args: string[]): {
 			};
 		}
 
-		const result = spawnSync('git', args, { cwd: GIT_DIR, encoding: 'utf-8' });
+		const result = Bun.spawnSync(['git', ...args], { cwd: GIT_DIR });
 		return {
-			success: result.status === 0,
-			stdout: result.stdout?.trim() || '',
-			stderr: result.stderr?.trim() || ''
+			success: result.exitCode === 0,
+			stdout: result.stdout.toString().trim(),
+			stderr: result.stderr.toString().trim()
 		};
 	} catch (error) {
 		return {

@@ -11,19 +11,9 @@ import { getBuildStatus } from '../git/build';
 import { getRepoSyncing } from '../git/repo';
 import type { AppBindings } from '../app';
 import type { Session } from '../auth/session';
+import { matchTopic } from '../../shared/utils';
 
 export const eventsRouter = new Hono<AppBindings>();
-
-function matchTopic(topic: string, filter: string): boolean {
-	if (filter === '*') return true;
-	if (filter.endsWith(':*')) {
-		return topic.startsWith(filter.slice(0, -2)) || topic.startsWith(filter.slice(0, -1));
-	}
-	if (filter.endsWith('*')) {
-		return topic.startsWith(filter.slice(0, -1));
-	}
-	return topic === filter;
-}
 
 function parseFilters(raw: string | undefined): string[] {
 	if (!raw) return ['*'];

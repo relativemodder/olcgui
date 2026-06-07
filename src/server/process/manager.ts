@@ -3,11 +3,11 @@ import { instances, logs as dbLogs } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { generateYaml, type WizardConfig } from '../../shared/wizard/utils';
 import { evaluateRestart, type RestartMetrics } from './restartPolicy';
-import { mkdirSync, writeFileSync, unlinkSync, existsSync, chmodSync, renameSync } from 'fs';
-import { join, dirname } from 'path';
-import { randomBytes } from 'crypto';
+import { mkdirSync, unlinkSync, existsSync, chmodSync, renameSync } from 'fs';
+import { dirname } from 'path';
 import { broker } from '../events/broker';
 import { instanceStatusTopic, instanceLogTopic } from '../events/topics';
+import { forEachLine } from '../utils';
 
 export type UploadStatusCode = 'writing' | 'validating' | 'success' | 'error';
 export interface UploadState {
@@ -24,13 +24,15 @@ export function getUploadStatus(uploadId: string): UploadState | null {
 	return uploads.get(uploadId) ?? null;
 }
 
-export function startBinaryUpload(buffer: Buffer, fileName: string): { uploadId: string } {
-	const uploadId = randomBytes(16).toString('hex');
+export async function startBinaryUpload(buffer: Uint8Array, fileName: string): Promise<{ uploadId: string }> {
+	const bytes = new Uint8Array(16);
+	crypto.getRandomValues(bytes);
+	const uploadId = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 	const dir = dirname(BINARY_PATH);
 	mkdirSync(dir, { recursive: true });
 
 	const tempPath = `${BINARY_PATH}.tmp.${uploadId}`;
-	writeFileSync(tempPath, buffer);
+	await Bun.write(tempPath, buffer);
 	chmodSync(tempPath, 0o755);
 
 	uploads.set(uploadId, { status: 'validating', message: 'Проверка бинарного файла…', fileName });
@@ -117,10 +119,10 @@ function publishInstanceStatus(id: number, status: string, autoRestart: boolean)
 
 const activeInstances = new Map<number, ActiveInstance>();
 
-const DATA_DIR = process.env.OLCRTC_DATA_DIR || './data/instances';
+const DATA_DIR = Bun.env.OLCRTC_DATA_DIR || './data/instances';
 const arch = process.arch === 'arm64' ? 'arm64' : 'amd64';
 const BINARY_PATH =
-	process.env.OLCRTC_BINARY_PATH || join(process.cwd(), `olcrtc/build/olcrtc-linux-${arch}`);
+	Bun.env.OLCRTC_BINARY_PATH || `${process.cwd()}/olcrtc/build/olcrtc-linux-${arch}`;
 
 try {
 	mkdirSync(DATA_DIR, { recursive: true });
@@ -170,9 +172,9 @@ export async function startInstance(id: number): Promise<void> {
 	};
 
 	const yamlContent = generateYaml(wizardConfig, instance.mode);
-	const configPath = join(DATA_DIR, `config_${id}.yaml`);
+	const configPath = `${DATA_DIR}/config_${id}.yaml`;
 
-	writeFileSync(configPath, yamlContent, 'utf-8');
+	await Bun.write(configPath, yamlContent);
 
 	if (!existsSync(BINARY_PATH)) {
 		const errMsg =
@@ -225,33 +227,15 @@ export async function startInstance(id: number): Promise<void> {
 	await logInstanceLine(id, `[Manager] Process spawned successfully. PID: ${childProcess.pid}`);
 
 	async function streamOutput(stream: ReadableStream<Uint8Array>, streamName: 'STDOUT' | 'STDERR') {
-		const reader = stream.getReader();
-		const decoder = new TextDecoder();
-		let buffer = '';
-
 		try {
-			while (true) {
-				const { done, value } = await reader.read();
-				if (done) break;
-
-				buffer += decoder.decode(value, { stream: true });
-				const lines = buffer.split('\n');
-				buffer = lines.pop() || '';
-
-				for (const line of lines) {
-					if (line.trim()) {
-						const formattedLine = `[${streamName}] ${line}`;
-						await logInstanceLine(id, formattedLine);
-					}
-				}
-			}
+			await forEachLine(stream, async (line) => {
+				await logInstanceLine(id, `[${streamName}] ${line}`);
+			});
 		} catch (err) {
 			await logInstanceLine(
 				id,
 				`[ERROR] Failed to read ${streamName} stream: ${err instanceof Error ? err.message : String(err)}`
 			);
-		} finally {
-			reader.releaseLock();
 		}
 	}
 

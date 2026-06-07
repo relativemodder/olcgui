@@ -1,6 +1,7 @@
 // UI Components
 export { default as Badge } from './components/ui/Badge.svelte';
 export { default as Button } from './components/ui/Button.svelte';
+export { default as AppBootstrapOverlay } from './components/ui/AppBootstrapOverlay.svelte';
 export { default as CodeBlock } from './components/ui/CodeBlock.svelte';
 export { default as CopyButton } from './components/ui/CopyButton.svelte';
 export { default as CustomizationPopup } from './components/ui/CustomizationPopup.svelte';
@@ -41,17 +42,13 @@ export { intro } from './motion/intro';
 export type { IntroParams } from './motion/intro';
 
 // Stores
-export { animationMode } from './stores/animation';
 export type { AnimationMode } from './stores/animation';
-export { colorScheme } from './stores/colorScheme';
-export { tileVisibility } from './stores/tileVisibility';
 export type { TileVisibility } from './stores/tileVisibility';
 export { metroAlerts } from './stores/metroAlert';
 export type { MetroAlert, MetroAlertTone } from './stores/metroAlert';
-export { persistedWritable } from './stores/persisted';
 
 // Themes
-export { colorSchemes, getColorScheme, applyTheme } from './themes';
+export { colorSchemes, getColorScheme } from './themes';
 export type { ColorScheme, ColorSchemeId } from './themes';
 
 // Alert utilities

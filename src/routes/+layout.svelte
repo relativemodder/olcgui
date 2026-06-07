@@ -9,17 +9,47 @@
 	import '@fontsource/noto-sans/cyrillic-500.css';
 	import './layout.css';
 	import { beforeNavigate, afterNavigate, goto, invalidateAll } from '$app/navigation';
+	import { base } from '$app/paths';
 	import { page } from '$app/state';
+	import { onMount, setContext } from 'svelte';
 	import { LayoutDashboard, Sliders, Cpu, Users, LogOut, Terminal } from 'lucide-svelte';
-	import { DotProgress, NavItem, MetroAlertHost, PressFeedback, RevealBorder } from '$lib';
+	import { AppBootstrapOverlay, DotProgress, NavItem, MetroAlertHost, PressFeedback, RevealBorder } from '$lib';
 	import Toast from '$lib/components/ui/Toast.svelte';
-	import { colorScheme } from '$lib/stores/colorScheme';
-	import { getColorScheme, applyTheme } from '$lib/themes';
+	import {
+		APP_SETTINGS_CONTEXT,
+		createAppSettingsStores,
+		DEFAULT_APP_SETTINGS
+	} from '$lib/stores/appSettings';
+	import { appAnimationMode, appReady, appShellVisible } from '$lib/stores/bootstrap';
+	import { getColorScheme } from '$lib/themes';
 	import { apiFetch, clearAuthToken } from '$lib/api';
 
 	let { data, children } = $props();
 
 	let navigating = $state(false);
+	function getInitialSettings() {
+		return data.settings ?? DEFAULT_APP_SETTINGS;
+	}
+	const settings = createAppSettingsStores(getInitialSettings());
+	const { colorScheme, animationMode } = settings;
+	setContext(APP_SETTINGS_CONTEXT, settings);
+
+	onMount(() => {
+		let secondFrame = 0;
+		const firstFrame = requestAnimationFrame(() => {
+			appReady.set(true);
+			secondFrame = requestAnimationFrame(() => {
+				appShellVisible.set(true);
+			});
+		});
+
+		return () => {
+			cancelAnimationFrame(firstFrame);
+			cancelAnimationFrame(secondFrame);
+			appReady.set(false);
+			appShellVisible.set(false);
+		};
+	});
 
 	beforeNavigate(() => {
 		navigating = true;
@@ -29,11 +59,17 @@
 		navigating = false;
 	});
 
-	$effect(() => {
-		applyTheme(getColorScheme($colorScheme));
-	});
+	let currentTheme = $derived(getColorScheme($colorScheme));
+	let themeHref = $derived(`${base}${currentTheme.href}`);
 
 	let currentPath = $derived(page.url.pathname);
+
+	$effect(() => {
+		if (typeof document !== 'undefined') {
+			document.documentElement.dataset.theme = currentTheme.id;
+		}
+		appAnimationMode.set($animationMode);
+	});
 
 	let navLinks = $derived([
 		{ href: '/', icon: LayoutDashboard, label: 'Панель' },
@@ -50,9 +86,13 @@
 	}
 </script>
 
-<svelte:head></svelte:head>
+<svelte:head>
+	<link rel="stylesheet" href={themeHref} />
+</svelte:head>
 
-<div class="ui-app-shell relative flex min-h-screen flex-col">
+	<AppBootstrapOverlay visible={!$appShellVisible} />
+
+	<div class:opacity-0={!$appShellVisible} class:invisible={!$appShellVisible} class="ui-app-shell relative flex min-h-screen flex-col transition-opacity duration-150">
 	{#if data.user}
 		<header class="ui-header sticky top-0 z-50 w-full">
 			<div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">

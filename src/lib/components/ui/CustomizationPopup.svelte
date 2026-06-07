@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { X, RotateCcw } from 'lucide-svelte';
 	import { fly } from 'svelte/transition';
-	import { animationMode } from '$lib/stores/animation';
-	import { colorScheme } from '$lib/stores/colorScheme';
-	import { tileVisibility, type TileVisibility } from '$lib/stores/tileVisibility';
+	import { getContext } from 'svelte';
+	import { APP_SETTINGS_CONTEXT, type AppSettingsStores } from '$lib/stores/appSettings';
+	import { type TileVisibility } from '$lib/stores/tileVisibility';
 	import { colorSchemes } from '$lib/themes';
 	import ToggleCard from '$lib/components/ui/ToggleCard.svelte';
 
@@ -21,6 +21,8 @@
 		systemMonitor: false,
 		statCards: false
 	});
+
+	const { colorScheme, animationMode, tileVisibility } = getContext<AppSettingsStores>(APP_SETTINGS_CONTEXT);
 
 	function toggleGroup(key: string) {
 		expandedGroups[key] = !expandedGroups[key];
