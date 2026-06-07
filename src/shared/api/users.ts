@@ -5,7 +5,7 @@ import type {
 	UpdateSelfRequest,
 	UpdateSelfPasswordRequest
 } from './requests';
-import type { UserListItem, ApiUser, UsersResponse } from './types';
+import type { UsersResponse } from './types';
 
 export function createUsersApi(request: ApiRequest) {
 	return {

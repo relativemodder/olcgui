@@ -1,6 +1,6 @@
 import type { ApiRequest } from './client';
 import type { CreateInstanceRequest, UpdateInstanceRequest } from './requests';
-import type { InstanceDto, InstanceResponse, InstancesResponse, InstanceStatus } from './types';
+import type { InstanceResponse, InstancesResponse, InstanceStatus } from './types';
 
 export interface InstanceStatusLogs {
 	status: InstanceStatus;
