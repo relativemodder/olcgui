@@ -14,10 +14,9 @@ fn try_start_stack(lang: usize, dir: &Path) -> bool {
         }
     };
 
-    println!("{}", i18n::stopping(lang));
     let mut down = tool.cmd.clone();
     down.push("down".to_string());
-    runtime::run_quiet_cwd(&down, dir);
+    runtime::run(&down, dir);
 
     let mut pull = tool.cmd.clone();
     pull.push("pull".to_string());
@@ -45,12 +44,26 @@ fn action_status(lang: usize, dir: &Path) {
         Some(t) => t,
         None => return,
     };
-    if state == runtime::State::Missing {
-        return;
-    }
     let mut args = tool.cmd.clone();
     args.push("ps".to_string());
-    runtime::run(&args, dir);
+    args.push("--format".to_string());
+    args.push("json".to_string());
+    let (rc, output) = runtime::run_quiet_stdout(&args, dir);
+    if rc == 0
+        && !output.is_empty()
+        && let Ok(entries) = serde_json::from_str::<Vec<serde_json::Value>>(&output)
+    {
+        for entry in &entries {
+            let id = &entry["Id"];
+            let names = entry["Names"].as_array()
+                .map(|a| a.iter().filter_map(|v| v.as_str()).collect::<Vec<_>>().join(", "))
+                .unwrap_or_default();
+            let image = entry["Image"].as_str().unwrap_or("?");
+            let st = entry["State"].as_str().unwrap_or("?");
+            let status = entry["Status"].as_str().unwrap_or("?");
+            println!("  {}  {}  {}  {}  {}", names, image, st, status, id.as_str().unwrap_or("?"));
+        }
+    }
 }
 
 fn action_start(lang: usize, dir: &Path) {
@@ -87,7 +100,7 @@ fn action_stop(lang: usize, dir: &Path) {
         return;
     }
     let mut args = tool.cmd.clone();
-    args.push("stop".to_string());
+    args.push("down".to_string());
     if runtime::run(&args, dir) != 0 {
         println!("{}", i18n::stop_failed(lang));
     }
@@ -104,7 +117,9 @@ fn action_remove(lang: usize, dir: &Path) {
     let mut args = tool.cmd.clone();
     args.push("down".to_string());
     args.push("--remove-orphans".to_string());
-    runtime::run_quiet_cwd(&args, dir);
+    if runtime::run(&args, dir) != 0 {
+        return;
+    }
     println!("{}", i18n::remove_done(lang));
 }
 
@@ -119,7 +134,7 @@ fn action_update(lang: usize, dir: &Path) {
 
     let mut down = tool.cmd.clone();
     down.push("down".to_string());
-    runtime::run_quiet_cwd(&down, dir);
+    runtime::run(&down, dir);
 
     let mut pull = tool.cmd.clone();
     pull.push("pull".to_string());
@@ -156,9 +171,9 @@ fn action_restart(lang: usize, dir: &Path) {
         }
     };
 
-    let mut stop = tool.cmd.clone();
-    stop.push("stop".to_string());
-    runtime::run_quiet_cwd(&stop, dir);
+    let mut down = tool.cmd.clone();
+    down.push("down".to_string());
+    runtime::run(&down, dir);
 
     let cfg = match config::read_env(dir) {
         Some(c) => c,

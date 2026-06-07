@@ -149,11 +149,11 @@ pub fn ask_image_prefix(lang: usize, default: &str) -> String {
             println!("{}", i18n::empty_prefix(lang));
             continue;
         }
-        if let Some(last) = val.split('/').last() {
-            if last.contains(':') {
-                println!("{}", i18n::tag_in_prefix(lang));
-                continue;
-            }
+        if let Some(last) = val.split('/').next_back()
+            && last.contains(':')
+        {
+            println!("{}", i18n::tag_in_prefix(lang));
+            continue;
         }
         return val;
     }
@@ -182,10 +182,10 @@ pub fn show_menu(lang: usize, dir: &std::path::Path) -> Option<usize> {
     println!("8. {}", i18n::menu_exit(lang));
     loop {
         let choice = ask(i18n::menu_hint(lang), None);
-        if let Ok(n) = choice.parse::<usize>() {
-            if (1..=8).contains(&n) {
-                return Some(n);
-            }
+        if let Ok(n) = choice.parse::<usize>()
+            && (1..=8).contains(&n)
+        {
+            return Some(n);
         }
     }
 }

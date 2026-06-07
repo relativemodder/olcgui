@@ -1,6 +1,6 @@
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpStream};
 use std::path::Path;
 use std::process::Command;
-use std::net::{TcpStream, SocketAddr, IpAddr, Ipv4Addr};
 use std::time::Duration;
 
 use crate::config;
@@ -17,12 +17,17 @@ pub struct ComposeTool {
 }
 
 pub fn find_tool() -> Option<ComposeTool> {
+    find_all_tools().into_iter().next()
+}
+
+pub fn find_all_tools() -> Vec<ComposeTool> {
     let candidates: &[&[&str]] = &[
-        &["docker", "compose"],
-        &["docker-compose"],
-        &["podman", "compose"],
         &["podman-compose"],
+        &["podman", "compose"],
+        &["docker-compose"],
+        &["docker", "compose"],
     ];
+    let mut found = Vec::new();
     for base in candidates {
         let binary = base[0];
         if which(binary).is_none() {
@@ -37,12 +42,12 @@ pub fn find_tool() -> Option<ComposeTool> {
         check.push(version_flag.to_string());
         let rc = run_quiet(&check);
         if rc == 0 {
-            return Some(ComposeTool {
+            found.push(ComposeTool {
                 cmd: base.iter().map(|s| s.to_string()).collect(),
             });
         }
     }
-    None
+    found
 }
 
 fn which(binary: &str) -> Option<std::path::PathBuf> {
@@ -101,26 +106,53 @@ pub fn run_quiet_stdout(cmd: &[String], cwd: &Path) -> (i32, String) {
     }
 }
 
+fn run_ps_json(tool: &ComposeTool, dir: &Path) -> (i32, String) {
+    let mut args = tool.cmd.clone();
+    args.push("ps".to_string());
+    args.push("--format".to_string());
+    args.push("json".to_string());
+    let (rc, output) = run_quiet_stdout(&args, dir);
+    if rc == 0 {
+        return (rc, output);
+    }
+    let mut args2 = tool.cmd.clone();
+    args2.push("ps".to_string());
+    args2.push("-f".to_string());
+    args2.push("json".to_string());
+    run_quiet_stdout(&args2, dir)
+}
+
 pub fn detect_state(dir: &Path) -> State {
     if !config::deployment_exists(dir) {
         return State::Missing;
     }
-    let tool = match find_tool() {
-        Some(t) => t,
-        None => return State::Missing,
-    };
-    let mut args = tool.cmd.clone();
-    args.push("ps".to_string());
-    args.push("-q".to_string());
-    let (rc, output) = run_quiet_stdout(&args, dir);
-    if rc != 0 {
+    let tools = find_all_tools();
+    if tools.is_empty() {
         return State::Missing;
     }
-    let has_ids = output.lines().any(|line| {
-        let trimmed = line.trim();
-        !trimmed.is_empty() && trimmed.chars().all(|c| c.is_ascii_hexdigit())
-    });
-    if has_ids { State::Running } else { State::Stopped }
+
+    for tool in &tools {
+        let (rc, output) = run_ps_json(tool, dir);
+        if rc != 0 {
+            continue;
+        }
+        if let Ok(entries) = serde_json::from_str::<Vec<serde_json::Value>>(&output) {
+            let mut has_any = false;
+            for entry in &entries {
+                if let Some(state) = entry.get("State").and_then(|v| v.as_str()) {
+                    has_any = true;
+                    if state == "running" {
+                        return State::Running;
+                    }
+                }
+            }
+            if has_any {
+                return State::Stopped;
+            }
+        }
+    }
+
+    State::Stopped
 }
 
 pub fn port_is_free(port: u16) -> bool {
