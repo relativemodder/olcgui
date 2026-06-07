@@ -1,7 +1,10 @@
+use std::collections::{HashMap, HashSet};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpStream};
 use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
+
+use serde::Deserialize;
 
 use crate::config;
 
@@ -14,6 +17,28 @@ pub enum State {
 
 pub struct ComposeTool {
     pub cmd: Vec<String>,
+}
+
+#[derive(Clone, Copy)]
+pub enum ContainerEngine {
+    Podman,
+    Docker,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct ContainerInfo {
+    #[serde(rename = "Id")]
+    pub id: String,
+    #[serde(rename = "Image")]
+    pub image: String,
+    #[serde(rename = "State")]
+    pub state: String,
+    #[serde(rename = "Status")]
+    pub status: String,
+    #[serde(rename = "Names", default)]
+    pub names: Vec<String>,
+    #[serde(rename = "Labels", default)]
+    pub labels: HashMap<String, String>,
 }
 
 pub fn find_tool() -> Option<ComposeTool> {
@@ -48,6 +73,16 @@ pub fn find_all_tools() -> Vec<ComposeTool> {
         }
     }
     found
+}
+
+pub fn find_engine() -> Option<ContainerEngine> {
+    if which("podman").is_some() {
+        return Some(ContainerEngine::Podman);
+    }
+    if which("docker").is_some() {
+        return Some(ContainerEngine::Docker);
+    }
+    None
 }
 
 fn which(binary: &str) -> Option<std::path::PathBuf> {
@@ -106,50 +141,135 @@ pub fn run_quiet_stdout(cmd: &[String], cwd: &Path) -> (i32, String) {
     }
 }
 
-fn run_ps_json(tool: &ComposeTool, dir: &Path) -> (i32, String) {
-    let mut args = tool.cmd.clone();
-    args.push("ps".to_string());
-    args.push("--format".to_string());
-    args.push("json".to_string());
-    let (rc, output) = run_quiet_stdout(&args, dir);
-    if rc == 0 {
-        return (rc, output);
+fn project_name(dir: &Path) -> Option<String> {
+    dir.file_name()
+        .and_then(|name| name.to_str())
+        .map(|name| name.to_string())
+}
+
+fn engine_binary(engine: ContainerEngine) -> &'static str {
+    match engine {
+        ContainerEngine::Podman => "podman",
+        ContainerEngine::Docker => "docker",
     }
-    let mut args2 = tool.cmd.clone();
-    args2.push("ps".to_string());
-    args2.push("-f".to_string());
-    args2.push("json".to_string());
-    run_quiet_stdout(&args2, dir)
+}
+
+fn parse_container_json(output: &str) -> Option<Vec<ContainerInfo>> {
+    if output.trim().is_empty() {
+        return Some(Vec::new());
+    }
+
+    if let Ok(entries) = serde_json::from_str::<Vec<ContainerInfo>>(output) {
+        return Some(entries);
+    }
+
+    let mut entries = Vec::new();
+    for line in output.lines().map(str::trim).filter(|line| !line.is_empty()) {
+        entries.push(serde_json::from_str::<ContainerInfo>(line).ok()?);
+    }
+    Some(entries)
+}
+
+fn run_engine_ps_json(engine: ContainerEngine, label_filter: &str, cwd: &Path) -> Option<Vec<ContainerInfo>> {
+    let args = vec![
+        engine_binary(engine).to_string(),
+        "ps".to_string(),
+        "-a".to_string(),
+        "--format".to_string(),
+        "json".to_string(),
+        "--filter".to_string(),
+        label_filter.to_string(),
+    ];
+    let (rc, output) = run_quiet_stdout(&args, cwd);
+    if rc != 0 {
+        return None;
+    }
+    parse_container_json(&output)
+}
+
+fn same_path(a: &str, b: &Path) -> bool {
+    if a == b.to_string_lossy().as_ref() {
+        return true;
+    }
+    let left = Path::new(a).canonicalize().ok();
+    let right = b.canonicalize().ok();
+    matches!((left, right), (Some(left), Some(right)) if left == right)
+}
+
+fn matches_project_container(container: &ContainerInfo, project: &str, dir: &Path) -> bool {
+    if let Some(working_dir) = container.labels.get("com.docker.compose.project.working_dir")
+        && same_path(working_dir, dir)
+    {
+        return true;
+    }
+    let prefix = format!("{project}_");
+    container.names.iter().any(|name| name.starts_with(&prefix))
+}
+
+pub fn list_project_containers(dir: &Path) -> Result<Vec<ContainerInfo>, ()> {
+    let engine = find_engine().ok_or(())?;
+    let project = project_name(dir).ok_or(())?;
+    let mut containers = Vec::new();
+    let mut seen = HashSet::new();
+
+    let filters: &[String] = match engine {
+        ContainerEngine::Podman => &[
+            format!("label=io.podman.compose.project={project}"),
+            format!("label=com.docker.compose.project={project}"),
+        ],
+        ContainerEngine::Docker => &[format!("label=com.docker.compose.project={project}")],
+    };
+
+    let mut any_success = false;
+    for filter in filters {
+        if let Some(entries) = run_engine_ps_json(engine, filter, dir) {
+            any_success = true;
+            for entry in entries {
+                if !matches_project_container(&entry, &project, dir) {
+                    continue;
+                }
+                if seen.insert(entry.id.clone()) {
+                    containers.push(entry);
+                }
+            }
+        }
+    }
+
+    if !any_success {
+        return Err(());
+    }
+
+    Ok(containers)
+}
+
+pub fn force_remove_containers(dir: &Path, ids: &[String]) -> i32 {
+    if ids.is_empty() {
+        return 0;
+    }
+    let engine = match find_engine() {
+        Some(engine) => engine,
+        None => return -1,
+    };
+    let mut args = vec![engine_binary(engine).to_string(), "rm".to_string(), "-f".to_string()];
+    args.extend(ids.iter().cloned());
+    run(&args, dir)
 }
 
 pub fn detect_state(dir: &Path) -> State {
     if !config::deployment_exists(dir) {
         return State::Missing;
     }
-    let tools = find_all_tools();
-    if tools.is_empty() {
-        return State::Missing;
+    let containers = match list_project_containers(dir) {
+        Ok(containers) => containers,
+        Err(_) => return State::Missing,
+    };
+
+    if containers.iter().any(|container| matches!(container.state.as_str(), "running" | "restarting" | "paused")) {
+        return State::Running;
     }
 
-    for tool in &tools {
-        let (rc, output) = run_ps_json(tool, dir);
-        if rc != 0 {
-            continue;
-        }
-        if let Ok(entries) = serde_json::from_str::<Vec<serde_json::Value>>(&output) {
-            let mut has_any = false;
-            for entry in &entries {
-                if let Some(state) = entry.get("State").and_then(|v| v.as_str()) {
-                    has_any = true;
-                    if state == "running" {
-                        return State::Running;
-                    }
-                }
-            }
-            if has_any {
-                return State::Stopped;
-            }
-        }
+    if !containers.is_empty() {
+        return State::Stopped;
     }
 
     State::Stopped

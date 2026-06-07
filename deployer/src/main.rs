@@ -4,6 +4,36 @@ mod runtime;
 mod ui;
 
 use std::path::Path;
+use std::thread;
+use std::time::Duration;
+
+fn remaining_container_ids(dir: &Path) -> Option<Vec<String>> {
+    runtime::list_project_containers(dir)
+        .ok()
+        .map(|containers| containers.into_iter().map(|container| container.id).collect())
+}
+
+fn wait_for_state(dir: &Path, expected: runtime::State) -> bool {
+    for _ in 0..10 {
+        if runtime::detect_state(dir) == expected {
+            return true;
+        }
+        thread::sleep(Duration::from_millis(300));
+    }
+    runtime::detect_state(dir) == expected
+}
+
+fn wait_for_no_containers(dir: &Path) -> bool {
+    for _ in 0..10 {
+        if let Some(ids) = remaining_container_ids(dir)
+            && ids.is_empty()
+        {
+            return true;
+        }
+        thread::sleep(Duration::from_millis(300));
+    }
+    matches!(remaining_container_ids(dir), Some(ids) if ids.is_empty())
+}
 
 fn try_start_stack(lang: usize, dir: &Path) -> bool {
     let tool = match runtime::find_tool() {
@@ -27,7 +57,7 @@ fn try_start_stack(lang: usize, dir: &Path) -> bool {
     let mut up = tool.cmd.clone();
     up.push("up".to_string());
     up.push("-d".to_string());
-    if runtime::run(&up, dir) == 0 {
+    if runtime::run(&up, dir) == 0 && wait_for_state(dir, runtime::State::Running) {
         println!("{}", i18n::stack_started(lang, &tool.cmd.join(" ")));
         return true;
     }
@@ -40,28 +70,11 @@ fn action_status(lang: usize, dir: &Path) {
     println!("{}", i18n::status_title(lang));
     let state = runtime::detect_state(dir);
     println!("{}: {}", i18n::current_state(lang), ui::state_label(lang, &state));
-    let tool = match runtime::find_tool() {
-        Some(t) => t,
-        None => return,
-    };
-    let mut args = tool.cmd.clone();
-    args.push("ps".to_string());
-    args.push("--format".to_string());
-    args.push("json".to_string());
-    let (rc, output) = runtime::run_quiet_stdout(&args, dir);
-    if rc == 0
-        && !output.is_empty()
-        && let Ok(entries) = serde_json::from_str::<Vec<serde_json::Value>>(&output)
-    {
-        for entry in &entries {
-            let id = &entry["Id"];
-            let names = entry["Names"].as_array()
-                .map(|a| a.iter().filter_map(|v| v.as_str()).collect::<Vec<_>>().join(", "))
-                .unwrap_or_default();
-            let image = entry["Image"].as_str().unwrap_or("?");
-            let st = entry["State"].as_str().unwrap_or("?");
-            let status = entry["Status"].as_str().unwrap_or("?");
-            println!("  {}  {}  {}  {}  {}", names, image, st, status, id.as_str().unwrap_or("?"));
+    if let Ok(containers) = runtime::list_project_containers(dir) {
+        for container in containers {
+            let name = container.names.join(", ");
+            let short_id = container.id.chars().take(12).collect::<String>();
+            println!("  {}  {}  {}  {}  {}", name, container.image, container.state, container.status, short_id);
         }
     }
 }
@@ -101,7 +114,7 @@ fn action_stop(lang: usize, dir: &Path) {
     }
     let mut args = tool.cmd.clone();
     args.push("down".to_string());
-    if runtime::run(&args, dir) != 0 {
+    if runtime::run(&args, dir) != 0 || !wait_for_state(dir, runtime::State::Stopped) {
         println!("{}", i18n::stop_failed(lang));
     }
 }
@@ -118,6 +131,19 @@ fn action_remove(lang: usize, dir: &Path) {
     args.push("down".to_string());
     args.push("--remove-orphans".to_string());
     if runtime::run(&args, dir) != 0 {
+        return;
+    }
+    if wait_for_no_containers(dir) {
+        println!("{}", i18n::remove_done(lang));
+        return;
+    }
+    if let Some(ids) = remaining_container_ids(dir)
+        && !ids.is_empty()
+        && runtime::force_remove_containers(dir, &ids) != 0
+    {
+        return;
+    }
+    if !wait_for_no_containers(dir) {
         return;
     }
     println!("{}", i18n::remove_done(lang));
@@ -157,7 +183,7 @@ fn action_update(lang: usize, dir: &Path) {
     let mut up = tool.cmd.clone();
     up.push("up".to_string());
     up.push("-d".to_string());
-    if runtime::run(&up, dir) != 0 {
+    if runtime::run(&up, dir) != 0 || !wait_for_state(dir, runtime::State::Running) {
         println!("{}", i18n::recreate_failed(lang));
     }
 }
@@ -190,7 +216,7 @@ fn action_restart(lang: usize, dir: &Path) {
     let mut up = tool.cmd.clone();
     up.push("up".to_string());
     up.push("-d".to_string());
-    if runtime::run(&up, dir) != 0 {
+    if runtime::run(&up, dir) != 0 || !wait_for_state(dir, runtime::State::Running) {
         println!("{}", i18n::restart_failed(lang));
     }
 }
