@@ -12,7 +12,7 @@
 		UserCreateModal
 	} from '$lib';
 	import Badge from '$lib/components/ui/Badge.svelte';
-	import { apiFetch, readApiError } from '$lib/api';
+	import { api, ApiError } from '$lib/api';
 	import { showToast } from '$lib/stores/toast';
 
 	let { data } = $props();
@@ -43,53 +43,47 @@
 		event.preventDefault();
 		if (selfUsernameLoading) return;
 		selfUsernameLoading = true;
-		const res = await apiFetch('/api/users/self', {
-			method: 'PATCH',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ username: selfUsername, currentPassword: selfCurrentPassword })
-		});
-		selfUsernameLoading = false;
-		if (!res.ok) {
-			showToast(await readApiError(res, 'Не удалось обновить имя пользователя.'));
-			return;
+		try {
+			await api.users.updateSelf({ username: selfUsername, currentPassword: selfCurrentPassword });
+			selfCurrentPassword = '';
+			showToast('Имя пользователя обновлено');
+			await invalidateAll();
+		} catch (e) {
+			showToast(e instanceof ApiError ? e.message : 'Не удалось обновить имя пользователя.');
+		} finally {
+			selfUsernameLoading = false;
 		}
-		selfCurrentPassword = '';
-		showToast('Имя пользователя обновлено');
-		await invalidateAll();
 	}
 
 	async function updateSelfPassword(event: SubmitEvent) {
 		event.preventDefault();
 		if (selfPasswordLoading) return;
 		selfPasswordLoading = true;
-		const res = await apiFetch('/api/users/self-password', {
-			method: 'PATCH',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({
+		try {
+			await api.users.updateSelfPassword({
 				currentPassword: selfCurrentPassword,
 				newPassword: selfNewPassword,
 				confirmPassword: selfConfirmNewPassword
-			})
-		});
-		selfPasswordLoading = false;
-		if (!res.ok) {
-			showToast(await readApiError(res, 'Не удалось изменить пароль.'));
-			return;
+			});
+			selfCurrentPassword = '';
+			selfNewPassword = '';
+			selfConfirmNewPassword = '';
+			showToast('Пароль изменён');
+		} catch (e) {
+			showToast(e instanceof ApiError ? e.message : 'Не удалось изменить пароль.');
+		} finally {
+			selfPasswordLoading = false;
 		}
-		selfCurrentPassword = '';
-		selfNewPassword = '';
-		selfConfirmNewPassword = '';
-		showToast('Пароль изменён');
 	}
 
 	async function deleteUser(id: number) {
-		const res = await apiFetch(`/api/users/${id}`, { method: 'DELETE' });
-		if (!res.ok) {
-			showToast(await readApiError(res, 'Не удалось удалить пользователя.'));
-			return;
+		try {
+			await api.users.remove(id);
+			showToast('Пользователь удалён');
+			await invalidateAll();
+		} catch (e) {
+			showToast(e instanceof ApiError ? e.message : 'Не удалось удалить пользователя.');
 		}
-		showToast('Пользователь удалён');
-		await invalidateAll();
 	}
 </script>
 

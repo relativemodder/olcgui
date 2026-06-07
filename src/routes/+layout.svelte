@@ -29,7 +29,7 @@
 	} from '$lib/stores/appSettings';
 	import { appAnimationMode, appReady, appShellVisible } from '$lib/stores/bootstrap';
 	import { getColorScheme } from '$lib/themes';
-	import { apiFetch, clearAuthToken } from '$lib/api';
+	import { api, clearAuthToken } from '$lib/api';
 
 	let { data, children } = $props();
 
@@ -86,7 +86,7 @@
 	]);
 
 	async function logout() {
-		await apiFetch('/api/auth/logout', { method: 'POST' });
+		await api.auth.logout();
 		clearAuthToken();
 		await invalidateAll();
 		await goto('/login');

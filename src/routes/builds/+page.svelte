@@ -11,7 +11,7 @@
 		Loader2,
 		ChevronRight
 	} from 'lucide-svelte';
-	import { apiFetch } from '$lib/api';
+	import { api } from '$lib/api';
 	import { connectEvents } from '$lib/client/events';
 	import {
 		Terminal,
@@ -59,12 +59,10 @@
 
 		buildStartInFlight = true;
 		try {
-			const res = await apiFetch('/api/builds', { method: 'POST' });
-			if (res.ok) {
-				isBuilding = true;
-				buildLogs = ['[Build] Triggering compilation...'];
-				buildSuccess = null;
-			}
+			await api.builds.start();
+			isBuilding = true;
+			buildLogs = ['[Build] Triggering compilation...'];
+			buildSuccess = null;
 		} catch (e) {
 			console.error('Failed to start build:', e);
 		} finally {
@@ -77,10 +75,8 @@
 
 		repoPullInFlight = true;
 		try {
-			const res = await apiFetch('/api/repo/pull', { method: 'POST' });
-			if (res.ok) {
-				repoSyncing = true;
-			}
+			await api.repo.pull();
+			repoSyncing = true;
 		} catch (e) {
 			console.error('Failed to start repo pull:', e);
 		} finally {
@@ -89,12 +85,12 @@
 	}
 
 	async function checkoutBranch(name: string) {
-		const res = await apiFetch('/api/repo/checkout', {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ name })
-		});
-		if (res.ok) await invalidateAll();
+		try {
+			await api.repo.checkout({ name });
+			await invalidateAll();
+		} catch (e) {
+			console.error('Failed to checkout branch:', e);
+		}
 	}
 
 	onMount(() => {

@@ -1,28 +1,28 @@
 import type { PageLoad } from './$types';
-import { ApiError, apiJson } from '$lib/api';
-import type { InstanceResponse, UsersResponse } from '$shared/api/types';
+import { ApiClient, ApiError } from '$shared/api/client';
 import { redirect } from '@sveltejs/kit';
 
 export const load: PageLoad = async ({ fetch, parent, url }) => {
 	const layout = await parent();
-	let usersData: Pick<UsersResponse, 'allUsers'>;
+	const client = new ApiClient({ baseUrl: '', fetch });
+	let allUsers: { id: number; username: string; role: 'admin' | 'user'; createdAt?: string | Date }[];
 	try {
-		usersData = await apiJson<Pick<UsersResponse, 'allUsers'>>(fetch, '/api/users');
+		const data = await client.users.list();
+		allUsers = data.users;
 	} catch (error) {
 		if (error instanceof ApiError && error.status === 401) throw redirect(302, '/login');
 		throw error;
 	}
 
-	let editInstance: InstanceResponse['instance'] | null = null;
+	let editInstance = null;
 	const editId = url.searchParams.get('edit');
 	if (editId) {
-		const data = await apiJson<InstanceResponse>(fetch, `/api/instances/${editId}`);
-		editInstance = data.instance;
+		editInstance = await client.instances.get(Number(editId));
 	}
 
 	return {
 		editInstance,
-		allUsers: usersData.allUsers,
+		allUsers,
 		isAdmin: layout.user?.role === 'admin',
 		currentUserId: layout.user?.userId
 	};

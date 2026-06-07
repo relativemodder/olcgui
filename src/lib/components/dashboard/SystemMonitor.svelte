@@ -5,7 +5,7 @@
 	import { canPollNow, createSerialPoller } from '$lib/client/serialPoller';
 	import StatCard from '$lib/components/ui/StatCard.svelte';
 	import { APP_SETTINGS_CONTEXT, type AppSettingsStores } from '$lib/stores/appSettings';
-	import { apiFetch } from '$lib/api';
+	import { api } from '$lib/api';
 	import type { SystemStatsDto } from '$shared/api/types';
 
 	const { tileVisibility } = getContext<AppSettingsStores>(APP_SETTINGS_CONTEXT);
@@ -23,13 +23,8 @@
 		intervalMs: 5000,
 		failureIntervalMs: 10000,
 		shouldRun: canPollNow,
-		async run(signal) {
-			const res = await apiFetch('/api/system/stats', { signal });
-			if (res.ok) {
-				stats = (await res.json()) as SystemStatsDto;
-			} else {
-				throw new Error(`System stats request failed with ${res.status}`);
-			}
+		async run() {
+			stats = await api.system.stats();
 		},
 		onError(error) {
 			console.error('Failed to fetch system stats:', error);

@@ -1,3 +1,5 @@
+export const AUTH_COOKIE_NAME = 'olcgui_token';
+
 export function matchTopic(topic: string, pattern: string): boolean {
 	if (pattern === '*') return true;
 	if (pattern.endsWith(':*')) {

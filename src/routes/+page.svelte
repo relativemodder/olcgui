@@ -3,7 +3,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { Sliders, Globe, Wifi, ShieldAlert, Settings } from 'lucide-svelte';
 	import { RefreshCw, Activity } from 'lucide-svelte';
-	import { apiFetch } from '$lib/api';
+	import { api } from '$lib/api';
 	import { connectEvents } from '$lib/client/events';
 	import { getContext } from 'svelte';
 	import {
@@ -83,20 +83,15 @@
 			activeLogId = id;
 			activeLogs = [];
 			try {
-				const res = await apiFetch(`/api/instances?id=${id}`);
-				if (res.ok) {
-					const resData = await res.json();
-					activeLogs = resData.logs || [];
-					if (resData.status) {
-						polledStatuses = {
-							...polledStatuses,
-							[id]: {
-								status: resData.status,
-								autoRestart: polledStatuses[id]?.autoRestart ?? false
-							}
-						};
+				const resData = await api.instances.getStatus(id);
+				activeLogs = resData.logs || [];
+				polledStatuses = {
+					...polledStatuses,
+					[id]: {
+						status: resData.status,
+						autoRestart: polledStatuses[id]?.autoRestart ?? false
 					}
-				}
+				};
 			} catch (e) {
 				console.error('Failed to fetch initial logs:', e);
 			}

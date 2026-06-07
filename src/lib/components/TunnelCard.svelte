@@ -19,7 +19,7 @@
 	import { intro } from '$lib/motion/intro';
 	import { showMetroAlert, showMetroConfirm } from '$lib/metroAlert';
 	import { APP_SETTINGS_CONTEXT, type AppSettingsStores } from '$lib/stores/appSettings';
-	import { apiFetch } from '$lib/api';
+	import { api, ApiError } from '$lib/api';
 
 	const { tileVisibility } = getContext<AppSettingsStores>(APP_SETTINGS_CONTEXT);
 
@@ -44,34 +44,16 @@
 		});
 	}
 
-	function actionErrorMessage(error: unknown, fallback: string) {
-		return typeof error === 'string' && error.trim() ? error : fallback;
-	}
-
-	async function readApiError(res: Response, fallback: string) {
-		try {
-			const data = await res.json();
-			return actionErrorMessage((data as { error?: unknown })?.error, fallback);
-		} catch {
-			return fallback;
-		}
-	}
-
-	async function postInstanceAction(action: 'start' | 'stop' | 'restart', fallback: string) {
-		const res = await apiFetch(`/api/instances/${inst.id}/${action}`, { method: 'POST' });
-		if (!res.ok) throw new Error(await readApiError(res, fallback));
-	}
-
 	async function handleStart() {
 		if (isStarting) return;
 		isStarting = true;
 		updateOptimisticStatus(inst.id, 'running');
 
 		try {
-			await postInstanceAction('start', 'Произошла ошибка при запуске');
+			await api.instances.start(inst.id);
 		} catch (error) {
 			updateOptimisticStatus(inst.id, 'stopped');
-			showActionError(error instanceof Error ? error.message : 'Произошла ошибка при запуске');
+			showActionError(error instanceof ApiError ? error.message : 'Произошла ошибка при запуске');
 		} finally {
 			isStarting = false;
 		}
@@ -83,10 +65,10 @@
 		updateOptimisticStatus(inst.id, 'stopped');
 
 		try {
-			await postInstanceAction('stop', 'Произошла ошибка при остановке');
+			await api.instances.stop(inst.id);
 		} catch (error) {
 			updateOptimisticStatus(inst.id, 'running');
-			showActionError(error instanceof Error ? error.message : 'Произошла ошибка при остановке');
+			showActionError(error instanceof ApiError ? error.message : 'Произошла ошибка при остановке');
 		} finally {
 			isStopping = false;
 		}
@@ -98,11 +80,11 @@
 		updateOptimisticStatus(inst.id, 'restarting');
 
 		try {
-			await postInstanceAction('restart', 'Произошла ошибка при перезапуске');
+			await api.instances.restart(inst.id);
 			updateOptimisticStatus(inst.id, 'running');
 		} catch (error) {
 			updateOptimisticStatus(inst.id, 'running');
-			showActionError(error instanceof Error ? error.message : 'Произошла ошибка при перезапуске');
+			showActionError(error instanceof ApiError ? error.message : 'Произошла ошибка при перезапуске');
 		} finally {
 			isRestarting = false;
 		}
@@ -114,11 +96,10 @@
 		updateOptimisticAutoRestart(inst.id, !autoRestart);
 
 		try {
-			const res = await apiFetch(`/api/instances/${inst.id}/auto-restart`, { method: 'PATCH' });
-			if (!res.ok) throw new Error(await readApiError(res, 'Произошла ошибка'));
+			await api.instances.toggleAutoRestart(inst.id);
 		} catch (error) {
 			updateOptimisticAutoRestart(inst.id, autoRestart);
-			showActionError(error instanceof Error ? error.message : 'Произошла ошибка');
+			showActionError(error instanceof ApiError ? error.message : 'Произошла ошибка');
 		} finally {
 			isTogglingAutoRestart = false;
 		}
@@ -134,13 +115,12 @@
 
 		if (!confirmed) return;
 
-		const res = await apiFetch(`/api/instances/${inst.id}`, { method: 'DELETE' });
-		if (!res.ok) {
-			showActionError(await readApiError(res, 'Ошибка при удалении'));
-			return;
+		try {
+			await api.instances.remove(inst.id);
+			await invalidateAll();
+		} catch (error) {
+			showActionError(error instanceof ApiError ? error.message : 'Ошибка при удалении');
 		}
-
-		await invalidateAll();
 	}
 </script>
 

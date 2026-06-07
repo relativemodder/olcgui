@@ -2,7 +2,7 @@
 	import { X, Check, Loader2 } from 'lucide-svelte';
 	import { fly } from 'svelte/transition';
 	import { showToast } from '$lib/stores/toast';
-	import { apiFetch, readApiError } from '$lib/api';
+	import { api, ApiError } from '$lib/api';
 
 	let {
 		open,
@@ -40,19 +40,21 @@
 		event.preventDefault();
 		if (!user) return;
 		loading = true;
-		const res = await apiFetch(`/api/users/${user.id}`, {
-			method: 'PATCH',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ username: editUsername, role: editRole, password, confirmPassword })
-		});
-		loading = false;
-		if (!res.ok) {
-			showToast(await readApiError(res, 'Не удалось обновить пользователя.'));
-			return;
+		try {
+			await api.users.update(user.id, {
+				username: editUsername,
+				role: editRole,
+				password: password || undefined,
+				confirmPassword: confirmPassword || undefined
+			});
+			showToast('Пользователь обновлён');
+			await onupdated();
+			handleClose();
+		} catch (e) {
+			showToast(e instanceof ApiError ? e.message : 'Не удалось обновить пользователя.');
+		} finally {
+			loading = false;
 		}
-		showToast('Пользователь обновлён');
-		await onupdated();
-		handleClose();
 	}
 </script>
 

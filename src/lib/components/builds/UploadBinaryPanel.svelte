@@ -2,9 +2,9 @@
 	import { UploadCloud, AlertTriangle, Loader2, Check, XCircle } from 'lucide-svelte';
 	import { onDestroy } from 'svelte';
 	import Panel from '$lib/components/ui/Panel.svelte';
-	import { apiFetch, authHeaders } from '$lib/api';
+	import { api, authHeaders } from '$lib/api';
 	import { createSerialPoller } from '$lib/client/serialPoller';
-	import type { UploadStartResponse, UploadStatusResponse } from '$shared/api/types';
+	import type { UploadStartResponse } from '$shared/api/types';
 
 	let isUploading = $state(false);
 	let uploadProgress = $state(0);
@@ -19,13 +19,7 @@
 		async run() {
 			if (!uploadId) return false;
 
-			const res = await apiFetch(`/api/builds/upload?uploadId=${uploadId}`);
-			if (!res.ok) {
-				status = 'error';
-				message = 'Ошибка проверки статуса загрузки.';
-				return false;
-			}
-			const data = (await res.json()) as UploadStatusResponse;
+			const data = await api.builds.uploadStatus(uploadId);
 			if (data.status === 'success') {
 				status = 'success';
 				message = data.message || 'Бинарный файл успешно загружен.';

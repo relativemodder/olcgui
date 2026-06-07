@@ -1,36 +1,31 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
-	import { ShieldCheck, Loader2 } from 'lucide-svelte';
-	import { FormField, ErrorAlert, Button, intro } from '$lib';
-	import { readApiError, setAuthToken } from '$lib/api';
-	import type { SetupCreateResponse } from '$shared/api/types';
+import { goto, invalidateAll } from '$app/navigation';
+import { ShieldCheck, Loader2 } from 'lucide-svelte';
+import { FormField, ErrorAlert, Button, intro } from '$lib';
+import { api, setAuthToken, ApiError } from '$lib/api';
 
-	let username = $state('');
-	let password = $state('');
-	let confirmPassword = $state('');
-	let loading = $state(false);
-	let error = $state('');
+let username = $state('');
+let password = $state('');
+let confirmPassword = $state('');
+let loading = $state(false);
+let error = $state('');
 
-	async function handleSubmit(event: SubmitEvent) {
-		event.preventDefault();
-		if (loading) return;
-		loading = true;
-		error = '';
-		const res = await fetch('/api/setup', {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ username, password, confirmPassword })
-		});
-		loading = false;
-		if (!res.ok) {
-			error = await readApiError(res, 'Ошибка настройки. Попробуйте ещё раз.');
-			return;
-		}
-		const data = (await res.json()) as SetupCreateResponse;
-		setAuthToken(data.token);
+async function handleSubmit(event: SubmitEvent) {
+	event.preventDefault();
+	if (loading) return;
+	loading = true;
+	error = '';
+	try {
+		const result = await api.auth.setupCreate({ username, password, confirmPassword });
+		setAuthToken(result.token);
 		await invalidateAll();
 		await goto('/');
+	} catch (e) {
+		error = e instanceof ApiError ? e.message : 'Ошибка настройки. Попробуйте ещё раз.';
+	} finally {
+		loading = false;
 	}
+}
 </script>
 
 <svelte:head>

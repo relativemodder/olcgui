@@ -2,10 +2,9 @@ import { eq } from 'drizzle-orm';
 import { db } from './db/client';
 import { instances, users } from './db/schema';
 import type { Session } from './auth/session';
-import { AUTH_COOKIE_NAME } from './http';
 import { ApiError } from '../shared/errors';
 export { ApiError } from '../shared/errors';
-import { parseCookie } from '../shared/utils';
+import { AUTH_COOKIE_NAME, parseCookie } from '../shared/utils';
 
 export function json(data: unknown, status = 200): Response {
 	return new Response(JSON.stringify(data), {

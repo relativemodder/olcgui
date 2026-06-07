@@ -21,7 +21,7 @@
 	} from '$shared/wizard/utils';
 	import { Sliders, RefreshCw, Info, Users } from 'lucide-svelte';
 	import { FormField, SelectField, Panel, ErrorAlert, PageHeader, Button, intro } from '$lib';
-	import { apiFetch, formToJson, readApiError } from '$lib/api';
+	import { api, formToJson, ApiError } from '$lib/api';
 
 	let { data } = $props();
 	let error = $state('');
@@ -135,19 +135,18 @@
 		body.debug = debug;
 
 		const id = data.editInstance?.id;
-		const res = await apiFetch(id ? `/api/instances/${id}` : '/api/instances', {
-			method: id ? 'PATCH' : 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify(body)
-		});
-
-		saving = false;
-		if (!res.ok) {
-			error = await readApiError(res, 'Ошибка сохранения конфигурации.');
-			return;
+		try {
+			if (id) {
+				await api.instances.update(id, body as never);
+			} else {
+				await api.instances.create(body as never);
+			}
+			await goto('/');
+		} catch (e) {
+			error = e instanceof ApiError ? e.message : 'Ошибка сохранения конфигурации.';
+		} finally {
+			saving = false;
 		}
-
-		await goto('/');
 	}
 </script>
 

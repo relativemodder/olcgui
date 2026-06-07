@@ -1,8 +1,6 @@
-import { ApiError } from '../shared/errors';
-export { ApiError } from '../shared/errors';
-import { parseCookie } from '../shared/utils';
-
-const AUTH_COOKIE_NAME = 'olcgui_token';
+import { ApiClient } from '../shared/api/client';
+export { ApiClient, ApiError } from '../shared/api/client';
+import { AUTH_COOKIE_NAME, parseCookie } from '../shared/utils';
 
 function getCookie(name: string): string | null {
 	if (typeof document === 'undefined') return null;
@@ -20,35 +18,14 @@ export function clearAuthToken(): void {
 export function authHeaders(initHeaders?: HeadersInit): Headers {
 	const headers = new Headers(initHeaders);
 	const token = getCookie(AUTH_COOKIE_NAME);
-	if (token) headers.set('authorization', `Bearer ${token}`);
+	if (token) headers.set('Authorization', `Bearer ${token}`);
 	return headers;
 }
 
-export function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
-	return fetch(path, { ...init, headers: authHeaders(init.headers) });
-}
+export const api = new ApiClient({ baseUrl: '' });
 
-export async function readApiError(res: Response, fallback: string): Promise<string> {
-	try {
-		const data = (await res.json()) as { error?: string };
-		return data.error || fallback;
-	} catch {
-		return fallback;
-	}
-}
-
-export async function apiJson<T>(
-	fetchFn: typeof fetch,
-	path: string,
-	init: RequestInit = {}
-): Promise<T> {
-	const res = await fetchFn(path, { ...init, headers: authHeaders(init.headers) });
-	if (!res.ok)
-		throw new ApiError(
-			res.status,
-			await readApiError(res, `API request failed with ${res.status}`)
-		);
-	return (await res.json()) as T;
+export function createLoadClient(fetchFn: typeof fetch): ApiClient {
+	return new ApiClient({ baseUrl: '', fetch: fetchFn });
 }
 
 export function formToJson(form: HTMLFormElement): Record<string, FormDataEntryValue | boolean> {

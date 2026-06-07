@@ -3,7 +3,7 @@
 	import { fly } from 'svelte/transition';
 	import { showToast } from '$lib/stores/toast';
 	import FormField from '$lib/components/ui/FormField.svelte';
-	import { apiFetch, readApiError } from '$lib/api';
+	import { api, ApiError } from '$lib/api';
 
 	let {
 		open,
@@ -42,19 +42,16 @@
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
 		loading = true;
-		const res = await apiFetch('/api/users', {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ username, role, password, confirmPassword })
-		});
-		loading = false;
-		if (!res.ok) {
-			showToast(await readApiError(res, 'Не удалось создать пользователя.'));
-			return;
+		try {
+			await api.users.create({ username, role, password, confirmPassword });
+			showToast('Пользователь создан');
+			await oncreated();
+			handleClose();
+		} catch (e) {
+			showToast(e instanceof ApiError ? e.message : 'Не удалось создать пользователя.');
+		} finally {
+			loading = false;
 		}
-		showToast('Пользователь создан');
-		await oncreated();
-		handleClose();
 	}
 </script>
 
