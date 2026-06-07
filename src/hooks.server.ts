@@ -13,10 +13,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	try {
 		const token = cookie ? (parseCookie(cookie, AUTH_COOKIE_NAME) ?? undefined) : undefined;
 		const client = new ApiClient({ baseUrl: API_BACKEND_URL, token });
-		const [user, setupNeeded] = await Promise.all([
-			client.auth.me(),
-			client.auth.setupStatus()
-		]);
+		const [user, setupNeeded] = await Promise.all([client.auth.me(), client.auth.setupStatus()]);
 		activeSession = user;
 		isSetupNeeded = setupNeeded;
 	} catch (error) {

@@ -3,16 +3,14 @@ import type { BuildStatusResponse, UploadStatusResponse, UploadStartResponse } f
 
 export function createBuildsApi(request: ApiRequest) {
 	return {
-		status: () =>
-			request<BuildStatusResponse>('GET', '/api/builds'),
+		status: () => request<BuildStatusResponse>('GET', '/api/builds'),
 
-		start: () =>
-			request<void>('POST', '/api/builds'),
+		start: () => request<void>('POST', '/api/builds'),
 
 		uploadStatus: (uploadId: string) =>
 			request<UploadStatusResponse>(
 				'GET',
-				`/api/builds/upload?uploadId=${encodeURIComponent(uploadId)}`,
+				`/api/builds/upload?uploadId=${encodeURIComponent(uploadId)}`
 			),
 
 		upload: (file: File) => {
@@ -20,8 +18,8 @@ export function createBuildsApi(request: ApiRequest) {
 			formData.append('file', file);
 			return request<UploadStartResponse>('POST', '/api/builds/upload', {
 				body: formData,
-				isFormData: true,
+				isFormData: true
 			});
-		},
+		}
 	};
 }

@@ -84,7 +84,9 @@
 			updateOptimisticStatus(inst.id, 'running');
 		} catch (error) {
 			updateOptimisticStatus(inst.id, 'running');
-			showActionError(error instanceof ApiError ? error.message : 'Произошла ошибка при перезапуске');
+			showActionError(
+				error instanceof ApiError ? error.message : 'Произошла ошибка при перезапуске'
+			);
 		} finally {
 			isRestarting = false;
 		}

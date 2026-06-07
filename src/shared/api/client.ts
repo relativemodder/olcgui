@@ -16,11 +16,7 @@ export interface ApiRequestOptions {
 	signal?: AbortSignal;
 }
 
-export type ApiRequest = <T>(
-	method: string,
-	path: string,
-	opts?: ApiRequestOptions,
-) => Promise<T>;
+export type ApiRequest = <T>(method: string, path: string, opts?: ApiRequestOptions) => Promise<T>;
 
 export class ApiClient {
 	public auth: ReturnType<typeof createAuthApi>;
@@ -30,11 +26,7 @@ export class ApiClient {
 	public repo: ReturnType<typeof createRepoApi>;
 	public system: ReturnType<typeof createSystemApi>;
 
-	constructor(opts: {
-		baseUrl: string;
-		token?: string;
-		fetch?: typeof fetch;
-	}) {
+	constructor(opts: { baseUrl: string; token?: string; fetch?: typeof fetch }) {
 		const baseUrl = opts.baseUrl;
 		const token = opts.token;
 		const fetcher = opts.fetch ?? fetch;
@@ -42,11 +34,11 @@ export class ApiClient {
 		const request: ApiRequest = async <T>(
 			method: string,
 			path: string,
-			options?: ApiRequestOptions,
+			options?: ApiRequestOptions
 		): Promise<T> => {
 			const url = buildUrl(baseUrl, path);
 			const headers: Record<string, string> = {
-				...(options?.headers ?? {}),
+				...(options?.headers ?? {})
 			};
 
 			if (token) {
@@ -67,7 +59,7 @@ export class ApiClient {
 				method,
 				headers,
 				body,
-				signal: options?.signal,
+				signal: options?.signal
 			});
 
 			if (!res.ok) {

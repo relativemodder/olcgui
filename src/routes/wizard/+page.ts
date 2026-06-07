@@ -5,7 +5,12 @@ import { redirect } from '@sveltejs/kit';
 export const load: PageLoad = async ({ fetch, parent, url }) => {
 	const layout = await parent();
 	const client = new ApiClient({ baseUrl: '', fetch });
-	let allUsers: { id: number; username: string; role: 'admin' | 'user'; createdAt?: string | Date }[];
+	let allUsers: {
+		id: number;
+		username: string;
+		role: 'admin' | 'user';
+		createdAt?: string | Date;
+	}[];
 	try {
 		const data = await client.users.list();
 		allUsers = data.users;
