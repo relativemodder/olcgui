@@ -15,19 +15,21 @@
 
 ## Развёртывание на VPS
 
-Запустите интерактивный менеджер деплоя одной строкой из корня репозитория:
+Скачайте и запустите интерактивный менеджер деплоя панели:
 
 ```bash
-python3 <(curl -fsSL https://raw.githubusercontent.com/relativemodder/olcgui/main/install.py)
+sh <(curl -fsSL https://raw.githubusercontent.com/relativemodder/olcgui/main/get-deployer.sh)
+./deployer-x86_64-unknown-linux-musl
 ```
 
 Если `curl` недоступен, используйте `wget`:
 
 ```bash
-python3 <(wget -qO- https://raw.githubusercontent.com/relativemodder/olcgui/main/install.py)
+sh <(wget -qO- https://raw.githubusercontent.com/relativemodder/olcgui/main/get-deployer.sh)
+./deployer-x86_64-unknown-linux-musl
 ```
 
-Скрипт сам спросит язык, директорию установки, порты и префикс registry, после чего создаст `compose.yml`, `.env`, `data/` и `olcrtc/`.
+Скрипт скачает последнюю версию бинарника, а деплоер сам спросит язык, директорию установки, порты и префикс registry, после чего создаст `compose.yml`, `.env`, `data/` и `olcrtc/`.
 
 - `web` отдаёт фронтенд SvelteKit по адресу `http://localhost:5173`
 - `api` остаётся внутри сети Compose и доступен только через `web`

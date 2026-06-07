@@ -17,19 +17,21 @@ Web interface for managing [olcrtc](https://github.com/openlibrecommunity/olcrtc
 
 ## Deploy on VPS
 
-Run the interactive deployment manager from the repository root with a single line:
+Download and run the interactive deployer:
 
 ```bash
-python3 <(curl -fsSL https://raw.githubusercontent.com/relativemodder/olcgui/main/install.py)
+sh <(curl -fsSL https://raw.githubusercontent.com/relativemodder/olcgui/main/get-deployer.sh)
+./deployer-x86_64-unknown-linux-musl
 ```
 
-If `curl` is not available, use `wget` instead:
+If `curl` is not available, use `wget`:
 
 ```bash
-python3 <(wget -qO- https://raw.githubusercontent.com/relativemodder/olcgui/main/install.py)
+sh <(wget -qO- https://raw.githubusercontent.com/relativemodder/olcgui/main/get-deployer.sh)
+./deployer-x86_64-unknown-linux-musl
 ```
 
-The script will ask for language, install directory, ports, and registry prefix, then create `compose.yml`, `.env`, `data/`, and `olcrtc/` for you.
+The deployer will ask for language, install directory, ports, and registry prefix, then create `compose.yml`, `.env`, `data/`, and `olcrtc/` for you.
 
 The stack is split into two containers:
 
