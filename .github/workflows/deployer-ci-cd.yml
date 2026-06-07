@@ -3,7 +3,6 @@ name: Deployer CI/CD
 on:
   push:
     branches: [main, master]
-    paths: ['deployer/**']
     tags: ['deployer-v*']
   pull_request:
     branches: [main, master]
