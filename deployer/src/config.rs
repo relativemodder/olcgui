@@ -157,6 +157,8 @@ pub fn render_compose(cfg: &Config) -> String {
             r#"
   vk-bot:
     image: ${{IMAGE_PREFIX}}-vk-bot:${{IMAGE_TAG}}
+    volumes:
+      - ./data:/app/data{mount_suffix}
     environment:
       VK_TOKEN: {token}
       API_BACKEND_URL: http://api:3001

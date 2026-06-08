@@ -6,6 +6,9 @@ let _db: Database | null = null;
 export function getDb(): Database {
 	if (_db) return _db;
 
+	const dir = DB_PATH.split('/').slice(0, -1).join('/');
+	if (dir) Bun.mkdirSync(dir, { recursive: true });
+
 	_db = new Database(DB_PATH, { create: true });
 	_db.run(`
 		CREATE TABLE IF NOT EXISTS users (

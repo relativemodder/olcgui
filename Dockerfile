@@ -76,6 +76,8 @@ WORKDIR /app
 
 COPY . .
 
+RUN mkdir -p /app/data
+
 EXPOSE 3002
 
 CMD ["bun", "src/vk-bot/index.ts"]
