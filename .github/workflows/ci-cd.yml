@@ -95,3 +95,21 @@ jobs:
           push: true
           tags: ${{ steps.api-meta.outputs.tags }}
           labels: ${{ steps.api-meta.outputs.labels }}
+
+      - name: Extract metadata for vk-bot image
+        id: vkbot-meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}-vk-bot
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha
+
+      - name: Build and push vk-bot image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: vk-bot
+          push: true
+          tags: ${{ steps.vkbot-meta.outputs.tags }}
+          labels: ${{ steps.vkbot-meta.outputs.labels }}

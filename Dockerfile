@@ -69,3 +69,13 @@ RUN mkdir -p /app/data/instances
 EXPOSE 3001
 
 CMD ["bun", "--bun", "src/server/api.ts"]
+
+FROM deps AS vk-bot
+
+WORKDIR /app
+
+COPY . .
+
+EXPOSE 3002
+
+CMD ["bun", "src/vk-bot/index.ts"]
