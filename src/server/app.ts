@@ -10,6 +10,7 @@ import { repoRouter } from './routes/repo';
 import { usersRouter } from './routes/users';
 import { systemRouter } from './routes/system';
 import { eventsRouter } from './routes/events';
+import { vkBotRouter } from './routes/vk-bot';
 import { getSession, type Session } from './auth/session';
 import { ApiError, json, normalizeError, getAuthToken, isSetupNeeded } from './core';
 
@@ -45,6 +46,7 @@ export async function createApp() {
 	app.route('/api/users', usersRouter);
 	app.route('/api/system', systemRouter);
 	app.route('/api/events', eventsRouter);
+	app.route('/api/vk-bot', vkBotRouter);
 
 	app.get('/api', () => json({ error: 'Not found.' }, 404));
 	app.notFound((_) => json({ error: 'API endpoint not found.' }, 404));

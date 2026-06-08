@@ -17,3 +17,5 @@ ENV GOPATH=/go \
     PATH=/go/bin:$PATH
 
 RUN go install github.com/magefile/mage@latest
+
+FROM base AS vk-bot

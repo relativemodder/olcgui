@@ -17,6 +17,7 @@ services:
       API_HOST: 0.0.0.0
       API_PORT: 3001
       HOST: 0.0.0.0
+      VK_BOT_URL: http://vk-bot:3002
     ports:
       - '3001:3001'
     userns_mode: keep-id
@@ -42,6 +43,24 @@ services:
       BODY_SIZE_LIMIT: Infinity
     ports:
       - '5173:5173'
+    userns_mode: keep-id
+    volumes:
+      - .:/app:z
+
+  vk-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: vk-bot
+    working_dir: /app
+    command: ['bun', 'src/vk-bot/index.ts']
+    depends_on:
+      - api
+    env_file:
+      - .env
+    environment:
+      API_BACKEND_URL: http://api:3001
+      BOT_HTTP_PORT: '3002'
     userns_mode: keep-id
     volumes:
       - .:/app:z

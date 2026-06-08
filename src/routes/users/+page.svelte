@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import { Users, UserPlus, KeyRound, UserCog } from 'lucide-svelte';
+	import { Users, UserPlus, KeyRound, UserCog, Bot, Check } from 'lucide-svelte';
 	import {
 		AdminCard,
 		FormField,
@@ -38,6 +38,17 @@
 	let editingUser = $state<{ id: number; username: string; role: string } | null>(null);
 
 	let isAdmin = $derived(data.currentUser?.role === 'admin');
+
+	let vkBotAvailable = $state(false);
+	let vkBotCode = $state('');
+	let vkBotLoading = $state(false);
+
+	$effect(() => {
+		api.vkBot
+			.status()
+			.then((s) => (vkBotAvailable = s.available))
+			.catch(() => {});
+	});
 
 	async function updateSelf(event: SubmitEvent) {
 		event.preventDefault();
@@ -83,6 +94,27 @@
 			await invalidateAll();
 		} catch (e) {
 			showToast(e instanceof ApiError ? e.message : 'Не удалось удалить пользователя.');
+		}
+	}
+
+	async function confirmVkCode(event: SubmitEvent) {
+		event.preventDefault();
+		if (vkBotLoading || !vkBotCode.trim()) return;
+		vkBotLoading = true;
+		try {
+			const res = await fetch('/api/vk-bot/confirm', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ code: vkBotCode.trim() })
+			});
+			const data = await res.json();
+			if (!res.ok) throw new ApiError(res.status, data.error || 'Ошибка подтверждения');
+			showToast('Аккаунт VK привязан!');
+			vkBotCode = '';
+		} catch (e) {
+			showToast(e instanceof ApiError ? e.message : 'Не удалось подтвердить код.');
+		} finally {
+			vkBotLoading = false;
 		}
 	}
 </script>
@@ -236,6 +268,38 @@
 					</form>
 				{/if}
 			</Panel>
+
+			{#if vkBotAvailable}
+				<Panel title="VK бот" icon={Bot}>
+					<p class="mb-3 text-sm text-[color:var(--ui-muted)]">
+						Введите код из VK-бота для привязки аккаунта.
+					</p>
+					<form method="POST" onsubmit={confirmVkCode} class="space-y-3">
+						<FormField id="vkCode" label="Код подтверждения" required>
+							<input
+								type="text"
+								id="vkCode"
+								name="code"
+								bind:value={vkBotCode}
+								placeholder="000000"
+								maxlength={6}
+								disabled={vkBotLoading}
+								class="ui-input w-full px-4 py-2.5 text-center font-mono text-lg tracking-widest"
+								required
+							/>
+						</FormField>
+						<Button
+							type="submit"
+							variant="primary"
+							loading={vkBotLoading}
+							class="flex w-full cursor-pointer items-center justify-center gap-2 px-4 py-3"
+						>
+							<Check class="h-4 w-4" />
+							<span>Подтвердить</span>
+						</Button>
+					</form>
+				</Panel>
+			{/if}
 		</div>
 	</div>
 </div>

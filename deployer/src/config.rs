@@ -17,6 +17,7 @@ pub struct Config {
     pub socks_start: u16,
     pub socks_end: u16,
     pub selinux: bool,
+    pub vk_token: Option<String>,
 }
 
 impl Default for Config {
@@ -28,6 +29,7 @@ impl Default for Config {
             socks_start: DEFAULT_SOCKS_START,
             socks_end: DEFAULT_SOCKS_END,
             selinux: true,
+            vk_token: None,
         }
     }
 }
@@ -60,6 +62,7 @@ pub fn read_env(dir: &Path) -> Option<Config> {
     let mut tag = None;
     let mut web = None;
     let mut socks = None;
+    let mut vk_token = None;
     for raw in text.lines() {
         let line = raw.trim();
         if line.is_empty() || line.starts_with('#') {
@@ -78,6 +81,12 @@ pub fn read_env(dir: &Path) -> Option<Config> {
                     socks = Some((start, end));
                 }
             }
+            "VK_TOKEN" => {
+                let v = value.trim().to_string();
+                if !v.is_empty() {
+                    vk_token = Some(v);
+                }
+            }
             _ => {}
         }
     }
@@ -89,6 +98,7 @@ pub fn read_env(dir: &Path) -> Option<Config> {
         socks_start: socks?.0,
         socks_end: socks?.1,
         selinux,
+        vk_token,
     })
 }
 
@@ -101,9 +111,9 @@ pub fn read_selinux_from_compose(dir: &Path) -> bool {
     text.contains(":Z")
 }
 
-pub fn render_compose(selinux: bool) -> String {
-    let mount_suffix = if selinux { ":Z" } else { "" };
-    format!(
+pub fn render_compose(cfg: &Config) -> String {
+    let mount_suffix = if cfg.selinux { ":Z" } else { "" };
+    let mut out = format!(
         r#"services:
   api:
     image: ${{IMAGE_PREFIX}}-api:${{IMAGE_TAG}}
@@ -124,6 +134,7 @@ pub fn render_compose(selinux: bool) -> String {
       BODY_SIZE_LIMIT: Infinity
       API_HOST: 0.0.0.0
       API_PORT: 3001
+      VK_BOT_URL: http://vk-bot:3002
     restart: unless-stopped
 
   web:
@@ -138,20 +149,43 @@ pub fn render_compose(selinux: bool) -> String {
     depends_on:
       - api
     restart: unless-stopped
-"#
-    )
+"#,
+    );
+
+    if let Some(token) = &cfg.vk_token {
+        out.push_str(&format!(
+            r#"
+  vk-bot:
+    image: ${{IMAGE_PREFIX}}-vk-bot:${{IMAGE_TAG}}
+    environment:
+      VK_TOKEN: {token}
+      API_BACKEND_URL: http://api:3001
+      BOT_HTTP_PORT: "3002"
+    depends_on:
+      - api
+    restart: unless-stopped
+"#,
+        ));
+    }
+
+    out
 }
 
 pub fn render_env(cfg: &Config) -> String {
-    format!(
-        "IMAGE_PREFIX={}\nIMAGE_TAG={}\nWEB_PORT={}\nSOCKS_PORT_RANGE={}\n",
+    let mut out = format!(
+        "IMAGE_PREFIX={}\nIMAGE_TAG={}\nWEB_PORT={}\nSOCKS_PORT_RANGE={}",
         cfg.image_prefix, cfg.image_tag, cfg.web_port, cfg.socks_range()
-    )
+    );
+    if let Some(token) = &cfg.vk_token {
+        out.push_str(&format!("\nVK_TOKEN={}", token));
+    }
+    out.push('\n');
+    out
 }
 
 pub fn write_all(dir: &Path, cfg: &Config) -> std::io::Result<()> {
     std::fs::create_dir_all(dir)?;
-    std::fs::write(compose_file_path(dir), render_compose(cfg.selinux))?;
+    std::fs::write(compose_file_path(dir), render_compose(cfg))?;
     std::fs::write(env_file_path(dir), render_env(cfg))?;
     std::fs::create_dir_all(dir.join("data"))?;
     std::fs::create_dir_all(dir.join("olcrtc"))?;

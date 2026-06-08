@@ -235,6 +235,7 @@ fn action_reconfigure(lang: usize, dir: &Path) {
     let (socks_start, socks_end) = ui::ask_free_port_range(lang, old.socks_start, old.socks_end);
     let image_prefix = ui::ask_image_prefix(lang, &old.image_prefix);
     let selinux = ui::ask_bool(lang, i18n::selinux(lang), old.selinux);
+    let vk_token = ui::ask_vk_token(lang).or(old.vk_token);
 
     let cfg = config::Config {
         image_prefix,
@@ -243,6 +244,7 @@ fn action_reconfigure(lang: usize, dir: &Path) {
         socks_start,
         socks_end,
         selinux,
+        vk_token,
     };
 
     if let Err(e) = config::write_all(dir, &cfg) {
@@ -269,6 +271,7 @@ fn action_install(lang: usize, dir: &Path) {
         ui::ask_free_port_range(lang, config::DEFAULT_SOCKS_START, config::DEFAULT_SOCKS_END);
     let image_prefix = ui::ask_image_prefix(lang, config::DEFAULT_IMAGE_PREFIX);
     let selinux = ui::ask_bool(lang, i18n::selinux(lang), true);
+    let vk_token = ui::ask_vk_token(lang);
 
     let compose_path = config::compose_file_path(dir);
     let env_path = config::env_file_path(dir);
@@ -301,6 +304,7 @@ fn action_install(lang: usize, dir: &Path) {
         socks_start,
         socks_end,
         selinux,
+        vk_token,
     };
 
     if let Err(e) = config::write_all(dir, &cfg) {

@@ -143,6 +143,21 @@ pub fn ask_free_port_range(lang: usize, default_start: u16, default_end: u16) ->
     }
 }
 
+pub fn ask_vk_token(lang: usize) -> Option<String> {
+    if !ask_bool(lang, &i18n::vk_bot_enable(lang), false) {
+        return None;
+    }
+    loop {
+        let val = ask(&i18n::vk_token(lang), None);
+        let trimmed = val.trim().to_string();
+        if trimmed.is_empty() {
+            println!("{}", i18n::vk_token_hint(lang));
+            continue;
+        }
+        return Some(trimmed);
+    }
+}
+
 pub fn ask_image_prefix(lang: usize, default: &str) -> String {
     loop {
         let mut val = ask(i18n::image_prefix(lang), Some(default));

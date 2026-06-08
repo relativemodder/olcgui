@@ -6,6 +6,7 @@ import { createUsersApi } from './users';
 import { createBuildsApi } from './builds';
 import { createRepoApi } from './repo';
 import { createSystemApi } from './system';
+import { createVkBotApi } from './vk-bot';
 
 export { ApiError } from '../errors';
 
@@ -25,6 +26,7 @@ export class ApiClient {
 	public builds: ReturnType<typeof createBuildsApi>;
 	public repo: ReturnType<typeof createRepoApi>;
 	public system: ReturnType<typeof createSystemApi>;
+	public vkBot: ReturnType<typeof createVkBotApi>;
 
 	constructor(opts: { baseUrl: string; token?: string; fetch?: typeof fetch }) {
 		const baseUrl = opts.baseUrl;
@@ -84,5 +86,6 @@ export class ApiClient {
 		this.builds = createBuildsApi(request);
 		this.repo = createRepoApi(request);
 		this.system = createSystemApi(request);
+		this.vkBot = createVkBotApi(request);
 	}
 }
