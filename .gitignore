@@ -10,6 +10,7 @@ node_modules
 *.md
 !README.md
 !README_RU.md
+!DEV_SETUP.md
 
 # OS
 .DS_Store

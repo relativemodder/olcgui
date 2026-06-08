@@ -34,6 +34,10 @@ sh <(wget -qO- https://raw.githubusercontent.com/relativemodder/olcgui/main/get-
 
 Контейнер `api` монтирует репозиторий `olcrtc` и базу данных, поэтому данные сохраняются между перезапусками. Контейнер `web` проксирует `/api/*` во внутренний backend по адресу `API_BACKEND_URL=http://api:3001`.
 
+## Разработка (ака dev setup)
+
+Инструкция по настройке дев-окружения на Podman: [DEV_SETUP.md](./DEV_SETUP.md).
+
 ## Локальный запуск
 
 ```bash
