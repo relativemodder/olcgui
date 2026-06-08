@@ -7,6 +7,8 @@ use std::path::Path;
 use std::thread;
 use std::time::Duration;
 
+use colored::*;
+
 fn remaining_container_ids(dir: &Path) -> Option<Vec<String>> {
     runtime::list_project_containers(dir)
         .ok()
@@ -67,7 +69,7 @@ fn try_start_stack(lang: usize, dir: &Path) -> bool {
 }
 
 fn action_status(lang: usize, dir: &Path) {
-    println!("{}", i18n::status_title(lang));
+    println!("{}", i18n::status_title(lang).bold().cyan());
     let state = runtime::detect_state(dir);
     println!("{}: {}", i18n::current_state(lang), ui::state_label(lang, &state));
     if let Ok(containers) = runtime::list_project_containers(dir) {
@@ -223,7 +225,7 @@ fn action_restart(lang: usize, dir: &Path) {
 
 fn action_reconfigure(lang: usize, dir: &Path) {
     println!();
-    println!("{}", i18n::reconf_title(lang));
+    println!("{}", i18n::reconf_title(lang).bold().cyan());
 
     let old = config::read_env(dir).unwrap_or_default();
     let selinux_state = if old.selinux { "on" } else { "off" };
@@ -343,7 +345,7 @@ fn show_menu_loop(lang: usize, dir: &Path) {
 fn main() {
     let lang = ui::choose_language();
 
-    println!("{}", i18n::title(lang));
+    println!("{}", i18n::title(lang).bold().cyan());
     println!();
 
     let install_dir = ui::ask(i18n::install_dir(lang), Some(config::DEFAULT_INSTALL_DIR));

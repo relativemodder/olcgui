@@ -1,5 +1,7 @@
 use std::io::{self, BufRead, Write};
 
+use colored::*;
+
 use crate::i18n;
 use crate::runtime;
 
@@ -159,18 +161,18 @@ pub fn ask_image_prefix(lang: usize, default: &str) -> String {
     }
 }
 
-pub fn state_label(lang: usize, state: &runtime::State) -> &'static str {
+pub fn state_label(lang: usize, state: &runtime::State) -> String {
     match state {
-        runtime::State::Running => i18n::state_running(lang),
-        runtime::State::Stopped => i18n::state_stopped(lang),
-        runtime::State::Missing => i18n::state_missing(lang),
+        runtime::State::Running => i18n::state_running(lang).green().to_string(),
+        runtime::State::Stopped => i18n::state_stopped(lang).yellow().to_string(),
+        runtime::State::Missing => i18n::state_missing(lang).red().to_string(),
     }
 }
 
 pub fn show_menu(lang: usize, dir: &std::path::Path) -> Option<usize> {
     let state = runtime::detect_state(dir);
     println!();
-    println!("{}", i18n::menu_header(lang));
+    println!("{}", i18n::menu_header(lang).bold().cyan());
     println!("{}: {}", i18n::current_state(lang), state_label(lang, &state));
     println!("1. {}", i18n::menu_status(lang));
     println!("2. {}", i18n::menu_start(lang));

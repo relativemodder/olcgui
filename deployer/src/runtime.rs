@@ -4,6 +4,7 @@ use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
 
+use colored::*;
 use serde::Deserialize;
 
 use crate::config;
@@ -98,7 +99,7 @@ fn which(binary: &str) -> Option<std::path::PathBuf> {
 }
 
 pub fn run(cmd: &[String], cwd: &Path) -> i32 {
-    println!("$ {}", cmd.join(" "));
+    println!("{}", format!("$ {}", cmd.join(" ")).dimmed());
     let first = &cmd[0];
     let mut c = Command::new(first);
     c.args(&cmd[1..]).current_dir(cwd);
