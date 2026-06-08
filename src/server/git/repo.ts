@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from 'fs';
+import { existsSync, readdirSync, rmSync } from 'fs';
 import { broker } from '../events/broker';
 import { REPO_STATUS_TOPIC } from '../events/topics';
 import { readStreamToString } from '../utils';
@@ -17,7 +17,14 @@ export function getRepoSyncing(): boolean {
 }
 
 function isGitRepoDir(dir: string): boolean {
-	return existsSync(`${dir}/.git`);
+	if (!existsSync(`${dir}/.git`)) return false;
+	try {
+		const head = Bun.file(`${dir}/.git/HEAD`).toString();
+		if (!head || head.trim() === '' || head.includes('.invalid')) return false;
+	} catch {
+		return false;
+	}
+	return true;
 }
 
 export function isOlcrtcRepoReady(): boolean {
@@ -53,11 +60,18 @@ export async function ensureOlcrtcRepo(): Promise<void> {
 		try {
 			if (existsSync(GIT_DIR)) {
 				if (!isGitRepoDir(GIT_DIR)) {
-					const files = readdirSync(GIT_DIR);
-					if (files.length > 0) {
-						throw new Error(
-							`[GitRepo] Directory exists but is not a git repo (and is not empty): ${GIT_DIR}`
+					if (existsSync(`${GIT_DIR}/.git`)) {
+						console.warn(
+							`[GitRepo] Detected broken git repo at "${GIT_DIR}", removing and re-cloning...`
 						);
+						rmSync(GIT_DIR, { recursive: true, force: true });
+					} else {
+						const files = readdirSync(GIT_DIR);
+						if (files.length > 0) {
+							throw new Error(
+								`[GitRepo] Directory exists but is not a git repo (and is not empty): ${GIT_DIR}`
+							);
+						}
 					}
 				}
 			}

@@ -1,0 +1,19 @@
+FROM oven/bun:1-debian AS base
+
+WORKDIR /app
+
+COPY package.json bun.lock* ./
+RUN bun install --frozen-lockfile
+
+FROM base AS api
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    git \
+    golang-go \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV GOPATH=/go \
+    PATH=/go/bin:$PATH
+
+RUN go install github.com/magefile/mage@latest

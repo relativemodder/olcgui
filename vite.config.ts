@@ -15,6 +15,8 @@ export default defineConfig({
 				}
 			: undefined,
 		watch: {
+			usePolling: process.env.VITE_USE_POLLING === 'true',
+			interval: process.env.VITE_USE_POLLING === 'true' ? 100 : undefined,
 			ignored: ['**/*.db', '**/*.db-wal', '**/*.db-shm', '**/data/**', '**/olcrtc/**']
 		}
 	}

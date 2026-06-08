@@ -29,7 +29,7 @@ async function bootstrap() {
 export async function createApp() {
 	await bootstrap();
 
-	const app = new Hono<AppBindings>();
+	const app = new Hono<AppBindings>({ strict: false });
 
 	app.use('/api/*', async (c, next) => {
 		c.set('user', await getSession(getAuthToken(c.req.raw)));

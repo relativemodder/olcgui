@@ -1,0 +1,50 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: api
+    working_dir: /app
+    command: ['bun', '--hot', 'src/server/api.ts']
+    environment:
+      DATABASE_URL: /app/data/sqlite.db
+      OLCRTC_DATA_DIR: /app/data/instances
+      OLCRTC_GIT_DIR: /app/olcrtc
+      OLCRTC_BUILD_DIR: /app/olcrtc
+      OLCRTC_GIT_REMOTE_URL: https://github.com/openlibrecommunity/olcrtc
+      MAGE_CMD: mage
+      BODY_SIZE_LIMIT: Infinity
+      API_HOST: 0.0.0.0
+      API_PORT: 3001
+      HOST: 0.0.0.0
+    ports:
+      - '3001:3001'
+    userns_mode: keep-id
+    volumes:
+      - .:/app:z
+      - ./.gopath:/go:z
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: base
+    working_dir: /app
+    command: ['bun', '--bun', 'vite', 'dev', '--host', '0.0.0.0', '--port', '5173']
+    depends_on:
+      - api
+    environment:
+      HOST: 0.0.0.0
+      PORT: 5173
+      VITE_HOST: 0.0.0.0
+      VITE_USE_POLLING: 'false'
+      API_BACKEND_URL: http://api:3001
+      BODY_SIZE_LIMIT: Infinity
+    ports:
+      - '5173:5173'
+    userns_mode: keep-id
+    volumes:
+      - .:/app:z
+
+volumes:
+  appdata:
