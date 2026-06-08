@@ -1,4 +1,6 @@
 import { Database } from 'bun:sqlite';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { DB_PATH } from './config';
 
 let _db: Database | null = null;
@@ -6,8 +8,7 @@ let _db: Database | null = null;
 export function getDb(): Database {
 	if (_db) return _db;
 
-	const dir = DB_PATH.split('/').slice(0, -1).join('/');
-	if (dir) Bun.mkdirSync(dir, { recursive: true });
+	mkdirSync(dirname(DB_PATH), { recursive: true });
 
 	_db = new Database(DB_PATH, { create: true });
 	_db.run(`
