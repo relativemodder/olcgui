@@ -31,8 +31,11 @@ sh <(wget -qO- https://raw.githubusercontent.com/relativemodder/olcgui/main/get-
 
 - `web` отдаёт фронтенд SvelteKit по адресу `http://localhost:5173`
 - `api` остаётся внутри сети Compose и доступен только через `web`
+- `vk-bot` поднимается автоматически, если при настройке указан токен VK
 
 Контейнер `api` монтирует репозиторий `olcrtc` и базу данных, поэтому данные сохраняются между перезапусками. Контейнер `web` проксирует `/api/*` во внутренний backend по адресу `API_BACKEND_URL=http://api:3001`.
+
+### Настройка VK бота описана в [VK_SETUP.md](./VK_SETUP.md)!
 
 ## Разработка (ака dev setup)
 

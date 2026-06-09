@@ -1,7 +1,7 @@
 import type { Flow } from './index';
 import { createLinkRequest } from '../db';
 import { setSession } from '../session';
-import { loginFlowKeyboard, unauthKeyboard } from '../keyboard';
+import { flowKeyboard as loginFlowKeyboard, unauthKeyboard } from '../keyboard';
 
 function generateCode(): string {
 	return String(Math.floor(100000 + Math.random() * 900000));

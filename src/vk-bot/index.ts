@@ -5,10 +5,14 @@ import { createHandlers, handleMessage } from './handlers';
 import { botApi } from './api';
 import { registerFlow } from './flows/index';
 import { loginFlow } from './flows/login';
+import { createCreateFlow } from './flows/create-instance';
+import { createDeleteFlow } from './flows/delete-instance';
 
 const db = getDb();
 
 registerFlow(loginFlow);
+registerFlow(createCreateFlow(db));
+registerFlow(createDeleteFlow(db));
 
 const commands = createHandlers(db);
 

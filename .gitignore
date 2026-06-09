@@ -11,6 +11,7 @@ node_modules
 !README.md
 !README_RU.md
 !DEV_SETUP.md
+!VK_SETUP.md
 
 # OS
 .DS_Store
