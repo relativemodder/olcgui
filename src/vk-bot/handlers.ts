@@ -12,7 +12,8 @@ import {
 	deduplicate,
 	markResponded,
 	hasResponded,
-	checkUserCooldown
+	checkUserCooldown,
+	getSession
 } from './session';
 import {
 	authKeyboard,
@@ -353,22 +354,27 @@ async function sendConfigFile(context: MessageContext, inst: InstanceDto): Promi
 }
 
 export async function handleMessage(context: MessageContext, commands: Command[]): Promise<void> {
-	if (!context.text) return;
-
 	if (context.isOutbox) return;
+
+	const text = context.text?.trim() ?? '';
+	const payloadCommand =
+		typeof context.messagePayload?.command === 'string' ? context.messagePayload.command : '';
+	const command = payloadCommand || text;
+	const hasInteractiveInput = command.length > 0 || context.messagePayload !== null;
+	if (!hasInteractiveInput) return;
 
 	if (deduplicate(context.id)) return;
 
 	if (hasResponded(context.id)) return;
 
-	if (checkUserCooldown(context.senderId, 1200)) return;
-
-	const command = context.messagePayload?.command || context.text;
-
 	if (await routeFlow(context)) {
 		markResponded(context.id);
 		return;
 	}
+
+	if (!command) return;
+
+	if (!getSession(context.senderId) && checkUserCooldown(context.senderId, 1200)) return;
 
 	for (const cmd of commands) {
 		const matched = match(command, cmd.pattern);

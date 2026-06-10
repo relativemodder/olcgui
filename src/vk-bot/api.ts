@@ -8,24 +8,35 @@ interface ConfirmBody {
 	token: string;
 }
 
+export function normalizeConfirmBody(body: Partial<ConfirmBody> | null | undefined): ConfirmBody | null {
+	const code = body?.code?.trim();
+	const token = body?.token?.trim();
+
+	if (!code || !token) return null;
+	if (!/^\d{6}$/.test(code)) return null;
+
+	return { code, token };
+}
+
 export const botApi = new Hono();
 
 botApi.get('/health', (c) => c.json({ ok: true }));
 
 botApi.post('/confirm-link', async (c) => {
-	const body: ConfirmBody = await c.req.json();
+	const body = await c.req.json().catch(() => null);
+	const normalized = normalizeConfirmBody(body);
 
-	if (!body.code || !body.token) {
-		return c.json({ error: 'Missing code or token' }, 400);
+	if (!normalized) {
+		return c.json({ error: 'Invalid code or token' }, 400);
 	}
 
-	const request = consumeLinkRequest(body.code);
+	const request = consumeLinkRequest(normalized.code);
 
 	if (!request) {
 		return c.json({ error: 'Invalid or expired code' }, 400);
 	}
 
-	saveToken(request.vkId, body.token);
+	saveToken(request.vkId, normalized.token);
 
 	try {
 		await vk.api.messages.send({

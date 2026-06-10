@@ -5,6 +5,10 @@ import { DB_PATH } from './config';
 
 let _db: Database | null = null;
 
+function cleanupLinkRequests(db: Database): void {
+	db.run('DELETE FROM link_requests WHERE used = 1 OR expires_at <= ?', [Date.now()]);
+}
+
 export function getDb(): Database {
 	if (_db) return _db;
 
@@ -46,6 +50,7 @@ export function deleteToken(vkId: number): void {
 
 export function createLinkRequest(vkId: number, username: string, code: string): void {
 	const db = getDb();
+	cleanupLinkRequests(db);
 	const expiresAt = Date.now() + 5 * 60 * 1000;
 	db.run(
 		'INSERT OR REPLACE INTO link_requests (code, vk_id, username, expires_at, used) VALUES (?, ?, ?, ?, 0)',
@@ -55,6 +60,7 @@ export function createLinkRequest(vkId: number, username: string, code: string):
 
 export function consumeLinkRequest(code: string): { vkId: number; username: string } | null {
 	const db = getDb();
+	cleanupLinkRequests(db);
 	const row = db
 		.query<
 			{ vk_id: number; username: string; expires_at: number; used: number },

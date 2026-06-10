@@ -5,6 +5,11 @@ import { setSession } from '../session';
 import { authKeyboard } from '../keyboard';
 import { createAuthedApiClient } from '../config';
 
+export function parseDeleteConfirmation(payload: Record<string, unknown> | null | undefined): boolean | null {
+	if (!payload || typeof payload.confirm !== 'boolean') return null;
+	return payload.confirm;
+}
+
 function deleteConfirmKeyboard() {
 	return Keyboard.keyboard([
 		[
@@ -65,9 +70,22 @@ export function createDeleteFlow(db: Database): Flow {
 
 		steps: {
 			confirm: async (context, data) => {
-				const payload = context.messagePayload;
-				const confirmed = payload?.confirm;
+				if (context.messagePayload?.command === '/cancel') {
+					await context.send('Удаление отменено.', {
+						keyboard: authKeyboard()
+					});
+					return;
+				}
+
+				const confirmed = parseDeleteConfirmation(context.messagePayload);
 				const instanceId = data.instanceId as number;
+
+				if (confirmed === null) {
+					await context.send('Подтвердите удаление кнопками или отмените действие.', {
+						keyboard: deleteConfirmKeyboard()
+					});
+					return 'confirm';
+				}
 
 				if (confirmed) {
 					const client = createAuthedApiClient(db, context.senderId);

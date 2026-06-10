@@ -5,6 +5,7 @@ import { setSession } from '../session';
 import { flowKeyboard, authKeyboard } from '../keyboard';
 import { createAuthedApiClient } from '../config';
 import type { Mode, Provider, Transport } from '../../shared/wizard/constants';
+import { PROVIDER_CONFIG } from '../../shared/wizard/constants';
 
 const PROVIDERS = ['jitsi', 'wbstream', 'telemost'] as const;
 const TRANSPORTS = ['datachannel', 'vp8channel', 'seichannel', 'videochannel'] as const;
@@ -91,6 +92,28 @@ function isCancel(context: { messagePayload?: Record<string, unknown> | null }):
 	return context.messagePayload?.command === '/cancel';
 }
 
+function isValidUrl(value: string): boolean {
+	try {
+		const url = new URL(value);
+		return url.protocol === 'http:' || url.protocol === 'https:';
+	} catch {
+		return false;
+	}
+}
+
+export function isSupportedRoomUrl(provider: Provider, roomUrl: string): boolean {
+	if (!isValidUrl(roomUrl)) return false;
+
+	const hostname = new URL(roomUrl).hostname;
+	if (provider === 'wbstream') return hostname === 'stream.wb.ru';
+	if (provider === 'telemost') return hostname === 'telemost.yandex.ru';
+	return true;
+}
+
+function isAllowedTransport(provider: Provider, transport: Transport): boolean {
+	return (PROVIDER_CONFIG[provider].allowedTransports as readonly string[]).includes(transport);
+}
+
 export function createCreateFlow(db: Database): Flow {
 	return {
 		name: 'create-instance',
@@ -165,6 +188,13 @@ export function createCreateFlow(db: Database): Flow {
 					return 'roomUrl';
 				}
 
+				if (!data.provider || !isSupportedRoomUrl(data.provider as Provider, url)) {
+					await context.send('Введите корректный URL комнаты для выбранного провайдера.', {
+						keyboard: flowKeyboard()
+					});
+					return 'roomUrl';
+				}
+
 				data.roomUrl = url;
 				await context.send('Выберите транспорт:', { keyboard: transportKeyboard() });
 				return 'transport';
@@ -188,6 +218,13 @@ export function createCreateFlow(db: Database): Flow {
 				}
 
 				if (transport && (TRANSPORTS as readonly string[]).includes(transport)) {
+					if (!data.provider || !isAllowedTransport(data.provider as Provider, transport as Transport)) {
+						await context.send('Этот транспорт не поддерживается выбранным провайдером.', {
+							keyboard: transportKeyboard()
+						});
+						return 'transport';
+					}
+
 					data.transport = transport;
 					data.cryptoKey = generateKey();
 
