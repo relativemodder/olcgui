@@ -51,7 +51,7 @@ describe('VK bot presentation helpers', () => {
 			{ ...baseInstance, id: 8, name: 'Stopped Tunnel', status: 'stopped' }
 		]);
 
-		expect(message).toBe('Инстансы:\n1. Demo Tunnel — работает\n2. Stopped Tunnel — остановлен');
+		expect(message).toBe('Инстансы:\n1. Demo Tunnel (работает)\n2. Stopped Tunnel (остановлен)');
 	});
 
 	it('formats instance info text', () => {
