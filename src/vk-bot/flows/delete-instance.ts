@@ -3,7 +3,12 @@ import type { Database } from 'bun:sqlite';
 import { Keyboard } from 'vk-io';
 import { setSession } from '../session';
 import { authKeyboard } from '../keyboard';
-import { ensureAuthedClient, isCancelCommand, parseBooleanChoice, sendFlowCancelled } from './shared';
+import {
+	ensureAuthedClient,
+	isCancelCommand,
+	parseBooleanChoice,
+	sendFlowCancelled
+} from './shared';
 
 export function parseDeleteConfirmation(
 	payload: Record<string, unknown> | null | undefined

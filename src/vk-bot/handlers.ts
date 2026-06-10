@@ -71,8 +71,7 @@ export function createHandlers(db: Database): Command[] {
 			await handler(context, client);
 		};
 
-	const withInstanceAction =
-		(action: InstanceAction): Handler =>
+	const withInstanceAction = (action: InstanceAction): Handler =>
 		withAuthed(async (context, client) => {
 			const id = getPayloadInstanceId(context);
 			if (!id) {
@@ -83,8 +82,11 @@ export function createHandlers(db: Database): Command[] {
 			await action(context, client, id);
 		});
 
-	const withInstanceMutation =
-		(action: (client: ApiClient, id: number) => Promise<void>, successMessage: string, errorPrefix: string): Handler =>
+	const withInstanceMutation = (
+		action: (client: ApiClient, id: number) => Promise<void>,
+		successMessage: string,
+		errorPrefix: string
+	): Handler =>
 		withInstanceAction(async (context, client, id) => {
 			try {
 				await action(client, id);

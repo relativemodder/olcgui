@@ -133,7 +133,11 @@ export function createCreateFlow(db: Database): Flow {
 
 				const name = (context.text || '').trim();
 				if (!name) {
-					return repeatFlowStep(context, 'Название не может быть пустым. Введите название:', 'name');
+					return repeatFlowStep(
+						context,
+						'Название не может быть пустым. Введите название:',
+						'name'
+					);
 				}
 
 				data.name = name;
@@ -172,7 +176,11 @@ export function createCreateFlow(db: Database): Flow {
 
 				const url = (context.text || '').trim();
 				if (!url) {
-					return repeatFlowStep(context, 'URL комнаты не может быть пустым. Введите URL:', 'roomUrl');
+					return repeatFlowStep(
+						context,
+						'URL комнаты не может быть пустым. Введите URL:',
+						'roomUrl'
+					);
 				}
 
 				if (!data.provider || !isSupportedRoomUrl(data.provider as Provider, url)) {
