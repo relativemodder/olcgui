@@ -8,7 +8,9 @@ interface ConfirmBody {
 	token: string;
 }
 
-export function normalizeConfirmBody(body: Partial<ConfirmBody> | null | undefined): ConfirmBody | null {
+export function normalizeConfirmBody(
+	body: Partial<ConfirmBody> | null | undefined
+): ConfirmBody | null {
 	const code = body?.code?.trim();
 	const token = body?.token?.trim();
 

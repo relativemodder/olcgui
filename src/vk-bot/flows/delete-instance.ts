@@ -5,7 +5,9 @@ import { setSession } from '../session';
 import { authKeyboard } from '../keyboard';
 import { createAuthedApiClient } from '../config';
 
-export function parseDeleteConfirmation(payload: Record<string, unknown> | null | undefined): boolean | null {
+export function parseDeleteConfirmation(
+	payload: Record<string, unknown> | null | undefined
+): boolean | null {
 	if (!payload || typeof payload.confirm !== 'boolean') return null;
 	return payload.confirm;
 }

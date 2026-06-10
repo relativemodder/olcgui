@@ -218,7 +218,10 @@ export function createCreateFlow(db: Database): Flow {
 				}
 
 				if (transport && (TRANSPORTS as readonly string[]).includes(transport)) {
-					if (!data.provider || !isAllowedTransport(data.provider as Provider, transport as Transport)) {
+					if (
+						!data.provider ||
+						!isAllowedTransport(data.provider as Provider, transport as Transport)
+					) {
 						await context.send('Этот транспорт не поддерживается выбранным провайдером.', {
 							keyboard: transportKeyboard()
 						});
