@@ -177,7 +177,7 @@ fn run_engine_ps_json(engine: ContainerEngine, label_filter: &str, cwd: &Path) -
         "ps".to_string(),
         "-a".to_string(),
         "--format".to_string(),
-        "json".to_string(),
+        "{{json .}}".to_string(),
         "--filter".to_string(),
         label_filter.to_string(),
     ];
@@ -204,7 +204,10 @@ fn matches_project_container(container: &ContainerInfo, project: &str, dir: &Pat
         return true;
     }
     let prefix = format!("{project}_");
-    container.names.iter().any(|name| name.starts_with(&prefix))
+    container
+        .names
+        .iter()
+        .any(|name| name.trim_start_matches('/').starts_with(&prefix))
 }
 
 pub fn list_project_containers(dir: &Path) -> Result<Vec<ContainerInfo>, ()> {
