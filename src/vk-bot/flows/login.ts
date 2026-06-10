@@ -2,6 +2,7 @@ import type { Flow } from './index';
 import { createLinkRequest } from '../db';
 import { setSession } from '../session';
 import { flowKeyboard as loginFlowKeyboard, unauthKeyboard } from '../keyboard';
+import { isCancelCommand } from './shared';
 
 function generateCode(): string {
 	return String(Math.floor(100000 + Math.random() * 900000));
@@ -19,6 +20,11 @@ export const loginFlow: Flow = {
 
 	steps: {
 		awaiting_username: async (context, data) => {
+			if (isCancelCommand(context)) {
+				await context.send('Привязка отменена.', { keyboard: unauthKeyboard() });
+				return;
+			}
+
 			const username = (context.text || '').trim();
 			if (!username) {
 				await context.send('Имя пользователя не может быть пустым.', {

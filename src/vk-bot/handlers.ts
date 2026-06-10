@@ -23,6 +23,7 @@ import {
 } from './keyboard';
 
 type Handler = (context: MessageContext, api: ApiClient) => void | Promise<void>;
+type InstanceAction = (context: MessageContext, client: ApiClient, id: number) => Promise<void>;
 
 interface Command {
 	pattern: RegExp | string;
@@ -36,6 +37,11 @@ function match(text: string, pattern: RegExp | string): RegExpMatchArray | null 
 		return text === pattern ? ([''] as unknown as RegExpMatchArray) : null;
 	}
 	return text.match(pattern);
+}
+
+function getPayloadInstanceId(context: MessageContext): number | null {
+	const id = context.messagePayload?.id;
+	return typeof id === 'number' && Number.isInteger(id) && id > 0 ? id : null;
 }
 
 export function createHandlers(db: Database): Command[] {
@@ -55,6 +61,39 @@ export function createHandlers(db: Database): Command[] {
 		await context.send('Сначала привяжите аккаунт.', { keyboard: unauthKeyboard() });
 		return false;
 	};
+
+	const withAuthed =
+		(handler: (context: MessageContext, client: ApiClient) => Promise<void>): Handler =>
+		async (context) => {
+			if (!(await ensureAuthedLocal(context))) return;
+			const client = authed(context.senderId);
+			if (!client) return;
+			await handler(context, client);
+		};
+
+	const withInstanceAction =
+		(action: InstanceAction): Handler =>
+		withAuthed(async (context, client) => {
+			const id = getPayloadInstanceId(context);
+			if (!id) {
+				await context.send('Ошибка: не указан ID инстанса.', { keyboard: authKeyboard() });
+				return;
+			}
+
+			await action(context, client, id);
+		});
+
+	const withInstanceMutation =
+		(action: (client: ApiClient, id: number) => Promise<void>, successMessage: string, errorPrefix: string): Handler =>
+		withInstanceAction(async (context, client, id) => {
+			try {
+				await action(client, id);
+				await context.send(successMessage, { keyboard: authKeyboard() });
+			} catch (e: unknown) {
+				const msg = e instanceof Error ? e.message : 'неизвестная ошибка';
+				await context.send(`${errorPrefix}: ${msg}`, { keyboard: authKeyboard() });
+			}
+		});
 
 	return [
 		{
@@ -127,12 +166,7 @@ export function createHandlers(db: Database): Command[] {
 		},
 		{
 			pattern: '/status',
-			handler: async (context) => {
-				const client = authed(context.senderId);
-				if (!client) {
-					await context.send('Сначала привяжите аккаунт.', { keyboard: unauthKeyboard() });
-					return;
-				}
+			handler: withAuthed(async (context, client) => {
 				try {
 					const stats = await client.system.stats();
 					const msg = [
@@ -145,18 +179,13 @@ export function createHandlers(db: Database): Command[] {
 				} catch {
 					await context.send('Не удалось получить статус системы', { keyboard: authKeyboard() });
 				}
-			},
+			}),
 			description: 'Статус системы',
 			needsAuth: true
 		},
 		{
 			pattern: '/instances',
-			handler: async (context) => {
-				const client = authed(context.senderId);
-				if (!client) {
-					await context.send('Сначала привяжите аккаунт.', { keyboard: unauthKeyboard() });
-					return;
-				}
+			handler: withAuthed(async (context, client) => {
 				try {
 					const instances = await client.instances.list();
 					if (instances.length === 0) {
@@ -173,7 +202,7 @@ export function createHandlers(db: Database): Command[] {
 				} catch {
 					await context.send('Не удалось получить список инстансов', { keyboard: authKeyboard() });
 				}
-			},
+			}),
 			description: 'Список инстансов',
 			needsAuth: true
 		},
@@ -189,17 +218,7 @@ export function createHandlers(db: Database): Command[] {
 		},
 		{
 			pattern: '/instance_view',
-			handler: async (context) => {
-				if (!(await ensureAuthedLocal(context))) return;
-				const client = authed(context.senderId);
-				if (!client) return;
-
-				const id = context.messagePayload?.id as number | undefined;
-				if (!id) {
-					await context.send('Ошибка: не указан ID инстанса.', { keyboard: authKeyboard() });
-					return;
-				}
-
+			handler: withInstanceAction(async (context, client, id) => {
 				try {
 					const instance = await client.instances.get(id);
 					await context.send(formatInstanceInfo(instance), {
@@ -211,70 +230,37 @@ export function createHandlers(db: Database): Command[] {
 						keyboard: authKeyboard()
 					});
 				}
-			},
+			}),
 			description: 'Просмотр инстанса',
 			needsAuth: true
 		},
 		{
 			pattern: '/instance_start',
-			handler: async (context) => {
-				if (!(await ensureAuthedLocal(context))) return;
-				const client = authed(context.senderId);
-				if (!client) return;
-
-				const id = context.messagePayload?.id as number | undefined;
-				if (!id) return;
-
-				try {
-					await client.instances.start(id);
-					await context.send('Инстанс запущен.', { keyboard: authKeyboard() });
-				} catch (e: unknown) {
-					const msg = e instanceof Error ? e.message : 'неизвестная ошибка';
-					await context.send(`Ошибка запуска: ${msg}`, { keyboard: authKeyboard() });
-				}
-			},
+			handler: withInstanceMutation(
+				(client, id) => client.instances.start(id),
+				'Инстанс запущен.',
+				'Ошибка запуска'
+			),
 			description: 'Запустить инстанс',
 			needsAuth: true
 		},
 		{
 			pattern: '/instance_stop',
-			handler: async (context) => {
-				if (!(await ensureAuthedLocal(context))) return;
-				const client = authed(context.senderId);
-				if (!client) return;
-
-				const id = context.messagePayload?.id as number | undefined;
-				if (!id) return;
-
-				try {
-					await client.instances.stop(id);
-					await context.send('Инстанс остановлен.', { keyboard: authKeyboard() });
-				} catch (e: unknown) {
-					const msg = e instanceof Error ? e.message : 'неизвестная ошибка';
-					await context.send(`Ошибка остановки: ${msg}`, { keyboard: authKeyboard() });
-				}
-			},
+			handler: withInstanceMutation(
+				(client, id) => client.instances.stop(id),
+				'Инстанс остановлен.',
+				'Ошибка остановки'
+			),
 			description: 'Остановить инстанс',
 			needsAuth: true
 		},
 		{
 			pattern: '/instance_restart',
-			handler: async (context) => {
-				if (!(await ensureAuthedLocal(context))) return;
-				const client = authed(context.senderId);
-				if (!client) return;
-
-				const id = context.messagePayload?.id as number | undefined;
-				if (!id) return;
-
-				try {
-					await client.instances.restart(id);
-					await context.send('Инстанс перезапускается...', { keyboard: authKeyboard() });
-				} catch (e: unknown) {
-					const msg = e instanceof Error ? e.message : 'неизвестная ошибка';
-					await context.send(`Ошибка перезапуска: ${msg}`, { keyboard: authKeyboard() });
-				}
-			},
+			handler: withInstanceMutation(
+				(client, id) => client.instances.restart(id),
+				'Инстанс перезапускается...',
+				'Ошибка перезапуска'
+			),
 			description: 'Перезапустить инстанс',
 			needsAuth: true
 		},

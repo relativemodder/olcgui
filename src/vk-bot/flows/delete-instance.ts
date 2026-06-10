@@ -3,13 +3,12 @@ import type { Database } from 'bun:sqlite';
 import { Keyboard } from 'vk-io';
 import { setSession } from '../session';
 import { authKeyboard } from '../keyboard';
-import { createAuthedApiClient } from '../config';
+import { ensureAuthedClient, isCancelCommand, parseBooleanChoice, sendFlowCancelled } from './shared';
 
 export function parseDeleteConfirmation(
 	payload: Record<string, unknown> | null | undefined
 ): boolean | null {
-	if (!payload || typeof payload.confirm !== 'boolean') return null;
-	return payload.confirm;
+	return parseBooleanChoice(payload, 'confirm');
 }
 
 function deleteConfirmKeyboard() {
@@ -42,11 +41,8 @@ export function createDeleteFlow(db: Database): Flow {
 				return;
 			}
 
-			const client = createAuthedApiClient(db, context.senderId);
+			const client = await ensureAuthedClient(db, context);
 			if (!client) {
-				await context.send('Ошибка авторизации.', {
-					keyboard: authKeyboard()
-				});
 				return;
 			}
 
@@ -72,12 +68,7 @@ export function createDeleteFlow(db: Database): Flow {
 
 		steps: {
 			confirm: async (context, data) => {
-				if (context.messagePayload?.command === '/cancel') {
-					await context.send('Удаление отменено.', {
-						keyboard: authKeyboard()
-					});
-					return;
-				}
+				if (isCancelCommand(context)) return sendFlowCancelled(context, 'Удаление отменено.');
 
 				const confirmed = parseDeleteConfirmation(context.messagePayload);
 				const instanceId = data.instanceId as number;
@@ -90,11 +81,8 @@ export function createDeleteFlow(db: Database): Flow {
 				}
 
 				if (confirmed) {
-					const client = createAuthedApiClient(db, context.senderId);
+					const client = await ensureAuthedClient(db, context);
 					if (!client) {
-						await context.send('Ошибка авторизации.', {
-							keyboard: authKeyboard()
-						});
 						return;
 					}
 

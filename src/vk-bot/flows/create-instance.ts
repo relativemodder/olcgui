@@ -3,9 +3,15 @@ import type { Database } from 'bun:sqlite';
 import { Keyboard } from 'vk-io';
 import { setSession } from '../session';
 import { flowKeyboard, authKeyboard } from '../keyboard';
-import { createAuthedApiClient } from '../config';
 import type { Mode, Provider, Transport } from '../../shared/wizard/constants';
 import { PROVIDER_CONFIG } from '../../shared/wizard/constants';
+import {
+	ensureAuthedClient,
+	isCancelCommand,
+	parseBooleanChoice,
+	repeatFlowStep,
+	sendFlowCancelled
+} from './shared';
 
 const PROVIDERS = ['jitsi', 'wbstream', 'telemost'] as const;
 const TRANSPORTS = ['datachannel', 'vp8channel', 'seichannel', 'videochannel'] as const;
@@ -88,10 +94,6 @@ function confirmKeyboard() {
 	]).inline();
 }
 
-function isCancel(context: { messagePayload?: Record<string, unknown> | null }): boolean {
-	return context.messagePayload?.command === '/cancel';
-}
-
 function isValidUrl(value: string): boolean {
 	try {
 		const url = new URL(value);
@@ -127,17 +129,11 @@ export function createCreateFlow(db: Database): Flow {
 
 		steps: {
 			name: async (context, data) => {
-				if (isCancel(context)) {
-					await context.send('Создание отменено.', { keyboard: authKeyboard() });
-					return;
-				}
+				if (isCancelCommand(context)) return sendFlowCancelled(context, 'Создание отменено.');
 
 				const name = (context.text || '').trim();
 				if (!name) {
-					await context.send('Название не может быть пустым. Введите название:', {
-						keyboard: flowKeyboard()
-					});
-					return 'name';
+					return repeatFlowStep(context, 'Название не может быть пустым. Введите название:', 'name');
 				}
 
 				data.name = name;
@@ -147,10 +143,7 @@ export function createCreateFlow(db: Database): Flow {
 			},
 
 			provider: async (context, data) => {
-				if (isCancel(context)) {
-					await context.send('Создание отменено.', { keyboard: authKeyboard() });
-					return;
-				}
+				if (isCancelCommand(context)) return sendFlowCancelled(context, 'Создание отменено.');
 
 				const payload = context.messagePayload;
 				let provider = payload?.provider as string | null;
@@ -175,24 +168,19 @@ export function createCreateFlow(db: Database): Flow {
 			},
 
 			roomUrl: async (context, data) => {
-				if (isCancel(context)) {
-					await context.send('Создание отменено.', { keyboard: authKeyboard() });
-					return;
-				}
+				if (isCancelCommand(context)) return sendFlowCancelled(context, 'Создание отменено.');
 
 				const url = (context.text || '').trim();
 				if (!url) {
-					await context.send('URL комнаты не может быть пустым. Введите URL:', {
-						keyboard: flowKeyboard()
-					});
-					return 'roomUrl';
+					return repeatFlowStep(context, 'URL комнаты не может быть пустым. Введите URL:', 'roomUrl');
 				}
 
 				if (!data.provider || !isSupportedRoomUrl(data.provider as Provider, url)) {
-					await context.send('Введите корректный URL комнаты для выбранного провайдера.', {
-						keyboard: flowKeyboard()
-					});
-					return 'roomUrl';
+					return repeatFlowStep(
+						context,
+						'Введите корректный URL комнаты для выбранного провайдера.',
+						'roomUrl'
+					);
 				}
 
 				data.roomUrl = url;
@@ -201,10 +189,7 @@ export function createCreateFlow(db: Database): Flow {
 			},
 
 			transport: async (context, data) => {
-				if (isCancel(context)) {
-					await context.send('Создание отменено.', { keyboard: authKeyboard() });
-					return;
-				}
+				if (isCancelCommand(context)) return sendFlowCancelled(context, 'Создание отменено.');
 
 				const payload = context.messagePayload;
 				let transport = payload?.transport as string | null;
@@ -254,20 +239,24 @@ export function createCreateFlow(db: Database): Flow {
 			},
 
 			confirm: async (context, data) => {
-				if (isCancel(context)) {
-					await context.send('Создание отменено.', { keyboard: authKeyboard() });
-					return;
+				if (isCancelCommand(context)) return sendFlowCancelled(context, 'Создание отменено.');
+
+				const confirmed = parseBooleanChoice(context.messagePayload, 'confirm');
+
+				if (confirmed === null) {
+					await context.send('Подтвердите создание кнопками или отмените действие.', {
+						keyboard: confirmKeyboard()
+					});
+					return 'confirm';
 				}
 
-				const payload = context.messagePayload;
-				const confirmed = payload?.confirm;
-
 				if (confirmed) {
-					const client = createAuthedApiClient(db, context.senderId);
+					const client = await ensureAuthedClient(
+						db,
+						context,
+						'Ошибка авторизации. Попробуйте перепривязать аккаунт.'
+					);
 					if (!client) {
-						await context.send('Ошибка авторизации. Попробуйте перепривязать аккаунт.', {
-							keyboard: authKeyboard()
-						});
 						return;
 					}
 
