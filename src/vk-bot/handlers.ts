@@ -3,6 +3,7 @@ import type { ApiClient } from '../shared/api';
 import type { Database } from 'bun:sqlite';
 import type { InstanceDto } from '../shared/api/types';
 import { generateOlcrtcUri, parseRoomUrl } from '../shared/wizard/utils';
+import { formatInstanceInfo, formatInstanceList, formatSystemStats } from './presentation';
 import { vk } from './vk';
 import { createAuthedApiClient, createApiClient, API_BACKEND_URL } from './config';
 import { deleteToken } from './db';
@@ -171,13 +172,7 @@ export function createHandlers(db: Database): Command[] {
 			handler: withAuthed(async (context, client) => {
 				try {
 					const stats = await client.system.stats();
-					const msg = [
-						'Статус системы:',
-						`CPU: ${stats.cpuPercent.toFixed(1)}%`,
-						`RAM: ${(stats.memoryUsed / 1024 / 1024).toFixed(1)}/${(stats.memoryTotal / 1024 / 1024).toFixed(1)} MB`,
-						`Сеть: ${(stats.networkRxSec / 1024).toFixed(1)} KB/s входящий / ${(stats.networkTxSec / 1024).toFixed(1)} KB/s исходящий`
-					].join('\n');
-					await context.send(msg, { keyboard: authKeyboard() });
+					await context.send(formatSystemStats(stats), { keyboard: authKeyboard() });
 				} catch {
 					await context.send('Не удалось получить статус системы', { keyboard: authKeyboard() });
 				}
@@ -194,11 +189,7 @@ export function createHandlers(db: Database): Command[] {
 						await context.send('Нет активных инстансов', { keyboard: authKeyboard() });
 						return;
 					}
-					const lines = instances.map(
-						(inst, i) =>
-							`${i + 1}. ${inst.name} — ${inst.status === 'running' ? 'работает' : 'остановлен'}`
-					);
-					await context.send(['Инстансы:', ...lines].join('\n'), {
+					await context.send(formatInstanceList(instances), {
 						keyboard: instanceListKeyboard(instances)
 					});
 				} catch {
@@ -278,33 +269,6 @@ export function createHandlers(db: Database): Command[] {
 		}
 	];
 }
-
-function formatInstanceInfo(inst: InstanceDto): string {
-	const statusLabels: Record<string, string> = {
-		running: 'работает',
-		stopped: 'остановлен',
-		restarting: 'перезапускается',
-		error: 'ошибка'
-	};
-	const modeLabels: Record<string, string> = {
-		srv: 'Сервер',
-		cnc: 'Клиент'
-	};
-
-	return [
-		`${inst.name}`,
-		`━━━━━━━━━━━━━━━`,
-		`Статус: ${statusLabels[inst.status] || inst.status}`,
-		`Режим: ${modeLabels[inst.mode] || inst.mode}`,
-		`Провайдер: ${inst.provider}`,
-		`Транспорт: ${inst.transport}`,
-		`Комната: ${inst.roomUrl}`,
-		...(inst.socksPort ? [`SOCKS5: порт ${inst.socksPort}`] : []),
-		...(inst.autoRestart ? [`Авторестарт: вкл`] : [`Авторестарт: выкл`]),
-		...(inst.restartInterval ? [`Интервал: ${inst.restartInterval} мин`] : [])
-	].join('\n');
-}
-
 async function sendConfigFile(context: MessageContext, inst: InstanceDto): Promise<void> {
 	const importUri = generateOlcrtcUri(
 		inst.provider,
